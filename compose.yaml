@@ -1,65 +1,77 @@
 services:
   sdc:
-    image: bedasoftware/fhir-sdc:1.0.0a13
+    image: bedasoftware/fhir-sdc:1.0.0a20
     depends_on:
-      devbox-healthcheck:
+      devbox:
         condition: service_healthy
-    links:
-      - devbox
     env_file:
       - ./env/sdc
-    tty: true
   devbox:
     image: healthsamurai/aidboxone:edge
     depends_on:
-      - devbox-db
-    links:
-      - "devbox-db:database"
+      devbox-db:
+        condition: service_healthy
+      build-seeds:
+        condition: service_completed_successfully
+    healthcheck:
+      test: curl --fail http://localhost:8080/health || exit 1
+      interval: 5s
+      timeout: 30s
+      retries: 50
     ports:
-      - "8080:8080"
+      - 8080:8080
     env_file:
       - ./env/aidbox
-      - .env
+    environment:
+      - AIDBOX_LICENSE
     volumes:
       - ./resources:/resources
   devbox-db:
     image: "healthsamurai/aidboxdb:13.2"
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: devbox
-  devbox-healthcheck:
-    image: curlimages/curl
-    entrypoint: /bin/sleep 10000
-    links:
-      - devbox
-    depends_on:
-      - devbox
+    env_file:
+      - ./env/db
     healthcheck:
-      test: curl --fail http://devbox:8080/health || exit 1
+      test: ["CMD", "pg_isready", "-U", "postgres"]
       interval: 5s
-      timeout: 30s
-      retries: 100
+      timeout: 5s
+      retries: 10
   build-seeds:
     image: bedasoftware/fhirsnake:latest
     command:
       - export
       - --output
       - /app/resources/initBundle.json
+      - --external-questionnaire-fce-fhir-converter-url
+      - http://questionnaire-fce-fhir-converter:3000/to-fhir
     volumes:
       - ./resources/seeds:/app/resources
+    env_file:
+      - ./env/build-seeds
   watch-seeds:
     image: bedasoftware/fhirsnake:latest
     command:
       - watch
       - --external-fhir-server-url
       - http://root:secret@devbox:8080
+      - --external-questionnaire-fce-fhir-converter-url
+      - http://questionnaire-fce-fhir-converter:3000/to-fhir
     volumes:
       - ./resources/seeds:/app/resources
+    env_file:
+      - ./env/build-seeds
   fhir-converters-app:
     image: bedasoftware/aidbox-fhir-converter:main
     depends_on:
-      devbox-healthcheck:
+      devbox:
         condition: service_healthy
     env_file:
       - ./env/fhir-converters-app
+  fhirpath-mapping:
+    image: bedasoftware/fhirpath-extract:0.2.0
+  questionnaire-fce-fhir-converter:
+    image: bedasoftware/questionnaire-fce-fhir-converter:latest
+    healthcheck:
+      test: curl --fail http://localhost:3000/health || exit 1
+      interval: 5s
+      timeout: 30s
+      retries: 50
