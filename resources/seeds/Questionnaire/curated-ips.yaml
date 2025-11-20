@@ -1,366 +1,411 @@
 resourceType: Questionnaire
 id: ips-curated-questionnaire
+url: ips-curated-questionnaire
 status: active
 meta:
   profile:
-    - "https://emr-core.beda.software/StructureDefinition/fhir-emr-questionnaire"
+    - https://emr-core.beda.software/StructureDefinition/fhir-emr-questionnaire
 title: International Patient Summary (IPS)
+name: ips-curated-questionnaire
 subjectType:
   - Patient
-# launchContext:
-#   - name: patient
-#     type: Patient
-description: >
-  Questionnaire to collect a curated International Patient Summary (IPS) for
-  an individual patient. Sections map to IPS structure (problems, allergies,
-  medications, immunizations, diagnostic results, procedures, devices,
-  advance directives, alerts, functional status, history, pregnancy, patient
-  story, plan of care, social history, vital signs).
+launchContext:
+  - name:
+      code: patient
+    type:
+      - Patient
+contained:
+  - resourceType: Bundle
+    id: PatientConditionsBundle
+    type: transaction
+    entry:
+      - request:
+          method: GET
+          url: /Condition?patient={{%patient.id}}
+sourceQueries:
+  - reference: "#PatientConditionsBundle"
 item:
   - linkId: patient-information
     text: "Patient Information"
     type: group
-    repeats: false
     item:
-      - linkId: patient-information.name
-        text: "Name"
+      - linkId: patient-name
+        text: Name
         type: string
         readOnly: true
-      - linkId: patient-information.gender
-        text: "Gender"
-        type: choice
-        answerValueSet: http://hl7.org/fhir/ValueSet/administrative-gender
+        initialExpression:
+          language: text/fhirpath
+          expression: "%patient.name.first().family"
+      - linkId: patient-mrn
+        text: MRN
+        type: string
         readOnly: true
-      - linkId: patient-information.birthDate
-        text: "Birth Date"
+        initialExpression:
+          language: text/fhirpath
+          expression: "%patient.identifier.first().value"
+      - linkId: patient-gender
+        text: Gender
+        type: string
+        readOnly: true
+        initialExpression:
+          language: text/fhirpath
+          expression: "%patient.gender"
+      - linkId: patient-birthDate
+        text: Birth Date
         type: date
         readOnly: true
+        initialExpression:
+          language: text/fhirpath
+          expression: "%patient.birthDate"
   - linkId: problems
-    text: "Problem List (current problems)"
+    text: "Problem"
     type: group
     repeats: true
     required: false
+    itemPopulationContext:
+      language: text/fhirpath
+      expression: "%PatientConditionsBundle.entry[0].resource.entry.resource"
+      name: condition
     item:
-      - linkId: problems.conditionReference
-        text: "Condition (reference to Condition resource)"
-        type: reference
+      - linkId: condition-id
+        text: Condition ID
+        type: string
         required: false
-        # allowed resource types in the reference
-      - linkId: problems.onset
-        text: "Onset date/time"
-        type: dateTime
-      - linkId: problems.clinicalStatus
-        text: "Clinical status (active, inactive, resolved)"
+        hidden: true
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.id"
+      - linkId: condition-code
+        text: Problem or diagnosis
         type: choice
-        answerOption:
-          - valueString: "active"
-          - valueString: "inactive"
-          - valueString: "resolved"
-      - linkId: problems.notes
-        text: "Notes / clinical summary"
-        type: string
-
-  - linkId: allergies
-    text: "Allergies and Intolerances"
-    type: group
-    repeats: true
-    item:
-      - linkId: allergies.allergyReference
-        text: "AllergyIntolerance (reference)"
-        type: reference
-      - linkId: allergies.allergen
-        text: "Allergen / agent (text)"
-        type: string
-      - linkId: allergies.reaction
-        text: "Reaction description"
-        type: string
-      - linkId: allergies.criticality
-        text: "Criticality (low/moderate/high)"
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.code.coding"
+        answerValueSet: http://snomed.info/sct
+      - linkId: condition-clinical-status
+        text: Clinical Status
         type: choice
-        answerOption:
-          - valueString: "low"
-          - valueString: "moderate"
-          - valueString: "high"
-      - linkId: allergies.status
-        text: "Status (active/inactive/confirmed/unconfirmed)"
+        answerValueSet: http://hl7.org/fhir/ValueSet/condition-clinical
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.clinicalStatus.coding"
+      - linkId: condition-verification-status
+        text: Verification Status
         type: choice
-        answerOption:
-          - valueString: "active"
-          - valueString: "inactive"
-          - valueString: "confirmed"
-          - valueString: "unconfirmed"
-      - linkId: allergies.notes
-        text: "Notes"
-        type: string
-
-  - linkId: medications
-    text: "Medication Summary"
-    type: group
-    repeats: true
-    item:
-      - linkId: medications.medReference
-        text: "Medication (reference to MedicationStatement / MedicationRequest)"
-        type: reference
-      - linkId: medications.medicationName
-        text: "Medication name (text)"
-        type: string
-      - linkId: medications.dosage
-        text: "Dosage / regimen"
-        type: string
-      - linkId: medications.status
-        text: "Status (active/completed/on-hold/stopped)"
+        answerValueSet: http://hl7.org/fhir/ValueSet/condition-ver-status
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.verificationStatus.coding"
+      - linkId: condition-category
+        text: Category
         type: choice
-        answerOption:
-          - valueString: "active"
-          - valueString: "completed"
-          - valueString: "on-hold"
-          - valueString: "stopped"
-      - linkId: medications.startEnd
-        text: "Effective period (start / end)"
-        type: dateTime
-      - linkId: medications.notes
-        text: "Notes / indication / prescriber"
-        type: string
-
-  - linkId: immunizations
-    text: "Immunizations"
-    type: group
-    repeats: true
-    item:
-      - linkId: immunizations.immunizationReference
-        text: "Immunization (reference)"
-        type: reference
-      - linkId: immunizations.vaccineCode
-        text: "Vaccine name/code"
-        type: string
-      - linkId: immunizations.date
-        text: "Administration date"
-        type: date
-      - linkId: immunizations.status
-        text: "Status (completed/entered-in-error)"
-        type: choice
-        answerOption:
-          - valueString: "completed"
-          - valueString: "entered-in-error"
-      - linkId: immunizations.notes
-        text: "Notes"
-        type: string
-
-  - linkId: diagnostic-results
-    text: "Diagnostic Results (laboratory, radiology)"
-    type: group
-    repeats: true
-    item:
-      - linkId: diagnostic-results.reportReference
-        text: "DiagnosticReport (reference) or Observation (reference)"
-        type: reference
-      - linkId: diagnostic-results.type
-        text: "Type (laboratory / radiology / pathology / other)"
-        type: choice
-        answerOption:
-          - valueString: "laboratory"
-          - valueString: "radiology"
-          - valueString: "pathology"
-          - valueString: "other"
-      - linkId: diagnostic-results.date
-        text: "Result date"
-        type: dateTime
-      - linkId: diagnostic-results.summary
-        text: "Summary / key result values"
-        type: string
-
-  - linkId: procedures
-    text: "History of Procedures (relevant past procedures)"
-    type: group
-    repeats: true
-    item:
-      - linkId: procedures.procedureReference
-        text: "Procedure (reference)"
-        type: reference
-      - linkId: procedures.date
-        text: "Procedure date"
-        type: date
-      - linkId: procedures.type
-        text: "Procedure type / description"
-        type: string
-      - linkId: procedures.outcome
-        text: "Outcome / complications"
-        type: string
-
-  - linkId: devices
-    text: "Medical Devices"
-    type: group
-    repeats: true
-    item:
-      - linkId: devices.deviceReference
-        text: "Device or DeviceUseStatement (reference)"
-        type: reference
-      - linkId: devices.type
-        text: "Device type / description"
-        type: string
-      - linkId: devices.inUseFrom
-        text: "In-use since"
-        type: date
-      - linkId: devices.notes
-        text: "Notes"
-        type: string
-
-  - linkId: advance-directives
-    text: "Advance Directives"
-    type: group
-    repeats: true
-    item:
-      - linkId: advance-directives.documentReference
-        text: "DocumentReference (reference to directive / consent)"
-        type: reference
-      - linkId: advance-directives.summary
-        text: "Short narrative summary"
-        type: string
-      - linkId: advance-directives.date
-        text: "Date of document"
-        type: date
-
-  - linkId: alerts
-    text: "Alerts (flags)"
-    type: group
-    repeats: true
-    item:
-      - linkId: alerts.flagReference
-        text: "Flag / Alert (reference)"
-        type: reference
-      - linkId: alerts.description
-        text: "Description of alert"
-        type: string
-      - linkId: alerts.severity
-        text: "Severity / priority"
-        type: choice
-        answerOption:
-          - valueString: "low"
-          - valueString: "moderate"
-          - valueString: "high"
-
-  - linkId: functional-status
-    text: "Functional Status"
-    type: group
-    repeats: false
-    item:
-      - linkId: functional-status.summary
-        text: "Narrative on functional status / activities of daily living"
-        type: string
-      - linkId: functional-status.assessments
-        text: "Assessment references (Condition / ClinicalImpression)"
-        type: reference
         repeats: true
+        answerValueSet: http://hl7.org/fhir/ValueSet/condition-category
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.category.coding"
 
-  - linkId: history-past-problems
-    text: "History of Past Problems (no longer active)"
-    type: group
-    repeats: true
-    item:
-      - linkId: history-past-problems.conditionReference
-        text: "Past Condition (reference)"
-        type: reference
-      - linkId: history-past-problems.when
-        text: "When (date or period)"
-        type: dateTime
-      - linkId: history-past-problems.notes
-        text: "Notes"
-        type: string
+  # - linkId: allergies
+  #   text: "Allergies and Intolerances"
+  #   type: group
+  #   repeats: true
+  #   item:
+  #     - linkId: allergies.allergyReference
+  #       text: "AllergyIntolerance (reference)"
+  #       type: reference
+  #     - linkId: allergies.allergen
+  #       text: "Allergen / agent (text)"
+  #       type: string
+  #     - linkId: allergies.reaction
+  #       text: "Reaction description"
+  #       type: string
+  #     - linkId: allergies.criticality
+  #       text: "Criticality (low/moderate/high)"
+  #       type: choice
+  #       answerOption:
+  #         - valueString: "low"
+  #         - valueString: "moderate"
+  #         - valueString: "high"
+  #     - linkId: allergies.status
+  #       text: "Status (active/inactive/confirmed/unconfirmed)"
+  #       type: choice
+  #       answerOption:
+  #         - valueString: "active"
+  #         - valueString: "inactive"
+  #         - valueString: "confirmed"
+  #         - valueString: "unconfirmed"
+  #     - linkId: allergies.notes
+  #       text: "Notes"
+  #       type: string
 
-  - linkId: pregnancy
-    text: "History of Pregnancy (status and history summary)"
-    type: group
-    repeats: false
-    item:
-      - linkId: pregnancy.statusObservation
-        text: "Pregnancy status (Observation reference)"
-        type: reference
-      - linkId: pregnancy.estimatedDeliveryDate
-        text: "Estimated Delivery Date (if applicable)"
-        type: date
-      - linkId: pregnancy.historySummary
-        text: "Pregnancy history / summary (Observation or narrative)"
-        type: string
+  # - linkId: medications
+  #   text: "Medication Summary"
+  #   type: group
+  #   repeats: true
+  #   item:
+  #     - linkId: medications.medReference
+  #       text: "Medication (reference to MedicationStatement / MedicationRequest)"
+  #       type: reference
+  #     - linkId: medications.medicationName
+  #       text: "Medication name (text)"
+  #       type: string
+  #     - linkId: medications.dosage
+  #       text: "Dosage / regimen"
+  #       type: string
+  #     - linkId: medications.status
+  #       text: "Status (active/completed/on-hold/stopped)"
+  #       type: choice
+  #       answerOption:
+  #         - valueString: "active"
+  #         - valueString: "completed"
+  #         - valueString: "on-hold"
+  #         - valueString: "stopped"
+  #     - linkId: medications.startEnd
+  #       text: "Effective period (start / end)"
+  #       type: dateTime
+  #     - linkId: medications.notes
+  #       text: "Notes / indication / prescriber"
+  #       type: string
 
-  - linkId: patient-story
-    text: "Patient Story (what matters to the patient)"
-    type: group
-    repeats: false
-    item:
-      - linkId: patient-story.narrative
-        text: "Narrative (patient's story, values, concerns, important people, dates)"
-        type: string
-      - linkId: patient-story.resources
-        text: "Supporting resources (DocumentReference or other references)"
-        type: reference
-        repeats: true
+  # - linkId: immunizations
+  #   text: "Immunizations"
+  #   type: group
+  #   repeats: true
+  #   item:
+  #     - linkId: immunizations.immunizationReference
+  #       text: "Immunization (reference)"
+  #       type: reference
+  #     - linkId: immunizations.vaccineCode
+  #       text: "Vaccine name/code"
+  #       type: string
+  #     - linkId: immunizations.date
+  #       text: "Administration date"
+  #       type: date
+  #     - linkId: immunizations.status
+  #       text: "Status (completed/entered-in-error)"
+  #       type: choice
+  #       answerOption:
+  #         - valueString: "completed"
+  #         - valueString: "entered-in-error"
+  #     - linkId: immunizations.notes
+  #       text: "Notes"
+  #       type: string
 
-  - linkId: plan-of-care
-    text: "Plan of Care"
-    type: group
-    repeats: true
-    item:
-      - linkId: plan-of-care.carePlanReference
-        text: "CarePlan (reference)"
-        type: reference
-      - linkId: plan-of-care.goals
-        text: "Goals (text)"
-        type: string
-      - linkId: plan-of-care.activities
-        text: "Planned activities / orders"
-        type: string
+  # - linkId: diagnostic-results
+  #   text: "Diagnostic Results (laboratory, radiology)"
+  #   type: group
+  #   repeats: true
+  #   item:
+  #     - linkId: diagnostic-results.reportReference
+  #       text: "DiagnosticReport (reference) or Observation (reference)"
+  #       type: reference
+  #     - linkId: diagnostic-results.type
+  #       text: "Type (laboratory / radiology / pathology / other)"
+  #       type: choice
+  #       answerOption:
+  #         - valueString: "laboratory"
+  #         - valueString: "radiology"
+  #         - valueString: "pathology"
+  #         - valueString: "other"
+  #     - linkId: diagnostic-results.date
+  #       text: "Result date"
+  #       type: dateTime
+  #     - linkId: diagnostic-results.summary
+  #       text: "Summary / key result values"
+  #       type: string
 
-  - linkId: social-history
-    text: "Social History"
-    type: group
-    repeats: false
-    item:
-      - linkId: social-history.tobacco
-        text: "Tobacco use (Observation or text)"
-        type: choice
-        answerOption:
-          - valueString: "never"
-          - valueString: "former"
-          - valueString: "current"
-          - valueString: "unknown"
-      - linkId: social-history.alcohol
-        text: "Alcohol use (Observation or text)"
-        type: choice
-        answerOption:
-          - valueString: "none"
-          - valueString: "occasional"
-          - valueString: "regular"
-          - valueString: "unknown"
-      - linkId: social-history.notes
-        text: "Other social history notes"
-        type: string
+  # - linkId: procedures
+  #   text: "History of Procedures (relevant past procedures)"
+  #   type: group
+  #   repeats: true
+  #   item:
+  #     - linkId: procedures.procedureReference
+  #       text: "Procedure (reference)"
+  #       type: reference
+  #     - linkId: procedures.date
+  #       text: "Procedure date"
+  #       type: date
+  #     - linkId: procedures.type
+  #       text: "Procedure type / description"
+  #       type: string
+  #     - linkId: procedures.outcome
+  #       text: "Outcome / complications"
+  #       type: string
 
-  - linkId: vital-signs
-    text: "Vital Signs"
-    type: group
-    repeats: false
-    item:
-      - linkId: vital-signs.bp
-        text: "Blood pressure (systolic/diastolic)"
-        type: string
-      - linkId: vital-signs.temperature
-        text: "Body temperature (C or F)"
-        type: decimal
-      - linkId: vital-signs.heartRate
-        text: "Heart rate (beats per minute)"
-        type: integer
-      - linkId: vital-signs.respRate
-        text: "Respiratory rate (breaths per minute)"
-        type: integer
-      - linkId: vital-signs.height
-        text: "Height (cm)"
-        type: decimal
-      - linkId: vital-signs.weight
-        text: "Weight (kg)"
-        type: decimal
-      - linkId: vital-signs.bmi
-        text: "Body Mass Index (BMI)"
-        type: decimal
-      - linkId: vital-signs.spO2
-        text: "Pulse oximetry (SpO2 %)"
-        type: decimal
+  # - linkId: devices
+  #   text: "Medical Devices"
+  #   type: group
+  #   repeats: true
+  #   item:
+  #     - linkId: devices.deviceReference
+  #       text: "Device or DeviceUseStatement (reference)"
+  #       type: reference
+  #     - linkId: devices.type
+  #       text: "Device type / description"
+  #       type: string
+  #     - linkId: devices.inUseFrom
+  #       text: "In-use since"
+  #       type: date
+  #     - linkId: devices.notes
+  #       text: "Notes"
+  #       type: string
+
+  # - linkId: advance-directives
+  #   text: "Advance Directives"
+  #   type: group
+  #   repeats: true
+  #   item:
+  #     - linkId: advance-directives.documentReference
+  #       text: "DocumentReference (reference to directive / consent)"
+  #       type: reference
+  #     - linkId: advance-directives.summary
+  #       text: "Short narrative summary"
+  #       type: string
+  #     - linkId: advance-directives.date
+  #       text: "Date of document"
+  #       type: date
+
+  # - linkId: alerts
+  #   text: "Alerts (flags)"
+  #   type: group
+  #   repeats: true
+  #   item:
+  #     - linkId: alerts.flagReference
+  #       text: "Flag / Alert (reference)"
+  #       type: reference
+  #     - linkId: alerts.description
+  #       text: "Description of alert"
+  #       type: string
+  #     - linkId: alerts.severity
+  #       text: "Severity / priority"
+  #       type: choice
+  #       answerOption:
+  #         - valueString: "low"
+  #         - valueString: "moderate"
+  #         - valueString: "high"
+
+  # - linkId: functional-status
+  #   text: "Functional Status"
+  #   type: group
+  #   repeats: false
+  #   item:
+  #     - linkId: functional-status.summary
+  #       text: "Narrative on functional status / activities of daily living"
+  #       type: string
+  #     - linkId: functional-status.assessments
+  #       text: "Assessment references (Condition / ClinicalImpression)"
+  #       type: reference
+  #       repeats: true
+
+  # - linkId: history-past-problems
+  #   text: "History of Past Problems (no longer active)"
+  #   type: group
+  #   repeats: true
+  #   item:
+  #     - linkId: history-past-problems.conditionReference
+  #       text: "Past Condition (reference)"
+  #       type: reference
+  #     - linkId: history-past-problems.when
+  #       text: "When (date or period)"
+  #       type: dateTime
+  #     - linkId: history-past-problems.notes
+  #       text: "Notes"
+  #       type: string
+
+  # - linkId: pregnancy
+  #   text: "History of Pregnancy (status and history summary)"
+  #   type: group
+  #   repeats: false
+  #   item:
+  #     - linkId: pregnancy.statusObservation
+  #       text: "Pregnancy status (Observation reference)"
+  #       type: reference
+  #     - linkId: pregnancy.estimatedDeliveryDate
+  #       text: "Estimated Delivery Date (if applicable)"
+  #       type: date
+  #     - linkId: pregnancy.historySummary
+  #       text: "Pregnancy history / summary (Observation or narrative)"
+  #       type: string
+
+  # - linkId: patient-story
+  #   text: "Patient Story (what matters to the patient)"
+  #   type: group
+  #   repeats: false
+  #   item:
+  #     - linkId: patient-story.narrative
+  #       text: "Narrative (patient's story, values, concerns, important people, dates)"
+  #       type: string
+  #     - linkId: patient-story.resources
+  #       text: "Supporting resources (DocumentReference or other references)"
+  #       type: reference
+  #       repeats: true
+
+  # - linkId: plan-of-care
+  #   text: "Plan of Care"
+  #   type: group
+  #   repeats: true
+  #   item:
+  #     - linkId: plan-of-care.carePlanReference
+  #       text: "CarePlan (reference)"
+  #       type: reference
+  #     - linkId: plan-of-care.goals
+  #       text: "Goals (text)"
+  #       type: string
+  #     - linkId: plan-of-care.activities
+  #       text: "Planned activities / orders"
+  #       type: string
+
+  # - linkId: social-history
+  #   text: "Social History"
+  #   type: group
+  #   repeats: false
+  #   item:
+  #     - linkId: social-history.tobacco
+  #       text: "Tobacco use (Observation or text)"
+  #       type: choice
+  #       answerOption:
+  #         - valueString: "never"
+  #         - valueString: "former"
+  #         - valueString: "current"
+  #         - valueString: "unknown"
+  #     - linkId: social-history.alcohol
+  #       text: "Alcohol use (Observation or text)"
+  #       type: choice
+  #       answerOption:
+  #         - valueString: "none"
+  #         - valueString: "occasional"
+  #         - valueString: "regular"
+  #         - valueString: "unknown"
+  #     - linkId: social-history.notes
+  #       text: "Other social history notes"
+  #       type: string
+
+  # - linkId: vital-signs
+  #   text: "Vital Signs"
+  #   type: group
+  #   repeats: false
+  #   item:
+  #     - linkId: vital-signs.bp
+  #       text: "Blood pressure (systolic/diastolic)"
+  #       type: string
+  #     - linkId: vital-signs.temperature
+  #       text: "Body temperature (C or F)"
+  #       type: decimal
+  #     - linkId: vital-signs.heartRate
+  #       text: "Heart rate (beats per minute)"
+  #       type: integer
+  #     - linkId: vital-signs.respRate
+  #       text: "Respiratory rate (breaths per minute)"
+  #       type: integer
+  #     - linkId: vital-signs.height
+  #       text: "Height (cm)"
+  #       type: decimal
+  #     - linkId: vital-signs.weight
+  #       text: "Weight (kg)"
+  #       type: decimal
+  #     - linkId: vital-signs.bmi
+  #       text: "Body Mass Index (BMI)"
+  #       type: decimal
+  #     - linkId: vital-signs.spO2
+  #       text: "Pulse oximetry (SpO2 %)"
+  #       type: decimal
