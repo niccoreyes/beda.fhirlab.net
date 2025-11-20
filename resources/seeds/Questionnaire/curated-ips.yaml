@@ -35,7 +35,7 @@ contained:
     entry:
       - request:
           method: GET
-          url: /MedicationStatement?patient={{%patient.id}}
+          url: /MedicationStatement?subject={{%patient.id}}
 sourceQueries:
   - reference: "#PatientConditionsBundle"
   - reference: "#PatientAllergiesBundle"
@@ -188,7 +188,7 @@ item:
         required: true
         initialExpression:
           language: text/fhirpath
-          expression: "%context.medication"
+          expression: "%context.medicationReference"
         answerExpression:
           language: application/x-fhir-query
           expression: "Medication?status=active"

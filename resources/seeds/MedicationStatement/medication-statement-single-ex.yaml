@@ -1,0 +1,7 @@
+status: active
+subject:
+  reference: urn:uuid:Patient:patient-single-ex
+medicationReference:
+    reference: urn:uuid:Medication:medication-single-ex
+id: medication-statement-single-ex
+resourceType: MedicationStatement

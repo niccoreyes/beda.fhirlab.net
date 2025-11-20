@@ -3,9 +3,9 @@ id: medication-single-ex
 status: active
 code:
   coding:
-    - system: urn://example.com/ph-core/fhir/StructureDefinition/ph-core-medication
-      code: "example-code"
-      display: "Example Medication Code"
+    - code: "7947003"
+      system: "http://snomed.info/sct"
+      display: Product containing aspirin (medicinal product)
 meta:
   profile:
     - "urn://example.com/ph-core/fhir/StructureDefinition/ph-core-medication"
