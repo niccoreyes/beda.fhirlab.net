@@ -29,9 +29,17 @@ contained:
       - request:
           method: GET
           url: /AllergyIntolerance?patient={{%patient.id}}
+  - resourceType: Bundle
+    id: PatientMedicationStatementsBundle
+    type: transaction
+    entry:
+      - request:
+          method: GET
+          url: /MedicationStatement?patient={{%patient.id}}
 sourceQueries:
   - reference: "#PatientConditionsBundle"
   - reference: "#PatientAllergiesBundle"
+  - reference: "#PatientMedicationStatementsBundle"
 item:
   - linkId: patient-information
     text: "Patient Information"
@@ -133,6 +141,7 @@ item:
         initialExpression:
           language: text/fhirpath
           expression: "%context.code.coding"
+        required: true
         answerValueSet: "http://hl7.org/fhir/ValueSet/allergyintolerance-code"
       - linkId: allergy-clinical-status
         text: Clinical Status
@@ -141,6 +150,7 @@ item:
         initialExpression:
           language: text/fhirpath
           expression: "%context.clinicalStatus.coding"
+        required: true
       - linkId: allergy-verification-status
         text: Verification Status
         type: choice
@@ -156,63 +166,74 @@ item:
         initialExpression:
           language: text/fhirpath
           expression: "%context.category.coding"
-  #   item:
-  #     - linkId: allergies.allergyReference
-  #       text: "AllergyIntolerance (reference)"
-  #       type: reference
-  #     - linkId: allergies.allergen
-  #       text: "Allergen / agent (text)"
-  #       type: string
-  #     - linkId: allergies.reaction
-  #       text: "Reaction description"
-  #       type: string
-  #     - linkId: allergies.criticality
-  #       text: "Criticality (low/moderate/high)"
-  #       type: choice
-  #       answerOption:
-  #         - valueString: "low"
-  #         - valueString: "moderate"
-  #         - valueString: "high"
-  #     - linkId: allergies.status
-  #       text: "Status (active/inactive/confirmed/unconfirmed)"
-  #       type: choice
-  #       answerOption:
-  #         - valueString: "active"
-  #         - valueString: "inactive"
-  #         - valueString: "confirmed"
-  #         - valueString: "unconfirmed"
-  #     - linkId: allergies.notes
-  #       text: "Notes"
-  #       type: string
-
-  # - linkId: medications
-  #   text: "Medication Summary"
-  #   type: group
-  #   repeats: true
-  #   item:
-  #     - linkId: medications.medReference
-  #       text: "Medication (reference to MedicationStatement / MedicationRequest)"
-  #       type: reference
-  #     - linkId: medications.medicationName
-  #       text: "Medication name (text)"
-  #       type: string
-  #     - linkId: medications.dosage
-  #       text: "Dosage / regimen"
-  #       type: string
-  #     - linkId: medications.status
-  #       text: "Status (active/completed/on-hold/stopped)"
-  #       type: choice
-  #       answerOption:
-  #         - valueString: "active"
-  #         - valueString: "completed"
-  #         - valueString: "on-hold"
-  #         - valueString: "stopped"
-  #     - linkId: medications.startEnd
-  #       text: "Effective period (start / end)"
-  #       type: dateTime
-  #     - linkId: medications.notes
-  #       text: "Notes / indication / prescriber"
-  #       type: string
+  - linkId: medications
+    text: Medications
+    type: group
+    repeats: true
+    itemPopulationContext:
+      language: text/fhirpath
+      expression: "%PatientMedicationStatementsBundle.entry[0].resource.entry.resource"
+      name: medication
+    item:
+      - linkId: medication-statement-id
+        text: Medication Statement ID
+        type: string
+        hidden: true
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.id"
+      - linkId: medication-medication
+        text: Medication
+        type: reference
+        required: true
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.medication"
+        answerExpression:
+          language: application/x-fhir-query
+          expression: "Medication?status=active"
+        referenceResource:
+          - Medication
+        choiceColumn:
+          - forDisplay: true
+            path: code.coding.first().display
+      - linkId: medication-status
+        text: Status
+        type: choice
+        answerValueSet: http://hl7.org/fhir/ValueSet/medication-statement-status
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.status"
+        required: true
+      - linkId: medication-status-reason
+        text: Status Reason
+        type: choice
+        repeats: true
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.statusReason.coding"
+        answerValueSet: http://hl7.org/fhir/ValueSet/reason-medication-status-codes
+      - linkId: medication-effective-datetime
+        text: Date/Time
+        helpText: "The date/time when the medication is/was/will be taken"
+        type: dateTime
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.effectiveDateTime"
+      # - linkId: medication-encounter
+      #   text: Encounter
+      #   type: reference
+      #   initialExpression:
+      #     language: text/fhirpath
+      #     expression: "%context.context"
+      #   answerExpression:
+      #     language: application/x-fhir-query
+      #     expression: "Encounter?patient={{%patient.id}}"
+      #   referenceResource:
+      #     - Encounter
+      #   choiceColumn:
+      #     - forDisplay: true
+      #       path: period.start
 
   # - linkId: immunizations
   #   text: "Immunizations"
