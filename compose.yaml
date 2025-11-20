@@ -75,3 +75,12 @@ services:
       interval: 5s
       timeout: 30s
       retries: 50
+  sdc-ide:
+    image: bedasoftware/sdc-ide:master
+    depends_on:
+      devbox:
+        condition: service_healthy
+    ports:
+      - 3001:5000
+    env_file:
+      - ./env/sdc-ide
