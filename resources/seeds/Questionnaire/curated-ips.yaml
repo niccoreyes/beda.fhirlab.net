@@ -22,8 +22,16 @@ contained:
       - request:
           method: GET
           url: /Condition?patient={{%patient.id}}
+  - resourceType: Bundle
+    id: PatientAllergiesBundle
+    type: transaction
+    entry:
+      - request:
+          method: GET
+          url: /AllergyIntolerance?patient={{%patient.id}}
 sourceQueries:
   - reference: "#PatientConditionsBundle"
+  - reference: "#PatientAllergiesBundle"
 item:
   - linkId: patient-information
     text: "Patient Information"
@@ -58,10 +66,9 @@ item:
           language: text/fhirpath
           expression: "%patient.birthDate"
   - linkId: problems
-    text: "Problem"
+    text: Problems
     type: group
     repeats: true
-    required: false
     itemPopulationContext:
       language: text/fhirpath
       expression: "%PatientConditionsBundle.entry[0].resource.entry.resource"
@@ -81,7 +88,7 @@ item:
         initialExpression:
           language: text/fhirpath
           expression: "%context.code.coding"
-        answerValueSet: http://snomed.info/sct
+        answerValueSet: "http://snomed.info/sct"
       - linkId: condition-clinical-status
         text: Clinical Status
         type: choice
@@ -104,11 +111,51 @@ item:
         initialExpression:
           language: text/fhirpath
           expression: "%context.category.coding"
-
-  # - linkId: allergies
-  #   text: "Allergies and Intolerances"
-  #   type: group
-  #   repeats: true
+  - linkId: allergies
+    text: Allergies and Intolerances
+    type: group
+    repeats: true
+    itemPopulationContext:
+      language: text/fhirpath
+      expression: "%PatientAllergiesBundle.entry[0].resource.entry.resource"
+      name: allergy
+    item:
+      - linkId: allergy-id
+        text: Allergy ID
+        type: string
+        hidden: true
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.id"
+      - linkId: allergy-code
+        text: Allergy or Intolerance
+        type: choice
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.code.coding"
+        answerValueSet: "http://hl7.org/fhir/ValueSet/allergyintolerance-code"
+      - linkId: allergy-clinical-status
+        text: Clinical Status
+        type: choice
+        answerValueSet: http://hl7.org/fhir/ValueSet/allergyintolerance-clinical
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.clinicalStatus.coding"
+      - linkId: allergy-verification-status
+        text: Verification Status
+        type: choice
+        answerValueSet: http://hl7.org/fhir/ValueSet/allergyintolerance-verification
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.verificationStatus.coding"
+      - linkId: allergy-category
+        text: Category
+        type: choice
+        repeats: true
+        answerValueSet: http://hl7.org/fhir/ValueSet/allergy-intolerance-category
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.category.coding"
   #   item:
   #     - linkId: allergies.allergyReference
   #       text: "AllergyIntolerance (reference)"
