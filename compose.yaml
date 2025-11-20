@@ -7,7 +7,7 @@ services:
     env_file:
       - ./env/sdc
   devbox:
-    image: healthsamurai/aidboxone:edge
+    image: healthsamurai/aidboxone:stable
     depends_on:
       devbox-db:
         condition: service_healthy
