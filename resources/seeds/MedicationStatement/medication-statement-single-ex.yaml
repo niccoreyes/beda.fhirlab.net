@@ -3,5 +3,6 @@ subject:
   reference: urn:uuid:Patient:patient-single-ex
 medicationReference:
     reference: urn:uuid:Medication:medication-single-ex
+    display: Product containing aspirin (medicinal product)
 id: medication-statement-single-ex
 resourceType: MedicationStatement
