@@ -36,10 +36,18 @@ contained:
       - request:
           method: GET
           url: /MedicationStatement?subject={{%patient.id}}
+  - resourceType: Bundle
+    id: PatientImmunizationsBundle
+    type: transaction
+    entry:
+      - request:
+          method: GET
+          url: /Immunization?patient={{%patient.id}}
 sourceQueries:
   - reference: "#PatientConditionsBundle"
   - reference: "#PatientAllergiesBundle"
   - reference: "#PatientMedicationStatementsBundle"
+  - reference: "#PatientImmunizationsBundle"
 item:
   - linkId: patient-information
     text: "Patient Information"
@@ -220,20 +228,38 @@ item:
         initialExpression:
           language: text/fhirpath
           expression: "%context.effectiveDateTime"
-      # - linkId: medication-encounter
-      #   text: Encounter
-      #   type: reference
-      #   initialExpression:
-      #     language: text/fhirpath
-      #     expression: "%context.context"
-      #   answerExpression:
-      #     language: application/x-fhir-query
-      #     expression: "Encounter?patient={{%patient.id}}"
-      #   referenceResource:
-      #     - Encounter
-      #   choiceColumn:
-      #     - forDisplay: true
-      #       path: period.start
+  - linkId: immunizations-group
+    text: Immunizations
+    type: group
+    repeats: true
+    itemPopulationContext:
+      language: text/fhirpath
+      expression: "%PatientImmunizationsBundle.entry[0].resource.entry.resource"
+      name: immunization
+    item:
+      - linkId: immunization-id
+        text: Immunization ID
+        type: string
+        hidden: true
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.id"
+      - linkId: immunization-vaccine-code
+        text: Vaccine Code
+        type: choice
+        required: true
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.vaccineCode.coding"
+        answerValueSet: "http://hl7.org/fhir/ValueSet/vaccine-code"
+      - linkId: immunization-status
+        text: Status
+        type: choice
+        answerValueSet: http://hl7.org/fhir/ValueSet/immunization-status
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.status"
+        required: true
 
   # - linkId: immunizations
   #   text: "Immunizations"

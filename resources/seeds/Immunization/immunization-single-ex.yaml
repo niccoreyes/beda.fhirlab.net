@@ -19,6 +19,7 @@ vaccineCode:
   coding:
     - code: "123"
       system: "http://hl7.org/fhir/sid/cvx"
+      display: "influenza, H5N1-1203"
   text: "influenza, H5N1-1203"
 text:
   status: generated
