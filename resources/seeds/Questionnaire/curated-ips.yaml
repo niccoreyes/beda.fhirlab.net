@@ -43,11 +43,19 @@ contained:
       - request:
           method: GET
           url: /Immunization?patient={{%patient.id}}
+  - resourceType: Bundle
+    id: PatientProceduresBundle
+    type: transaction
+    entry:
+      - request:
+          method: GET
+          url: /Procedure?patient={{%patient.id}}
 sourceQueries:
   - reference: "#PatientConditionsBundle"
   - reference: "#PatientAllergiesBundle"
   - reference: "#PatientMedicationStatementsBundle"
   - reference: "#PatientImmunizationsBundle"
+  - reference: "#PatientProceduresBundle"
 item:
   - linkId: patient-information
     text: Patient Information
@@ -310,6 +318,49 @@ item:
         calculatedExpression:
           language: text/fhirpath
           expression: "%QuestionnaireResponse.item.where(linkId='immunizations-section').item.where(linkId='immunizations').item.where(linkId='immunization-vaccine-code').answer.valueCoding.display"
+
+  - linkId: procedures-section
+    text: Procedures
+    type: group
+    item:
+      - linkId: procedures
+        text: Procedure
+        type: group
+        repeats: true
+        itemPopulationContext:
+          language: text/fhirpath
+          expression: "%PatientProceduresBundle.entry[0].resource.entry.resource"
+          name: procedure
+        item:
+          - linkId: procedure-id
+            text: Procedure ID
+            type: string
+            hidden: true
+            initialExpression:
+              language: text/fhirpath
+              expression: "%context.id"
+          - linkId: procedure-code
+            text: Procedure
+            type: choice
+            required: true
+            initialExpression:
+              language: text/fhirpath
+              expression: "%context.code.coding"
+            answerValueSet: "http://hl7.org/fhir/ValueSet/procedure-code"
+          - linkId: procedure-status
+            text: Status
+            type: choice
+            answerValueSet: http://hl7.org/fhir/ValueSet/event-status
+            initialExpression:
+              language: text/fhirpath
+              expression: "%context.status"
+            required: true
+      - linkId: procedures-summary
+        text: Summary
+        type: text
+        calculatedExpression:
+          language: text/fhirpath
+          expression: "%QuestionnaireResponse.item.where(linkId='procedures-section').item.where(linkId='procedures').item.where(linkId='procedure-code').answer.valueCoding.display"
 
   # - linkId: diagnostic-results
   #   text: "Diagnostic Results (laboratory, radiology)"
