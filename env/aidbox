@@ -1,5 +1,5 @@
 #FHIR Schema and other actual env vars
-BOX_INIT_BUNDLE="file:///resources/seeds/initBundle.json"
+BOX_INIT_BUNDLE="file:///resources/init-bundles/initBundle.json"
 BOX_FHIR_SEARCH_DEFAULT_PARAMS_TOTAL=accurate
 BOX_FHIR_SEARCH_INCLUDE_CONFORMANT=true
 BOX_BOOTSTRAP_FHIR_PACKAGES=hl7.fhir.r4b.core#4.3.0

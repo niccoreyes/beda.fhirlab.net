@@ -25,7 +25,7 @@ services:
     environment:
       - AIDBOX_LICENSE
     volumes:
-      - ./resources:/resources
+      - ./resources/init-bundles:/resources/init-bundles
   devbox-db:
     image: "healthsamurai/aidboxdb:13.2"
     env_file:
@@ -40,11 +40,12 @@ services:
     command:
       - export
       - --output
-      - /app/resources/initBundle.json
+      - /app/init-bundles/initBundle.json
       - --external-questionnaire-fce-fhir-converter-url
       - http://questionnaire-fce-fhir-converter:3000/to-fhir
     volumes:
-      - ./resources/seeds:/app/resources
+      - ./resources/seeds:/app/resources:ro
+      - ./resources/init-bundles:/app/init-bundles
     env_file:
       - ./env/build-seeds
   watch-seeds:
@@ -56,7 +57,7 @@ services:
       - --external-questionnaire-fce-fhir-converter-url
       - http://questionnaire-fce-fhir-converter:3000/to-fhir
     volumes:
-      - ./resources/seeds:/app/resources
+      - ./resources/seeds:/app/resources:ro
     env_file:
       - ./env/build-seeds
   fhir-converters-app:
