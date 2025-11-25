@@ -13,7 +13,7 @@ body:
     - proceduresSummary: "{{ %QuestionnaireResponse.answers('procedures-summary') }}"
     - problemsSummary: "{{ %QuestionnaireResponse.answers('problems-summary') }}"
     - allergiesIDs: "{[ %QuestionnaireResponse.answers('allergy-id') ]}"
-    - medicationsIDs: "{[ %QuestionnaireResponse.answers('medication-id') ]}"
+    - medicationsIDs: "{[ %QuestionnaireResponse.answers('medication-statement-id') ]}"
     - immunizationsIDs: "{[ %QuestionnaireResponse.answers('immunization-id') ]}"
     - proceduresIDs: "{[ %QuestionnaireResponse.answers('procedure-id') ]}"
     - problemsIDs: "{[ %QuestionnaireResponse.answers('condition-id') ]}"
@@ -141,4 +141,4 @@ body:
                     display: Unavailable
 
     - fullUrl: "{{ 'urn:uuid:' + %patientId }}"
-      resource: "{{ %patient }}"
+      resource: "{{ %Patient }}"

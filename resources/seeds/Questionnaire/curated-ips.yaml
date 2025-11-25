@@ -13,7 +13,7 @@ subjectType:
   - Patient
 launchContext:
   - name:
-      code: patient
+      code: Patient
     type:
       - Patient
   - name:
@@ -28,35 +28,35 @@ contained:
     entry:
       - request:
           method: GET
-          url: /Condition?patient={{%patient.id}}
+          url: /Condition?patient={{%Patient.id}}
   - resourceType: Bundle
     id: PatientAllergiesBundle
     type: transaction
     entry:
       - request:
           method: GET
-          url: /AllergyIntolerance?patient={{%patient.id}}
+          url: /AllergyIntolerance?patient={{%Patient.id}}
   - resourceType: Bundle
     id: PatientMedicationStatementsBundle
     type: transaction
     entry:
       - request:
           method: GET
-          url: /MedicationStatement?subject={{%patient.id}}
+          url: /MedicationStatement?subject={{%Patient.id}}
   - resourceType: Bundle
     id: PatientImmunizationsBundle
     type: transaction
     entry:
       - request:
           method: GET
-          url: /Immunization?patient={{%patient.id}}
+          url: /Immunization?patient={{%Patient.id}}
   - resourceType: Bundle
     id: PatientProceduresBundle
     type: transaction
     entry:
       - request:
           method: GET
-          url: /Procedure?patient={{%patient.id}}
+          url: /Procedure?patient={{%Patient.id}}
 sourceQueries:
   - reference: "#PatientConditionsBundle"
   - reference: "#PatientAllergiesBundle"
@@ -88,35 +88,35 @@ item:
         hidden: true
         initialExpression:
           language: text/fhirpath
-          expression: "%patient.id"
+          expression: "%Patient.id"
       - linkId: patient-name
         text: Name
         type: string
         readOnly: true
         initialExpression:
           language: text/fhirpath
-          expression: "%patient.name.first().family"
+          expression: "%Patient.name.first().family"
       - linkId: patient-mrn
         text: MRN
         type: string
         readOnly: true
         initialExpression:
           language: text/fhirpath
-          expression: "%patient.identifier.first().value"
+          expression: "%Patient.identifier.first().value"
       - linkId: patient-gender
         text: Gender
         type: string
         readOnly: true
         initialExpression:
           language: text/fhirpath
-          expression: "%patient.gender"
+          expression: "%Patient.gender"
       - linkId: patient-birthDate
         text: Birth Date
         type: date
         readOnly: true
         initialExpression:
           language: text/fhirpath
-          expression: "%patient.birthDate"
+          expression: "%Patient.birthDate"
   - linkId: problems-section
     text: Problems
     type: group
