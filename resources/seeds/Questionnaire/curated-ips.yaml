@@ -131,6 +131,12 @@ item:
             initialExpression:
               language: text/fhirpath
               expression: "%context.category.coding"
+      - linkId: problems-summary
+        text: Summary
+        type: text
+        calculatedExpression:
+          language: text/fhirpath
+          expression: "%QuestionnaireResponse.item.where(linkId='problems-section').item.where(linkId='problems').item.where(linkId='condition-code').answer.valueCoding.display"
 
   - linkId: allergies-section
     text: Allergies and Intolerances
@@ -183,6 +189,12 @@ item:
             initialExpression:
               language: text/fhirpath
               expression: "%context.category.coding"
+      - linkId: allergies-summary
+        text: Summary
+        type: text
+        calculatedExpression:
+          language: text/fhirpath
+          expression: "%QuestionnaireResponse.item.where(linkId='allergies-section').item.where(linkId='allergies').item.where(linkId='allergy-code').answer.valueCoding.display"
 
   - linkId: medications-section
     text: Medications
@@ -242,6 +254,12 @@ item:
             initialExpression:
               language: text/fhirpath
               expression: "%context.effectiveDateTime"
+      - linkId: medications-summary
+        text: Summary
+        type: text
+        calculatedExpression:
+          language: text/fhirpath
+          expression: "%QuestionnaireResponse.item.where(linkId='medications-section').item.where(linkId='medications').item.where(linkId='medication-medication').answer.valueReference.display"
 
   - linkId: immunizations-section
     text: Immunizations
@@ -286,7 +304,12 @@ item:
             initialExpression:
               language: text/fhirpath
               expression: "%context.occurrenceDateTime"
-
+      - linkId: immunizations-summary
+        text: Summary
+        type: text
+        calculatedExpression:
+          language: text/fhirpath
+          expression: "%QuestionnaireResponse.item.where(linkId='immunizations-section').item.where(linkId='immunizations').item.where(linkId='immunization-vaccine-code').answer.valueCoding.display"
 
   # - linkId: diagnostic-results
   #   text: "Diagnostic Results (laboratory, radiology)"
