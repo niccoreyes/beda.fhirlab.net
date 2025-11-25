@@ -7,6 +7,8 @@ meta:
     - https://emr-core.beda.software/StructureDefinition/fhir-emr-questionnaire
 title: International Patient Summary (IPS)
 name: ips-curated-questionnaire
+mapping:
+  - reference: urn:uuid:Mapping:curated-ips
 subjectType:
   - Patient
 launchContext:
@@ -14,6 +16,11 @@ launchContext:
       code: patient
     type:
       - Patient
+  - name:
+      code: Author
+    type:
+      - Practitioner
+      - Organization
 contained:
   - resourceType: Bundle
     id: PatientConditionsBundle
@@ -57,10 +64,31 @@ sourceQueries:
   - reference: "#PatientImmunizationsBundle"
   - reference: "#PatientProceduresBundle"
 item:
+  - linkId: author-id
+    text: Author ID
+    type: string
+    hidden: true
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Author.id"
+  - linkId: author-resource-type
+    text: Author Resource Type
+    type: string
+    readOnly: true
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Author.resourceType"
   - linkId: patient-information
     text: Patient Information
     type: group
     item:
+      - linkId: patient-id
+        text: Patient ID
+        type: string
+        hidden: true
+        initialExpression:
+          language: text/fhirpath
+          expression: "%patient.id"
       - linkId: patient-name
         text: Name
         type: string

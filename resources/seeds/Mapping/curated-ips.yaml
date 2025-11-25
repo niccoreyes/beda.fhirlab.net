@@ -1,0 +1,144 @@
+resourceType: Mapping
+id: curated-ips
+type: FHIRPath
+body:
+  "{% assign %}":
+    - authorId: "{{ %QuestionnaireResponse.answers('author-id') }}"
+    - authorResourceType: "{{ %QuestionnaireResponse.answers('author-resource-type') }}"
+    - patientId: "{{ %QuestionnaireResponse.answers('patient-id') }}"
+    - patientName: "{{ %QuestionnaireResponse.answers('patient-name') }}"
+    - allergiesSummary: "{{ %QuestionnaireResponse.answers('allergies-summary') }}"
+    - medicationsSummary: "{{ %QuestionnaireResponse.answers('medications-summary') }}"
+    - immunizationsSummary: "{{ %QuestionnaireResponse.answers('immunizations-summary') }}"
+    - proceduresSummary: "{{ %QuestionnaireResponse.answers('procedures-summary') }}"
+    - problemsSummary: "{{ %QuestionnaireResponse.answers('problems-summary') }}"
+    - allergiesIDs: "{[ %QuestionnaireResponse.answers('allergy-id') ]}"
+    - medicationsIDs: "{[ %QuestionnaireResponse.answers('medication-id') ]}"
+    - immunizationsIDs: "{[ %QuestionnaireResponse.answers('immunization-id') ]}"
+    - proceduresIDs: "{[ %QuestionnaireResponse.answers('procedure-id') ]}"
+    - problemsIDs: "{[ %QuestionnaireResponse.answers('condition-id') ]}"
+
+  resourceType: Bundle
+  type: document
+  meta:
+    profile:
+      - http://hl7.org/fhir/uv/ips/StructureDefinition/Bundle-uv-ips
+  identifier:
+    system: "{{ 'urn:uuid:fhir-lab' }}"
+    value: "{{ %patientId}}-{{ now() }}"
+  timestamp: "{{ now() }}"
+  entry:
+    - fullUrl: "{{ 'urn:uuid:ips-composition' }}"
+      resource:
+        resourceType: Composition
+        meta:
+          profile:
+            - http://hl7.org/fhir/uv/ips/StructureDefinition/Composition-uv-ips
+        status: final
+        type:
+          coding:
+            - code: 60591-5
+              system: http://loinc.org
+              display: Patient Summary Document
+        subject:
+          reference: "Patient/{{ %patientId }}"
+          display: "{{ %patientName }}"
+        date: "{{ now() }}"
+        author:
+          - reference: "{{ %authorResourceType + '/' + %authorId }}"
+        title: "{{ %patientName }}'s Patient summary document of {{ today() }} {{ timeOfDay() }}"
+        section:
+          - title: Problems
+            code:
+              coding:
+                - code: 11450-4
+                  system: http://loinc.org
+                  display: Problem list - Reported
+            text:
+              status: generated
+              div: "{{ %problemsSummary }}"
+            "{% if %problemsIDs.count() > 0 %}":
+              entry:
+                "{% for problemId in %problemsIDs %}":
+                  reference: "Condition/{{ %problemId }}"
+            "{% else %}":
+              emptyReason:
+                coding:
+                  - code: unavailable
+                    system: http://terminology.hl7.org/CodeSystem/list-empty-reason
+                    display: Unavailable
+          - title: Allergies and Intolerances
+            code:
+              coding:
+                - code: 48765-2
+                  system: http://loinc.org
+            text:
+              status: generated
+              div: "{{ %allergiesSummary }}"
+            "{% if %allergiesIDs.count() > 0 %}":
+              entry:
+                "{% for allergyId in %allergiesIDs %}":
+                  reference: "AllergyIntolerance/{{ %allergyId }}"
+            "{% else %}":
+              emptyReason:
+                coding:
+                  - code: unavailable
+                    system: http://terminology.hl7.org/CodeSystem/list-empty-reason
+                    display: Unavailable
+          - title: Medications
+            code:
+              coding:
+                - code: 10160-0
+                  system: http://loinc.org
+            text:
+              status: generated
+              div: "{{ %medicationsSummary }}"
+            "{% if %medicationsIDs.count() > 0 %}":
+              entry:
+                "{% for medicationId in %medicationsIDs %}":
+                  reference: "MedicationStatement/{{ %medicationId }}"
+            "{% else %}":
+              emptyReason:
+                coding:
+                  - code: unavailable
+                    system: http://terminology.hl7.org/CodeSystem/list-empty-reason
+                    display: Unavailable
+          - title: Immunizations
+            code:
+              coding:
+                - code: 36419-9
+                  system: http://loinc.org
+            text:
+              status: generated
+              div: "{{ %immunizationsSummary }}"
+            "{% if %immunizationsIDs.count() > 0 %}":
+              entry:
+                "{% for immunizationId in %immunizationsIDs %}":
+                  reference: "Immunization/{{ %immunizationId }}"
+            "{% else %}":
+              emptyReason:
+                coding:
+                  - code: unavailable
+                    system: http://terminology.hl7.org/CodeSystem/list-empty-reason
+                    display: Unavailable
+          - title: Procedures
+            code:
+              coding:
+                - code: 30.1403-0
+                  system: http://loinc.org
+            text:
+              status: generated
+              div: "{{ %proceduresSummary }}"
+            "{% if %proceduresIDs.count() > 0 %}":
+              entry:
+                "{% for procedureId in %proceduresIDs %}":
+                  reference: "Procedure/{{ %procedureId }}"
+            "{% else %}":
+              emptyReason:
+                coding:
+                  - code: unavailable
+                    system: http://terminology.hl7.org/CodeSystem/list-empty-reason
+                    display: Unavailable
+
+    - fullUrl: "{{ 'urn:uuid:' + %patientId }}"
+      resource: "{{ %patient }}"
