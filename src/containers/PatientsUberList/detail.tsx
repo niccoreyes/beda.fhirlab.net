@@ -1,3 +1,6 @@
+import { CheckCircleOutlined } from '@ant-design/icons';
+import { t } from '@lingui/macro';
+import { Modal } from 'antd';
 import { Patient, Bundle, Composition } from 'fhir/r4b';
 import { Route, Routes } from 'react-router-dom';
 
@@ -13,8 +16,7 @@ import { extractBundleResources, RenderRemoteData, WithId } from '@beda.software
 
 import { dashboard } from './dashboard';
 import { useDocuments } from './hooks';
-import { Modal } from 'antd';
-import { t } from '@lingui/macro';
+
 const { confirm } = Modal;
 
 const getName = compileAsFirst<Patient, string>("Patient.name.given.first() + ' ' + Patient.name.family");
@@ -54,6 +56,7 @@ function Documents({ patient }: { patient: WithId<Patient> }) {
                                             extractBundleResources(bundleWithComposition).Composition[0];
                                         const ipsBundle = prepareResultBundle(composition, resourcesMap);
                                         confirm({
+                                            icon: <CheckCircleOutlined />,
                                             title: t`IPS Bundle is prepared`,
                                             onOk: () => {
                                                 navigator.clipboard.writeText(JSON.stringify(ipsBundle, null, 2));
