@@ -2,8 +2,8 @@ resourceType: Immunization
 id: immunization-single-ex
 meta:
   profile:
-    - "urn://example.com/ph-core/fhir/StructureDefinition/ph-core-immunization"
-    - "http://hl7.org/fhir/uv/ips/StructureDefinition/Immunization-uv-ips"
+    - urn://example.com/ph-core/fhir/StructureDefinition/ph-core-immunization
+    - http://hl7.org/fhir/uv/ips/StructureDefinition/Immunization-uv-ips
 identifier:
   - system: "urn:ietf:rfc:3986"
     value: "urn:oid:1.3.6.1.4.1.21367.2005.3.7.1234"
@@ -11,7 +11,7 @@ note:
   - text: "Notes on adminstration of vaccine"
 performer:
   - actor:
-      reference: Practitioner/practitioner-single-ex
+      reference: urn:uuid:Practitioner:practitioner-single-ex
     function:
       coding:
         - code: OP
@@ -30,7 +30,7 @@ doseQuantity:
   code: mg
   system: "http://unitsofmeasure.org"
 encounter:
-  reference: Encounter/encounter-single-ex
+  reference: urn:uuid:Encounter:encounter-single-ex
 expirationDate: "2015-02-15"
 fundingSource:
   coding:
@@ -40,7 +40,7 @@ isSubpotent: true
 lotNumber: AAJN11K
 occurrenceDateTime: "2013-01-10"
 patient:
-  reference: Patient/patient-single-ex
+  reference: urn:uuid:Patient:patient-single-ex
 primarySource: true
 route:
   coding:

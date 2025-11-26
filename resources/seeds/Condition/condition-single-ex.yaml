@@ -6,7 +6,7 @@ meta:
     - "http://hl7.org/fhir/uv/ips/StructureDefinition/Condition-uv-ips"
 text:
   status: generated
-  div: '<div xmlns="http://www.w3.org/1999/xhtml">Juan Dela Cruz has an active diagnosis of Type 2 Diabetes Mellitus.</div>'
+  div: "<div xmlns=\"http://www.w3.org/1999/xhtml\"><p><b>Generated Narrative</b></p><p><b>identifier</b>: id: condition-single-ex</p><p><b>clinicalStatus</b>: <span title=\"Codes: {http://terminology.hl7.org/CodeSystem/condition-clinical active}\">Active</span></p><p><b>code</b>: <span title=\"Codes: {http://snomed.info/sct 44054006}\">Diabetes mellitus type 2</span></p><p><b>subject</b>: <a href=\"#Patient_patient-single-ex\">See above (Patient/patient-single-ex)</a></p></div>"
 clinicalStatus:
   coding:
     - code: active
