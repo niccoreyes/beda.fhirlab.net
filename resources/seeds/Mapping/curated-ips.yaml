@@ -20,6 +20,7 @@ body:
     - problemItems: "{[ %QuestionnaireResponse.item.where(linkId='ips-section').item.where(linkId='problems-section').item.where(linkId='problems') ]}"
     - allergiesItems: "{[ %QuestionnaireResponse.item.where(linkId='ips-section').item.where(linkId='allergies-section').item.where(linkId='allergies') ]}"
     - medicationsItems: "{[ %QuestionnaireResponse.item.where(linkId='ips-section').item.where(linkId='medications-section').item.where(linkId='medications') ]}"
+    - immunizationsItems: "{[ %QuestionnaireResponse.item.where(linkId='ips-section').item.where(linkId='immunizations-section').item.where(linkId='immunizations') ]}"
 
   resourceType: Bundle
   type: transaction
@@ -136,10 +137,15 @@ body:
                 div: "{{ %immunizationsSummary }}"
               "{% else %}":
                 div: "No immunizations found"
-            "{% if %immunizationsIDs.count() > 0 %}":
+            "{% if %immunizationsItems.count() > 0 %}":
               entry:
-                "{% for immunizationId in %immunizationsIDs %}":
-                  reference: "Immunization/{{ %immunizationId }}"
+                "{% for index, immunizationItem in %immunizationsItems %}":
+                  "{% assign %}":
+                    - immunizationId: "{{ %immunizationItem.item.where(linkId='immunization-id').answer.valueString }}"
+                  "{% if %immunizationId.exists() %}":
+                    reference: "Immunization/{{ %immunizationId }}"
+                  "{% else %}":
+                    reference: "{{ 'urn:uuid:Immunization-' + %index.toString() }}"
             "{% else %}":
               emptyReason:
                 coding:
@@ -266,3 +272,30 @@ body:
               text:
                 status: generated
                 div: "<div xmlns='http://www.w3.org/1999/xhtml'><p><b>Generated Narrative</b></p><p><b>identifier</b>: id: urn:uuid:MedicationStatement-{{%index}}</p><p><b>status</b>: <span title='Codes: {http://terminology.hl7.org/CodeSystem/medication-statement-status {{%medicationStatus}}}'>{{%medicationStatus}}</span></p><p><b>medicationReference</b>: <a href='#Medication_{{%medicationReference.reference}}'>See above (Medication/{{%medicationReference.reference}})</a></p><p><b>effectiveDateTime</b>: {{%medicationEffectiveDateTime}}</p><p><b>subject</b>: <a href='#Patient_{{%patientId}}'>See above (Patient/{{%patientId}})</a></p></div>"
+    - "{% for index, immunizationItem in %immunizationsItems %}":
+        "{% assign %}":
+          - immunizationId: "{{ %immunizationItem.item.where(linkId='immunization-id').answer.valueString }}"
+          - immunizationVaccineCode: "{{ %immunizationItem.item.where(linkId='immunization-vaccine-code').answer.valueCoding }}"
+          - immunizationStatus: "{{ %immunizationItem.item.where(linkId='immunization-status').answer.valueCoding.code }}"
+          - immunizationDate: "{{ %immunizationItem.item.where(linkId='immunization-occurrence-datetime').answer.valueDateTime }}"
+        "{% if %immunizationId.empty() and %immunizationVaccineCode.exists() %}":
+          fullUrl: "urn:uuid:Immunization-{{ %index }}"
+          request:
+            method: POST
+            url: /Immunization
+          resource:
+            resourceType: Immunization
+            meta:
+              profile:
+                - "http://hl7.org/fhir/uv/ips/StructureDefinition/Immunization-uv-ips"
+            status: "{{ %immunizationStatus }}"
+            vaccineCode:
+              coding:
+                - "{{ %immunizationVaccineCode }}"
+            occurrenceDateTime: "{{ %immunizationDate }}"
+            patient:
+              reference: "Patient/{{ %patientId }}"
+            "{% if %immunizationDate.exists() %}":
+              text:
+                status: generated
+                div: "<div xmlns='http://www.w3.org/1999/xhtml'><p><b>Generated Narrative</b></p><p><b>identifier</b>: id: urn:uuid:Immunization-{{%index}}</p><p><b>status</b>: <span title='Codes: {http://terminology.hl7.org/CodeSystem/immunization-status {{%immunizationStatus}}}'>{{%immunizationStatus}}</span></p><p><b>vaccineCode</b>: <span title='Codes: {http://snomed.info/sct {{%immunizationVaccineCode.code}} }'>{{%immunizationVaccineCode.display}}</span></p><p><b>occurrenceDateTime</b>: {{%immunizationDate}}</p><p><b>subject</b>: <a href='#Patient_{{%patientId}}'>See above (Patient/{{%patientId}})</a></p></div>"
