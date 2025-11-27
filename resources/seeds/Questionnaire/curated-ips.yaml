@@ -149,6 +149,7 @@ item:
                   language: text/fhirpath
                   expression: "%context.id"
               - linkId: condition-code
+                required: true
                 text: Problem or diagnosis
                 type: choice
                 initialExpression:
@@ -157,6 +158,7 @@ item:
                 answerValueSet: http://hl7.org/fhir/uv/ips/ValueSet/problems-uv-ips
                 preferredTerminologyServer: https://tx.health-samurai.io/fhir
               - linkId: condition-clinical-status
+                required: true
                 text: Clinical Status
                 type: choice
                 answerValueSet: http://hl7.org/fhir/ValueSet/condition-clinical
