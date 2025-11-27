@@ -154,7 +154,8 @@ item:
                 initialExpression:
                   language: text/fhirpath
                   expression: "%context.code.coding"
-                answerValueSet: "http://snomed.info/sct"
+                answerValueSet: http://hl7.org/fhir/uv/ips/ValueSet/problems-uv-ips
+                preferredTerminologyServer: https://tx.health-samurai.io/fhir
               - linkId: condition-clinical-status
                 text: Clinical Status
                 type: choice
@@ -211,7 +212,8 @@ item:
                   language: text/fhirpath
                   expression: "%context.code.coding"
                 required: true
-                answerValueSet: "http://hl7.org/fhir/ValueSet/allergyintolerance-code"
+                answerValueSet: http://hl7.org/fhir/ValueSet/allergyintolerance-code
+                preferredTerminologyServer: https://tx.health-samurai.io/fhir
               - linkId: allergy-clinical-status
                 text: Clinical Status
                 type: choice
@@ -334,7 +336,8 @@ item:
                 initialExpression:
                   language: text/fhirpath
                   expression: "%context.vaccineCode.coding"
-                answerValueSet: "http://hl7.org/fhir/ValueSet/vaccine-code"
+                answerValueSet: http://hl7.org/fhir/uv/ips/ValueSet/vaccines-uv-ips
+                preferredTerminologyServer: https://tx.health-samurai.io/fhir
               - linkId: immunization-status
                 text: Status
                 type: choice

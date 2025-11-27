@@ -5,6 +5,7 @@ medicationReference:
   reference: urn:uuid:Medication:medication-single-ex
   display: Product containing aspirin (medicinal product)
 id: medication-statement-single-ex
+effectiveDateTime: "2025-11-24T12:29:17+07:00"
 meta:
   profile:
     - "http://hl7.org/fhir/uv/ips/StructureDefinition/MedicationStatement-uv-ips"
