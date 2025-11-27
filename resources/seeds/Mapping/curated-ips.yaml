@@ -13,14 +13,12 @@ body:
     - immunizationsSummary: "{{ %QuestionnaireResponse.answers('immunizations-summary') }}"
     - proceduresSummary: "{{ %QuestionnaireResponse.answers('procedures-summary') }}"
     - problemsSummary: "{{ %QuestionnaireResponse.answers('problems-summary') }}"
-    - allergiesIDs: "{[ %QuestionnaireResponse.answers('allergy-id') ]}"
-    - medicationsIDs: "{[ %QuestionnaireResponse.answers('medication-statement-id') ]}"
-    - immunizationsIDs: "{[ %QuestionnaireResponse.answers('immunization-id') ]}"
     - proceduresIDs: "{[ %QuestionnaireResponse.answers('procedure-id') ]}"
     - problemItems: "{[ %QuestionnaireResponse.item.where(linkId='ips-section').item.where(linkId='problems-section').item.where(linkId='problems') ]}"
     - allergiesItems: "{[ %QuestionnaireResponse.item.where(linkId='ips-section').item.where(linkId='allergies-section').item.where(linkId='allergies') ]}"
     - medicationsItems: "{[ %QuestionnaireResponse.item.where(linkId='ips-section').item.where(linkId='medications-section').item.where(linkId='medications') ]}"
     - immunizationsItems: "{[ %QuestionnaireResponse.item.where(linkId='ips-section').item.where(linkId='immunizations-section').item.where(linkId='immunizations') ]}"
+    - proceduresItems: "{[ %QuestionnaireResponse.item.where(linkId='ips-section').item.where(linkId='procedures-section').item.where(linkId='procedures') ]}"
 
   resourceType: Bundle
   type: transaction
@@ -163,10 +161,15 @@ body:
                 div: "{{ %proceduresSummary }}"
               "{% else %}":
                 div: "No procedures found"
-            "{% if %proceduresIDs.count() > 0 %}":
+            "{% if %proceduresItems.count() > 0 %}":
               entry:
-                "{% for procedureId in %proceduresIDs %}":
-                  reference: "Procedure/{{ %procedureId }}"
+                "{% for index, procedureItem in %proceduresItems %}":
+                  "{% assign %}":
+                    - procedureId: "{{ %procedureItem.item.where(linkId='procedure-id').answer.valueString }}"
+                  "{% if %procedureId.exists() %}":
+                    reference: "Procedure/{{ %procedureId }}"
+                  "{% else %}":
+                    reference: "{{ 'urn:uuid:Procedure-' + %index.toString() }}"
             "{% else %}":
               emptyReason:
                 coding:
@@ -179,7 +182,7 @@ body:
           - problemCode: "{{ %problemItem.item.where(linkId='condition-code').answer.valueCoding }}"
           - problemClinicalStatus: "{{ %problemItem.item.where(linkId='condition-clinical-status').answer.valueCoding }}"
           - problemVerificationStatus: "{{ %problemItem.item.where(linkId='condition-verification-status').answer.valueCoding }}"
-          - problemCategory: "{[ %problemItem.item.where(linkId='condition-category').answer.valueCoding.code ]}"
+          - problemCategory: "{[ %problemItem.item.where(linkId='condition-category').answer.valueCoding ]}"
         "{% if %problemId.empty() and %problemCode.exists() %}":
           fullUrl: "urn:uuid:Condition-{{ %index }}"
           request:
@@ -299,3 +302,29 @@ body:
               text:
                 status: generated
                 div: "<div xmlns='http://www.w3.org/1999/xhtml'><p><b>Generated Narrative</b></p><p><b>identifier</b>: id: urn:uuid:Immunization-{{%index}}</p><p><b>status</b>: <span title='Codes: {http://terminology.hl7.org/CodeSystem/immunization-status {{%immunizationStatus}}}'>{{%immunizationStatus}}</span></p><p><b>vaccineCode</b>: <span title='Codes: {http://snomed.info/sct {{%immunizationVaccineCode.code}} }'>{{%immunizationVaccineCode.display}}</span></p><p><b>occurrenceDateTime</b>: {{%immunizationDate}}</p><p><b>subject</b>: <a href='#Patient_{{%patientId}}'>See above (Patient/{{%patientId}})</a></p></div>"
+    - "{% for index, procedureItem in %proceduresItems %}":
+        "{% assign %}":
+          - procedureId: "{{ %procedureItem.item.where(linkId='procedure-id').answer.valueString }}"
+          - procedureCode: "{{ %procedureItem.item.where(linkId='procedure-code').answer.valueCoding }}"
+          - procedureStatus: "{{ %procedureItem.item.where(linkId='procedure-status').answer.valueCoding.code }}"
+          - procedurePerformedDateTime: "{{ %procedureItem.item.where(linkId='procedure-performed-datetime').answer.valueDateTime }}"
+        "{% if %procedureId.empty() and %procedureCode.exists() %}":
+          fullUrl: "urn:uuid:Procedure-{{ %index }}"
+          request:
+            method: POST
+            url: /Procedure
+          resource:
+            resourceType: Procedure
+            meta:
+              profile:
+                - "http://hl7.org/fhir/uv/ips/StructureDefinition/Procedure-uv-ips"
+            status: "{{ %procedureStatus }}"
+            performedDateTime: "{{ %procedurePerformedDateTime }}"
+            code:
+              coding:
+                - "{{ %procedureCode }}"
+            subject:
+              reference: "Patient/{{ %patientId }}"
+            text:
+              status: generated
+              div: "<div xmlns='http://www.w3.org/1999/xhtml'><p><b>Generated Narrative</b></p><p><b>identifier</b>: id: urn:uuid:Procedure-{{%index}}</p><p><b>status</b>: <span title='Codes: {http://terminology.hl7.org/CodeSystem/procedure-status {{%procedureStatus}}}'>{{%procedureStatus}}</span></p><p><b>code</b>: <span title='Codes: {http://snomed.info/sct {{%procedureCode.code}} }'>{{%procedureCode.display}}</span></p><p><b>subject</b>: <a href='#Patient_{{%patientId}}'>See above (Patient/{{%patientId}})</a></p></div>"

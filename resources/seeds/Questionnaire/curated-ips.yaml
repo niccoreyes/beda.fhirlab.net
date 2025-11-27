@@ -398,6 +398,14 @@ item:
                   language: text/fhirpath
                   expression: "%context.status"
                 required: true
+              - linkId: procedure-performed-datetime
+                required: true
+                text: Performed Date/Time
+                helpText: "The date/time when the procedure is/was/will be performed"
+                type: dateTime
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.performedDateTime"
           - linkId: procedures-summary
             text: Summary
             type: text
