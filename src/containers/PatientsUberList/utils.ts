@@ -7,13 +7,12 @@ import {
     MedicationStatement,
     Patient,
     Procedure,
-    Reference,
 } from 'fhir/r4b';
 import { v4 as uuid4 } from 'uuid';
 
 import { formatFHIRDate } from 'aidbox-react/lib/utils/date';
 
-import { extractBundleResources, parseFHIRReference, SearchParams } from '@beda.software/fhir-react';
+import { extractBundleResources, SearchParams } from '@beda.software/fhir-react';
 
 export function getPatientSearchParamsForPractitioner(practitionerId: string): SearchParams {
     return {
