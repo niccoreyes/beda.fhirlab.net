@@ -1,10 +1,19 @@
-import { Bundle, Composition, Patient, Reference } from 'fhir/r4b';
+import {
+    AllergyIntolerance,
+    Bundle,
+    Composition,
+    Condition,
+    Immunization,
+    MedicationStatement,
+    Patient,
+    Procedure,
+    Reference,
+} from 'fhir/r4b';
 import { v4 as uuid4 } from 'uuid';
 
 import { formatFHIRDate } from 'aidbox-react/lib/utils/date';
 
-import config from '@beda.software/emr-config';
-import { parseFHIRReference, SearchParams } from '@beda.software/fhir-react';
+import { extractBundleResources, parseFHIRReference, SearchParams } from '@beda.software/fhir-react';
 
 export function getPatientSearchParamsForPractitioner(practitionerId: string): SearchParams {
     return {
@@ -16,8 +25,15 @@ export function getPatientSearchParamsForPractitioner(practitionerId: string): S
     };
 }
 
-export function prepareIPSBundle(patient: Patient, composition: Composition): Bundle {
-    const ipsBundle: Bundle = {
+export function prepareIPSBundle(
+    composition: Composition,
+    relatedResourcesBundle: Bundle<
+        Composition | Patient | Condition | AllergyIntolerance | MedicationStatement | Immunization | Procedure
+    >,
+): Bundle {
+    const resources = extractBundleResources(relatedResourcesBundle);
+    const patient = resources.Patient[0]!;
+    const initialBundle: Bundle = {
         resourceType: 'Bundle',
         type: 'document',
         meta: {
@@ -30,41 +46,47 @@ export function prepareIPSBundle(patient: Patient, composition: Composition): Bu
         timestamp: new Date().toISOString(),
         entry: [
             {
-                fullUrl: `${config.baseURL}/ui/console#/resource-types/Composition/${composition.id}`,
+                fullUrl: `urn:uuid:${composition.id}`,
                 resource: composition,
             },
             {
-                fullUrl: `${config.baseURL}/ui/console#/resource-types/Patient/${patient.id}`,
+                fullUrl: `urn:uuid:${patient.id}`,
                 resource: patient,
             },
         ],
     };
 
-    return ipsBundle;
-}
+    const conditions = resources.Condition ?? [];
+    const allergies = resources.AllergyIntolerance ?? [];
+    const medicationStatements = resources.MedicationStatement ?? [];
+    const immunizations = resources.Immunization ?? [];
+    const procedures = resources.Procedure ?? [];
+    const resultBundle: Bundle = {
+        ...initialBundle,
+        entry: [
+            ...(initialBundle.entry ?? []),
+            ...conditions.map((condition) => ({
+                fullUrl: `urn:uuid:${condition.id}`,
+                resource: condition,
+            })),
+            ...allergies.map((allergy) => ({
+                fullUrl: `urn:uuid:${allergy.id}`,
+                resource: allergy,
+            })),
+            ...medicationStatements.map((medicationStatement) => ({
+                fullUrl: `urn:uuid:${medicationStatement.id}`,
+                resource: medicationStatement,
+            })),
+            ...immunizations.map((immunization) => ({
+                fullUrl: `urn:uuid:${immunization.id}`,
+                resource: immunization,
+            })),
+            ...procedures.map((procedure) => ({
+                fullUrl: `urn:uuid:${procedure.id}`,
+                resource: procedure,
+            })),
+        ],
+    };
 
-export function prepareCompositionResourcesIds(composition: Composition): Record<string, string[]> {
-    const ResourcesMap: Record<string, string[]> = {};
-
-    if (!composition.section) {
-        return ResourcesMap;
-    }
-
-    for (const section of composition.section) {
-        if (section.entry) {
-            for (const entry of section.entry) {
-                const { resourceType, id } = parseFHIRReference(entry as Reference);
-                if (resourceType && id) {
-                    if (!ResourcesMap[resourceType]) {
-                        ResourcesMap[resourceType] = [];
-                    }
-                    if (!ResourcesMap[resourceType].includes(id)) {
-                        ResourcesMap[resourceType].push(id);
-                    }
-                }
-            }
-        }
-    }
-
-    return ResourcesMap;
+    return resultBundle;
 }
