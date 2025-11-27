@@ -3,6 +3,7 @@ id: curated-ips
 type: FHIRPath
 body:
   "{% assign %}":
+    - documentTitle: "{{ %QuestionnaireResponse.answers('document-title') }}"
     - authorId: "{{ %QuestionnaireResponse.answers('author-id') }}"
     - authorResourceType: "{{ %QuestionnaireResponse.answers('author-resource-type') }}"
     - patientId: "{{ %QuestionnaireResponse.answers('patient-id') }}"

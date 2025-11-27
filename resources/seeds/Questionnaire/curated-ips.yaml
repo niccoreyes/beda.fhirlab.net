@@ -95,7 +95,7 @@ item:
         readOnly: true
         initialExpression:
           language: text/fhirpath
-          expression: "%Patient.name.first().family"
+          expression: "%Patient.name.first().given.first() + ' ' + %Patient.name.first().family"
       - linkId: patient-mrn
         text: MRN
         type: string
@@ -117,275 +117,285 @@ item:
         initialExpression:
           language: text/fhirpath
           expression: "%Patient.birthDate"
-  - linkId: problems-section
-    text: Problems
+  - linkId: ips-section
     type: group
+    text: Sections
     item:
-      - linkId: problems
-        text: Problem
-        type: group
-        repeats: true
-        itemPopulationContext:
+      - linkId: composition-title
+        text: Document title
+        type: string
+        initialExpression:
           language: text/fhirpath
-          expression: "%PatientConditionsBundle.entry[0].resource.entry.resource"
-          name: condition
+          expression: "%Patient.name.first().given.first() + ' ' + %Patient.name.first().family + ' IPS document of ' + today() + ' ' + timeOfDay()"
+      - linkId: problems-section
+        text: Problems
+        type: group
         item:
-          - linkId: condition-id
-            text: Condition ID
-            type: string
-            required: false
-            hidden: true
-            initialExpression:
-              language: text/fhirpath
-              expression: "%context.id"
-          - linkId: condition-code
-            text: Problem or diagnosis
-            type: choice
-            initialExpression:
-              language: text/fhirpath
-              expression: "%context.code.coding"
-            answerValueSet: "http://snomed.info/sct"
-          - linkId: condition-clinical-status
-            text: Clinical Status
-            type: choice
-            answerValueSet: http://hl7.org/fhir/ValueSet/condition-clinical
-            initialExpression:
-              language: text/fhirpath
-              expression: "%context.clinicalStatus.coding"
-          - linkId: condition-verification-status
-            text: Verification Status
-            type: choice
-            answerValueSet: http://hl7.org/fhir/ValueSet/condition-ver-status
-            initialExpression:
-              language: text/fhirpath
-              expression: "%context.verificationStatus.coding"
-          - linkId: condition-category
-            text: Category
-            type: choice
+          - linkId: problems
+            text: Problem
+            type: group
             repeats: true
-            answerValueSet: http://hl7.org/fhir/ValueSet/condition-category
-            initialExpression:
+            itemPopulationContext:
               language: text/fhirpath
-              expression: "%context.category.coding"
-      - linkId: problems-summary
-        text: Summary
-        type: text
-        calculatedExpression:
-          language: text/fhirpath
-          expression: "%QuestionnaireResponse.item.where(linkId='problems-section').item.where(linkId='problems').item.where(linkId='condition-code').answer.valueCoding.display"
+              expression: "%PatientConditionsBundle.entry[0].resource.entry.resource"
+              name: condition
+            item:
+              - linkId: condition-id
+                text: Condition ID
+                type: string
+                required: false
+                hidden: true
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.id"
+              - linkId: condition-code
+                text: Problem or diagnosis
+                type: choice
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.code.coding"
+                answerValueSet: "http://snomed.info/sct"
+              - linkId: condition-clinical-status
+                text: Clinical Status
+                type: choice
+                answerValueSet: http://hl7.org/fhir/ValueSet/condition-clinical
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.clinicalStatus.coding"
+              - linkId: condition-verification-status
+                text: Verification Status
+                type: choice
+                answerValueSet: http://hl7.org/fhir/ValueSet/condition-ver-status
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.verificationStatus.coding"
+              - linkId: condition-category
+                text: Category
+                type: choice
+                repeats: true
+                answerValueSet: http://hl7.org/fhir/ValueSet/condition-category
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.category.coding"
+          - linkId: problems-summary
+            text: Summary
+            type: text
+            calculatedExpression:
+              language: text/fhirpath
+              expression: "%QuestionnaireResponse.item.where(linkId='problems-section').item.where(linkId='problems').item.where(linkId='condition-code').answer.valueCoding.display"
 
-  - linkId: allergies-section
-    text: Allergies and Intolerances
-    type: group
-    item:
-      - linkId: allergies
-        text: Allergy/Intolerance
+      - linkId: allergies-section
+        text: Allergies and Intolerances
         type: group
-        repeats: true
-        itemPopulationContext:
-          language: text/fhirpath
-          expression: "%PatientAllergiesBundle.entry[0].resource.entry.resource"
-          name: allergy
         item:
-          - linkId: allergy-id
-            text: Allergy ID
-            type: string
-            hidden: true
-            initialExpression:
-              language: text/fhirpath
-              expression: "%context.id"
-          - linkId: allergy-code
-            text: Allergy or Intolerance
-            type: choice
-            initialExpression:
-              language: text/fhirpath
-              expression: "%context.code.coding"
-            required: true
-            answerValueSet: "http://hl7.org/fhir/ValueSet/allergyintolerance-code"
-          - linkId: allergy-clinical-status
-            text: Clinical Status
-            type: choice
-            answerValueSet: http://hl7.org/fhir/ValueSet/allergyintolerance-clinical
-            initialExpression:
-              language: text/fhirpath
-              expression: "%context.clinicalStatus.coding"
-            required: true
-          - linkId: allergy-verification-status
-            text: Verification Status
-            type: choice
-            answerValueSet: http://hl7.org/fhir/ValueSet/allergyintolerance-verification
-            initialExpression:
-              language: text/fhirpath
-              expression: "%context.verificationStatus.coding"
-          - linkId: allergy-category
-            text: Category
-            type: choice
+          - linkId: allergies
+            text: Allergy/Intolerance
+            type: group
             repeats: true
-            answerValueSet: http://hl7.org/fhir/ValueSet/allergy-intolerance-category
-            initialExpression:
+            itemPopulationContext:
               language: text/fhirpath
-              expression: "%context.category.coding"
-      - linkId: allergies-summary
-        text: Summary
-        type: text
-        calculatedExpression:
-          language: text/fhirpath
-          expression: "%QuestionnaireResponse.item.where(linkId='allergies-section').item.where(linkId='allergies').item.where(linkId='allergy-code').answer.valueCoding.display"
+              expression: "%PatientAllergiesBundle.entry[0].resource.entry.resource"
+              name: allergy
+            item:
+              - linkId: allergy-id
+                text: Allergy ID
+                type: string
+                hidden: true
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.id"
+              - linkId: allergy-code
+                text: Allergy or Intolerance
+                type: choice
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.code.coding"
+                required: true
+                answerValueSet: "http://hl7.org/fhir/ValueSet/allergyintolerance-code"
+              - linkId: allergy-clinical-status
+                text: Clinical Status
+                type: choice
+                answerValueSet: http://hl7.org/fhir/ValueSet/allergyintolerance-clinical
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.clinicalStatus.coding"
+                required: true
+              - linkId: allergy-verification-status
+                text: Verification Status
+                type: choice
+                answerValueSet: http://hl7.org/fhir/ValueSet/allergyintolerance-verification
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.verificationStatus.coding"
+              - linkId: allergy-category
+                text: Category
+                type: choice
+                repeats: true
+                answerValueSet: http://hl7.org/fhir/ValueSet/allergy-intolerance-category
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.category.coding"
+          - linkId: allergies-summary
+            text: Summary
+            type: text
+            calculatedExpression:
+              language: text/fhirpath
+              expression: "%QuestionnaireResponse.item.where(linkId='allergies-section').item.where(linkId='allergies').item.where(linkId='allergy-code').answer.valueCoding.display"
 
-  - linkId: medications-section
-    text: Medications
-    type: group
-    item:
-      - linkId: medications
-        text: Medication
+      - linkId: medications-section
+        text: Medications
         type: group
-        repeats: true
-        itemPopulationContext:
-          language: text/fhirpath
-          expression: "%PatientMedicationStatementsBundle.entry[0].resource.entry.resource"
-          name: medication
         item:
-          - linkId: medication-statement-id
-            text: Medication Statement ID
-            type: string
-            hidden: true
-            initialExpression:
-              language: text/fhirpath
-              expression: "%context.id"
-          - linkId: medication-medication
+          - linkId: medications
             text: Medication
-            type: reference
-            required: true
-            initialExpression:
-              language: text/fhirpath
-              expression: "%context.medicationReference"
-            answerExpression:
-              language: application/x-fhir-query
-              expression: "Medication?status=active"
-            referenceResource:
-              - Medication
-            choiceColumn:
-              - forDisplay: true
-                path: code.coding.first().display
-          - linkId: medication-status
-            text: Status
-            type: choice
-            answerValueSet: http://hl7.org/fhir/ValueSet/medication-statement-status
-            initialExpression:
-              language: text/fhirpath
-              expression: "%context.status"
-            required: true
-          - linkId: medication-status-reason
-            text: Status Reason
-            type: choice
+            type: group
             repeats: true
-            initialExpression:
+            itemPopulationContext:
               language: text/fhirpath
-              expression: "%context.statusReason.coding"
-            answerValueSet: http://hl7.org/fhir/ValueSet/reason-medication-status-codes
-          - linkId: medication-effective-datetime
-            text: Date/Time
-            helpText: "The date/time when the medication is/was/will be taken"
-            type: dateTime
-            initialExpression:
+              expression: "%PatientMedicationStatementsBundle.entry[0].resource.entry.resource"
+              name: medication
+            item:
+              - linkId: medication-statement-id
+                text: Medication Statement ID
+                type: string
+                hidden: true
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.id"
+              - linkId: medication-medication
+                text: Medication
+                type: reference
+                required: true
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.medicationReference"
+                answerExpression:
+                  language: application/x-fhir-query
+                  expression: "Medication?status=active"
+                referenceResource:
+                  - Medication
+                choiceColumn:
+                  - forDisplay: true
+                    path: code.coding.first().display
+              - linkId: medication-status
+                text: Status
+                type: choice
+                answerValueSet: http://hl7.org/fhir/ValueSet/medication-statement-status
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.status"
+                required: true
+              - linkId: medication-status-reason
+                text: Status Reason
+                type: choice
+                repeats: true
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.statusReason.coding"
+                answerValueSet: http://hl7.org/fhir/ValueSet/reason-medication-status-codes
+              - linkId: medication-effective-datetime
+                text: Date/Time
+                helpText: "The date/time when the medication is/was/will be taken"
+                type: dateTime
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.effectiveDateTime"
+          - linkId: medications-summary
+            text: Summary
+            type: text
+            calculatedExpression:
               language: text/fhirpath
-              expression: "%context.effectiveDateTime"
-      - linkId: medications-summary
-        text: Summary
-        type: text
-        calculatedExpression:
-          language: text/fhirpath
-          expression: "%QuestionnaireResponse.item.where(linkId='medications-section').item.where(linkId='medications').item.where(linkId='medication-medication').answer.valueReference.display"
+              expression: "%QuestionnaireResponse.item.where(linkId='medications-section').item.where(linkId='medications').item.where(linkId='medication-medication').answer.valueReference.display"
 
-  - linkId: immunizations-section
-    text: Immunizations
-    type: group
-    item:
-      - linkId: immunizations
-        text: Immunization
+      - linkId: immunizations-section
+        text: Immunizations
         type: group
-        repeats: true
-        itemPopulationContext:
-          language: text/fhirpath
-          expression: "%PatientImmunizationsBundle.entry[0].resource.entry.resource"
-          name: immunization
         item:
-          - linkId: immunization-id
-            text: Immunization ID
-            type: string
-            hidden: true
-            initialExpression:
+          - linkId: immunizations
+            text: Immunization
+            type: group
+            repeats: true
+            itemPopulationContext:
               language: text/fhirpath
-              expression: "%context.id"
-          - linkId: immunization-vaccine-code
-            text: Vaccine Code
-            type: choice
-            required: true
-            initialExpression:
+              expression: "%PatientImmunizationsBundle.entry[0].resource.entry.resource"
+              name: immunization
+            item:
+              - linkId: immunization-id
+                text: Immunization ID
+                type: string
+                hidden: true
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.id"
+              - linkId: immunization-vaccine-code
+                text: Vaccine Code
+                type: choice
+                required: true
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.vaccineCode.coding"
+                answerValueSet: "http://hl7.org/fhir/ValueSet/vaccine-code"
+              - linkId: immunization-status
+                text: Status
+                type: choice
+                answerValueSet: http://hl7.org/fhir/ValueSet/immunization-status
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.status"
+                required: true
+              - linkId: immunization-occurrence-datetime
+                text: Occurrence Date/Time
+                helpText: "The date/time when the immunization is/was/will be administered"
+                type: dateTime
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.occurrenceDateTime"
+          - linkId: immunizations-summary
+            text: Summary
+            type: text
+            calculatedExpression:
               language: text/fhirpath
-              expression: "%context.vaccineCode.coding"
-            answerValueSet: "http://hl7.org/fhir/ValueSet/vaccine-code"
-          - linkId: immunization-status
-            text: Status
-            type: choice
-            answerValueSet: http://hl7.org/fhir/ValueSet/immunization-status
-            initialExpression:
-              language: text/fhirpath
-              expression: "%context.status"
-            required: true
-          - linkId: immunization-occurrence-datetime
-            text: Occurrence Date/Time
-            helpText: "The date/time when the immunization is/was/will be administered"
-            type: dateTime
-            initialExpression:
-              language: text/fhirpath
-              expression: "%context.occurrenceDateTime"
-      - linkId: immunizations-summary
-        text: Summary
-        type: text
-        calculatedExpression:
-          language: text/fhirpath
-          expression: "%QuestionnaireResponse.item.where(linkId='immunizations-section').item.where(linkId='immunizations').item.where(linkId='immunization-vaccine-code').answer.valueCoding.display"
+              expression: "%QuestionnaireResponse.item.where(linkId='immunizations-section').item.where(linkId='immunizations').item.where(linkId='immunization-vaccine-code').answer.valueCoding.display"
 
-  - linkId: procedures-section
-    text: Procedures
-    type: group
-    item:
-      - linkId: procedures
-        text: Procedure
+      - linkId: procedures-section
+        text: Procedures
         type: group
-        repeats: true
-        itemPopulationContext:
-          language: text/fhirpath
-          expression: "%PatientProceduresBundle.entry[0].resource.entry.resource"
-          name: procedure
         item:
-          - linkId: procedure-id
-            text: Procedure ID
-            type: string
-            hidden: true
-            initialExpression:
-              language: text/fhirpath
-              expression: "%context.id"
-          - linkId: procedure-code
+          - linkId: procedures
             text: Procedure
-            type: choice
-            required: true
-            initialExpression:
+            type: group
+            repeats: true
+            itemPopulationContext:
               language: text/fhirpath
-              expression: "%context.code.coding"
-            answerValueSet: "http://hl7.org/fhir/ValueSet/procedure-code"
-          - linkId: procedure-status
-            text: Status
-            type: choice
-            answerValueSet: http://hl7.org/fhir/ValueSet/event-status
-            initialExpression:
+              expression: "%PatientProceduresBundle.entry[0].resource.entry.resource"
+              name: procedure
+            item:
+              - linkId: procedure-id
+                text: Procedure ID
+                type: string
+                hidden: true
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.id"
+              - linkId: procedure-code
+                text: Procedure
+                type: choice
+                required: true
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.code.coding"
+                answerValueSet: "http://hl7.org/fhir/ValueSet/procedure-code"
+              - linkId: procedure-status
+                text: Status
+                type: choice
+                answerValueSet: http://hl7.org/fhir/ValueSet/event-status
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.status"
+                required: true
+          - linkId: procedures-summary
+            text: Summary
+            type: text
+            calculatedExpression:
               language: text/fhirpath
-              expression: "%context.status"
-            required: true
-      - linkId: procedures-summary
-        text: Summary
-        type: text
-        calculatedExpression:
-          language: text/fhirpath
-          expression: "%QuestionnaireResponse.item.where(linkId='procedures-section').item.where(linkId='procedures').item.where(linkId='procedure-code').answer.valueCoding.display"
+              expression: "%QuestionnaireResponse.item.where(linkId='procedures-section').item.where(linkId='procedures').item.where(linkId='procedure-code').answer.valueCoding.display"
