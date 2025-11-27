@@ -181,9 +181,9 @@ item:
           - linkId: problems-summary
             text: Summary
             type: text
-            calculatedExpression:
+            initialExpression:
               language: text/fhirpath
-              expression: "%QuestionnaireResponse.item.where(linkId='problems-section').item.where(linkId='problems').item.where(linkId='condition-code').answer.valueCoding.display"
+              expression: "%PatientConditionsBundle.entry[0].resource.entry.resource.code.coding.first().display"
 
       - linkId: allergies-section
         text: Allergies and Intolerances
@@ -240,9 +240,9 @@ item:
           - linkId: allergies-summary
             text: Summary
             type: text
-            calculatedExpression:
+            initialExpression:
               language: text/fhirpath
-              expression: "%QuestionnaireResponse.item.where(linkId='allergies-section').item.where(linkId='allergies').item.where(linkId='allergy-code').answer.valueCoding.display"
+              expression: "%PatientAllergiesBundle.entry[0].resource.entry.resource.code.coding.first().display"
 
       - linkId: medications-section
         text: Medications
@@ -305,9 +305,9 @@ item:
           - linkId: medications-summary
             text: Summary
             type: text
-            calculatedExpression:
+            initialExpression:
               language: text/fhirpath
-              expression: "%QuestionnaireResponse.item.where(linkId='medications-section').item.where(linkId='medications').item.where(linkId='medication-medication').answer.valueReference.display"
+              expression: "%PatientMedicationStatementsBundle.entry[0].resource.entry.resource.medicationReference.display"
 
       - linkId: immunizations-section
         text: Immunizations
@@ -356,9 +356,9 @@ item:
           - linkId: immunizations-summary
             text: Summary
             type: text
-            calculatedExpression:
+            initialExpression:
               language: text/fhirpath
-              expression: "%QuestionnaireResponse.item.where(linkId='immunizations-section').item.where(linkId='immunizations').item.where(linkId='immunization-vaccine-code').answer.valueCoding.display"
+              expression: "%PatientImmunizationsBundle.entry[0].resource.entry.resource.vaccineCode.coding.first().display"
 
       - linkId: procedures-section
         text: Procedures
@@ -399,6 +399,6 @@ item:
           - linkId: procedures-summary
             text: Summary
             type: text
-            calculatedExpression:
+            initialExpression:
               language: text/fhirpath
-              expression: "%QuestionnaireResponse.item.where(linkId='procedures-section').item.where(linkId='procedures').item.where(linkId='procedure-code').answer.valueCoding.display"
+              expression: "%PatientProceduresBundle.entry[0].resource.entry.resource.code.coding.first().display"
