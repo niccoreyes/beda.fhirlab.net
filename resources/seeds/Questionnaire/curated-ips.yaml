@@ -74,7 +74,7 @@ item:
   - linkId: author-resource-type
     text: Author Resource Type
     type: string
-    readOnly: true
+    hidden: true
     initialExpression:
       language: text/fhirpath
       expression: "%Author.resourceType"
@@ -185,7 +185,7 @@ item:
             type: text
             initialExpression:
               language: text/fhirpath
-              expression: "%PatientConditionsBundle.entry[0].resource.entry.resource.code.coding.first().display"
+              expression: "%PatientConditionsBundle.entry[0].resource.entry.resource.code.coding.display.join(', ')"
 
       - linkId: allergies-section
         text: Allergies and Intolerances
@@ -244,7 +244,7 @@ item:
             type: text
             initialExpression:
               language: text/fhirpath
-              expression: "%PatientAllergiesBundle.entry[0].resource.entry.resource.code.coding.first().display"
+              expression: "%PatientAllergiesBundle.entry[0].resource.entry.resource.code.coding.display.join(', ')"
 
       - linkId: medications-section
         text: Medications
@@ -309,7 +309,7 @@ item:
             type: text
             initialExpression:
               language: text/fhirpath
-              expression: "%PatientMedicationStatementsBundle.entry[0].resource.entry.resource.medicationReference.display"
+              expression: "%PatientMedicationStatementsBundle.entry[0].resource.entry.resource.medicationReference.display.join(', ')"
 
       - linkId: immunizations-section
         text: Immunizations
@@ -360,7 +360,7 @@ item:
             type: text
             initialExpression:
               language: text/fhirpath
-              expression: "%PatientImmunizationsBundle.entry[0].resource.entry.resource.vaccineCode.coding.first().display"
+              expression: "%PatientImmunizationsBundle.entry[0].resource.entry.resource.vaccineCode.coding.display.join(', ')"
 
       - linkId: procedures-section
         text: Procedures
@@ -411,4 +411,4 @@ item:
             type: text
             initialExpression:
               language: text/fhirpath
-              expression: "%PatientProceduresBundle.entry[0].resource.entry.resource.code.coding.first().display"
+              expression: "%PatientProceduresBundle.entry[0].resource.entry.resource.code.coding.display.join(', ')"
