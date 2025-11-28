@@ -305,9 +305,9 @@ body:
     - "{% for index, procedureItem in %proceduresItems %}":
         "{% assign %}":
           - procedureId: "{{ %procedureItem.item.where(linkId='procedure-id').answer.valueString }}"
-          - procedureCode: "{{ %procedureItem.item.where(linkId='procedure-code').answer.valueCoding }}"
-          - procedureStatus: "{{ %procedureItem.item.where(linkId='procedure-status').answer.valueCoding.code }}"
-          - procedurePerformedDateTime: "{{ %procedureItem.item.where(linkId='procedure-performed-datetime').answer.valueDateTime }}"
+          - procedureCode: "{{ %procedureItem.item.where(linkId.startsWith('procedure-code')).answer.valueCoding }}"
+          - procedureStatus: "{{ %procedureItem.item.where(linkId.startsWith('procedure-status')).answer.valueCoding.code }}"
+          - procedurePerformedDateTime: "{{ %procedureItem.item.where(linkId.startsWith('procedure-performed-datetime')).answer.valueDateTime }}"
         "{% if %procedureId.empty() and %procedureCode.exists() %}":
           fullUrl: "urn:uuid:Procedure-{{ %index }}"
           request:
