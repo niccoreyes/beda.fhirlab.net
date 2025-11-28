@@ -267,6 +267,20 @@ item:
               language: text/fhirpath
               expression: "%PatientAllergiesBundle.entry[0].resource.entry.resource"
               name: allergy
+            variable:
+              - name: AllergyGroupIndex
+                language: text/fhirpath
+                expression: |
+                  %resource.repeat(item).where(linkId=%qitem.linkId).aggregate(
+                    iif(
+                      $this=%context,
+                      $index,
+                      $total
+                    )
+                  ).toString()
+              - name: AllergySections
+                language: text/fhirpath
+                expression: "%resource.item.where(linkId='ips-section').item.where(linkId='allergies-section').item.where(linkId='allergies')"
             item:
               - linkId: allergy-id
                 text: Allergy ID
@@ -284,6 +298,19 @@ item:
                 required: true
                 answerValueSet: http://hl7.org/fhir/ValueSet/allergyintolerance-code
                 preferredTerminologyServer: https://tx.health-samurai.io/fhir
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%AllergySections[%AllergyGroupIndex].item.where(linkId='allergy-id').answer.valueString.empty()"
+              - linkId: allergy-code-read-only
+                text: Allergy or Intolerance
+                type: choice
+                readOnly: true
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.code.coding"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%AllergySections[%AllergyGroupIndex].item.where(linkId='allergy-id').answer.valueString.exists()"
               - linkId: allergy-clinical-status
                 text: Clinical Status
                 type: choice
@@ -292,6 +319,19 @@ item:
                   language: text/fhirpath
                   expression: "%context.clinicalStatus.coding"
                 required: true
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%AllergySections[%AllergyGroupIndex].item.where(linkId='allergy-id').answer.valueString.empty()"
+              - linkId: allergy-clinical-status-read-only
+                text: Clinical Status
+                type: choice
+                readOnly: true
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.clinicalStatus.coding"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%AllergySections[%AllergyGroupIndex].item.where(linkId='allergy-id').answer.valueString.exists()"
               - linkId: allergy-verification-status
                 text: Verification Status
                 type: choice
@@ -299,6 +339,19 @@ item:
                 initialExpression:
                   language: text/fhirpath
                   expression: "%context.verificationStatus.coding"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%AllergySections[%AllergyGroupIndex].item.where(linkId='allergy-id').answer.valueString.empty()"
+              - linkId: allergy-verification-status-read-only
+                text: Verification Status
+                type: choice
+                readOnly: true
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.verificationStatus.coding"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%AllergySections[%AllergyGroupIndex].item.where(linkId='allergy-id').answer.valueString.exists()"
               - linkId: allergy-category
                 text: Category
                 type: choice
@@ -307,6 +360,19 @@ item:
                 initialExpression:
                   language: text/fhirpath
                   expression: "%context.category.coding"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%AllergySections[%AllergyGroupIndex].item.where(linkId='allergy-id').answer.valueString.empty()"
+              - linkId: allergy-category-read-only
+                text: Category
+                type: choice
+                readOnly: true
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.category.coding"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%AllergySections[%AllergyGroupIndex].item.where(linkId='allergy-id').answer.valueString.exists()"
           - linkId: allergies-summary
             text: Summary
             type: text

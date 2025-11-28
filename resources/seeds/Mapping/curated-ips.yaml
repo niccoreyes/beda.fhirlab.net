@@ -214,10 +214,10 @@ body:
     - "{% for index, allergyItem in %allergiesItems %}":
         "{% assign %}":
           - allergyId: "{{ %allergyItem.item.where(linkId='allergy-id').answer.valueString }}"
-          - allergyCode: "{{ %allergyItem.item.where(linkId='allergy-code').answer.valueCoding }}"
-          - allergyClinicalStatus: "{{ %allergyItem.item.where(linkId='allergy-clinical-status').answer.valueCoding }}"
-          - allergyVerificationStatus: "{{ %allergyItem.item.where(linkId='allergy-verification-status').answer.valueCoding }}"
-          - allergyCategory: "{[ %allergyItem.item.where(linkId='allergy-category').answer.valueCoding.code ]}"
+          - allergyCode: "{{ %allergyItem.item.where(linkId.startsWith('allergy-code')).answer.valueCoding }}"
+          - allergyClinicalStatus: "{{ %allergyItem.item.where(linkId.startsWith('allergy-clinical-status')).answer.valueCoding }}"
+          - allergyVerificationStatus: "{{ %allergyItem.item.where(linkId.startsWith('allergy-verification-status')).answer.valueCoding }}"
+          - allergyCategory: "{[ %allergyItem.item.where(linkId.startsWith('allergy-category')).answer.valueCoding.code ]}"
         "{% if %allergyId.empty() and %allergyCode.exists() %}":
           fullUrl: "urn:uuid:AllergyIntolerance-{{ %index }}"
           request:
