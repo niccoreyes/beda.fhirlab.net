@@ -1,0 +1,31 @@
+resourceType: Condition
+id: ex-1
+meta:
+  profile:
+    - "urn://example.com/ph-core/fhir/StructureDefinition/ph-core-condition"
+    - "http://hl7.org/fhir/uv/ips/StructureDefinition/Condition-uv-ips"
+text:
+  status: generated
+  div: "<div xmlns=\"http://www.w3.org/1999/xhtml\"><p><b>Generated Narrative</b></p><p><b>identifier</b>: id: ex-1</p><p><b>clinicalStatus</b>: <span title=\"Codes: {http://terminology.hl7.org/CodeSystem/condition-clinical inactive}\">Inactive</span></p><p><b>code</b>: <span title=\"Codes: {http://snomed.info/sct 296226006}\">Accidental chlorpromazine overdose</span></p><p><b>subject</b>: <a href=\"#Patient_patient-single-ex\">See above (Patient/patient-single-ex)</a></p></div>"
+clinicalStatus:
+  coding:
+    - code: inactive
+      system: http://terminology.hl7.org/CodeSystem/condition-clinical
+      display: Inactive
+verificationStatus:
+  coding:
+    - code: confirmed
+      system: http://terminology.hl7.org/CodeSystem/condition-ver-status
+      display: Confirmed
+category:
+  - coding:
+      - code: encounter-diagnosis
+        system: http://terminology.hl7.org/CodeSystem/condition-category
+        display: Encounter Diagnosis
+code:
+  coding:
+    - code: "296226006"
+      system: "http://snomed.info/sct"
+      display: "Accidental chlorpromazine overdose"
+subject:
+  reference: Patient/patient-single-ex

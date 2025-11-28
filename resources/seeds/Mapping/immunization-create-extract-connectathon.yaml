@@ -26,7 +26,8 @@ body:
         resource:
           meta:
             profile:
-              - "urn://example.com/ph-core/fhir/StructureDefinition/ph-core-immunization"
+              - urn://example.com/ph-core/fhir/StructureDefinition/ph-core-immunization
+              - http://hl7.org/fhir/uv/ips/StructureDefinition/Immunization-uv-ips
           resourceType: Immunization
           patient: "{{ %patientRef }}"
           status: "{{ %status.code }}"

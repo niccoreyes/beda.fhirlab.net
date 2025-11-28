@@ -24,3 +24,4 @@ body:
         meta:
           profile:
           - urn://example.com/ph-core/fhir/StructureDefinition/ph-core-medication
+          - http://hl7.org/fhir/uv/ips/StructureDefinition/Medication-uv-ips

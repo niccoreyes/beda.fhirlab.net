@@ -1,6 +1,6 @@
 auth:
   implicit:
-    redirect_uri: "http://localhost:3000/auth"
+    redirect_uri: "${FHIR_EMR_AUTH_URL}"
 first_party: true
 grant_types:
   - implicit

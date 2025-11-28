@@ -17,10 +17,12 @@ import '@beda.software/emr/dist/style.css';
 // Use you https://github.com/beda-software/fhir-emr/blob/master/src/theme/ThemeProvider.tsx as example
 import { Route } from 'react-router-dom';
 
+import { User } from '@beda.software/aidbox-types';
 import { App } from '@beda.software/emr/containers';
 import { ValueSetExpandProvider } from '@beda.software/emr/contexts';
 import { MenuLayout } from '@beda.software/emr/dist/components/BaseLayout/Sidebar/SidebarTop/context';
 import { PatientDashboardProvider } from '@beda.software/emr/dist/components/Dashboard/contexts';
+import { fetchUserRoleDetails } from '@beda.software/emr/dist/containers/App/utils';
 import { dashboard } from '@beda.software/emr/dist/dashboard.config';
 import {
     InvoicesIcon,
@@ -32,6 +34,7 @@ import {
     OrganizationsIcon,
 } from '@beda.software/emr/icons';
 import { createFHIRResource, expandExternalTerminology, getUserInfo } from '@beda.software/emr/services';
+import { sharedAuthorizedUser } from '@beda.software/emr/sharedState';
 import { ThemeProvider } from '@beda.software/emr/theme';
 import { matchCurrentUserRole, Role } from '@beda.software/emr/utils';
 import { isSuccess, RemoteDataResult, isFailure } from '@beda.software/remote-data';
@@ -42,16 +45,13 @@ import { MedicationsUberList } from './containers/MedicationsUberList';
 import { ObservationsUberList } from './containers/ObservationsUberList';
 import { OrganizationsUberList } from './containers/OrganizationsUberList';
 import { PatientUberList } from './containers/PatientsUberList';
+import { PatientDetails } from './containers/PatientsUberList/detail';
 import { PractitionersUberList } from './containers/PractitionersUberList ';
 import { ProceduresUberList } from './containers/ProceduresUberList';
-import { dynamicActivate, getCurrentLocale } from './services/i18n';
-import { PatientDetails } from './containers/PatientsUberList/detail';
 import { QuestionnaireList } from "./containers/Questionnaire/list";
 import { NewQuestionnaire } from "./containers/Questionnaire/new";
 import { SignIn } from './containers/SignIn';
-import { User } from '@beda.software/aidbox-types';
-import { sharedAuthorizedUser } from '@beda.software/emr/sharedState';
-import { fetchUserRoleDetails } from '@beda.software/emr/dist/containers/App/utils';
+import { dynamicActivate, getCurrentLocale } from './services/i18n';
 
 
 async function expandEMRValueSet(

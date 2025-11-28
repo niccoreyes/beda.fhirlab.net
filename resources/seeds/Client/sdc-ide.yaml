@@ -1,0 +1,8 @@
+resourceType: Client
+id: sdc-ide
+grant_types:
+  - implicit
+first_party: true
+auth:
+  implicit:
+    redirect_uri: "${SDC_IDE_AUTH_URL}"

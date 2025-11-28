@@ -1,0 +1,330 @@
+resourceType: Mapping
+id: curated-ips
+type: FHIRPath
+body:
+  "{% assign %}":
+    - documentTitle: "{{ %QuestionnaireResponse.answers('document-title') }}"
+    - authorId: "{{ %QuestionnaireResponse.answers('author-id') }}"
+    - authorResourceType: "{{ %QuestionnaireResponse.answers('author-resource-type') }}"
+    - patientId: "{{ %QuestionnaireResponse.answers('patient-id') }}"
+    - patientName: "{{ %QuestionnaireResponse.answers('patient-name') }}"
+    - allergiesSummary: "{{ %QuestionnaireResponse.answers('allergies-summary') }}"
+    - medicationsSummary: "{{ %QuestionnaireResponse.answers('medications-summary') }}"
+    - immunizationsSummary: "{{ %QuestionnaireResponse.answers('immunizations-summary') }}"
+    - proceduresSummary: "{{ %QuestionnaireResponse.answers('procedures-summary') }}"
+    - problemsSummary: "{{ %QuestionnaireResponse.answers('problems-summary') }}"
+    - proceduresIDs: "{[ %QuestionnaireResponse.answers('procedure-id') ]}"
+    - problemItems: "{[ %QuestionnaireResponse.item.where(linkId='ips-section').item.where(linkId='problems-section').item.where(linkId='problems') ]}"
+    - allergiesItems: "{[ %QuestionnaireResponse.item.where(linkId='ips-section').item.where(linkId='allergies-section').item.where(linkId='allergies') ]}"
+    - medicationsItems: "{[ %QuestionnaireResponse.item.where(linkId='ips-section').item.where(linkId='medications-section').item.where(linkId='medications') ]}"
+    - immunizationsItems: "{[ %QuestionnaireResponse.item.where(linkId='ips-section').item.where(linkId='immunizations-section').item.where(linkId='immunizations') ]}"
+    - proceduresItems: "{[ %QuestionnaireResponse.item.where(linkId='ips-section').item.where(linkId='procedures-section').item.where(linkId='procedures') ]}"
+
+  resourceType: Bundle
+  type: transaction
+  entry:
+    - request:
+        method: POST
+        url: /Composition
+      resource:
+        resourceType: Composition
+        meta:
+          profile:
+            - http://hl7.org/fhir/uv/ips/StructureDefinition/Composition-uv-ips
+        status: final
+        type:
+          coding:
+            - code: 60591-5
+              system: http://loinc.org
+              display: Patient Summary Document
+        subject:
+          reference: "Patient/{{ %patientId }}"
+          display: "{{ %patientName }}"
+        date: "{{ now() }}"
+        author:
+          - reference: "{{ %authorResourceType + '/' + %authorId }}"
+        title: "{{ %patientName }}'s Patient summary document"
+        section:
+          - title: Problems
+            code:
+              coding:
+                - code: 11450-4
+                  system: http://loinc.org
+                  display: Problem list - Reported
+            text:
+              status: generated
+              "{% if %problemsSummary.exists() %}":
+                div: "{{ %problemsSummary }}"
+              "{% else %}":
+                div: "No problems found"
+            "{% if %problemItems.count() > 0 %}":
+              entry:
+                "{% for index, problemItem in %problemItems %}":
+                  "{% assign %}":
+                    - problemId: "{{ %problemItem.item.where(linkId='condition-id').answer.valueString }}"
+                  "{% if %problemId.exists() %}":
+                    reference: "Condition/{{ %problemId }}"
+                  "{% else %}":
+                    reference: "{{ 'urn:uuid:Condition-' + %index.toString() }}"
+            "{% else %}":
+              emptyReason:
+                coding:
+                  - code: unavailable
+                    system: http://terminology.hl7.org/CodeSystem/list-empty-reason
+                    display: Unavailable
+          - title: Allergies and Intolerances
+            code:
+              coding:
+                - code: 48765-2
+                  system: http://loinc.org
+            text:
+              status: generated
+              "{% if %allergiesSummary.exists() %}":
+                div: "{{ %allergiesSummary }}"
+              "{% else %}":
+                div: "No allergies found"
+            "{% if %allergiesItems.count() > 0 %}":
+              entry:
+                "{% for index, allergyItem in %allergiesItems %}":
+                  "{% assign %}":
+                    - allergyId: "{{ %allergyItem.item.where(linkId='allergy-id').answer.valueString }}"
+                  "{% if %allergyId.exists() %}":
+                    reference: "AllergyIntolerance/{{ %allergyId }}"
+                  "{% else %}":
+                    reference: "{{ 'urn:uuid:AllergyIntolerance-' + %index.toString() }}"
+            "{% else %}":
+              emptyReason:
+                coding:
+                  - code: unavailable
+                    system: http://terminology.hl7.org/CodeSystem/list-empty-reason
+                    display: Unavailable
+          - title: Medications
+            code:
+              coding:
+                - code: 10160-0
+                  system: http://loinc.org
+            text:
+              status: generated
+              "{% if %medicationsSummary.exists() %}":
+                div: "{{ %medicationsSummary }}"
+              "{% else %}":
+                div: "No medications found"
+            "{% if %medicationsItems.count() > 0 %}":
+              entry:
+                "{% for index, medicationItem in %medicationsItems %}":
+                  "{% assign %}":
+                    - medicationId: "{{ %medicationItem.item.where(linkId='medication-statement-id').answer.valueString }}"
+                  "{% if %medicationId.exists() %}":
+                    reference: "MedicationStatement/{{ %medicationId }}"
+                  "{% else %}":
+                    reference: "{{ 'urn:uuid:MedicationStatement-' + %index.toString() }}"
+            "{% else %}":
+              emptyReason:
+                coding:
+                  - code: unavailable
+                    system: http://terminology.hl7.org/CodeSystem/list-empty-reason
+                    display: Unavailable
+          - title: Immunizations
+            code:
+              coding:
+                - code: 36419-9
+                  system: http://loinc.org
+            text:
+              status: generated
+              "{% if %immunizationsSummary.exists() %}":
+                div: "{{ %immunizationsSummary }}"
+              "{% else %}":
+                div: "No immunizations found"
+            "{% if %immunizationsItems.count() > 0 %}":
+              entry:
+                "{% for index, immunizationItem in %immunizationsItems %}":
+                  "{% assign %}":
+                    - immunizationId: "{{ %immunizationItem.item.where(linkId='immunization-id').answer.valueString }}"
+                  "{% if %immunizationId.exists() %}":
+                    reference: "Immunization/{{ %immunizationId }}"
+                  "{% else %}":
+                    reference: "{{ 'urn:uuid:Immunization-' + %index.toString() }}"
+            "{% else %}":
+              emptyReason:
+                coding:
+                  - code: unavailable
+                    system: http://terminology.hl7.org/CodeSystem/list-empty-reason
+                    display: Unavailable
+          - title: Procedures
+            code:
+              coding:
+                - code: 30.1403-0
+                  system: http://loinc.org
+            text:
+              status: generated
+              "{% if %proceduresSummary.exists() %}":
+                div: "{{ %proceduresSummary }}"
+              "{% else %}":
+                div: "No procedures found"
+            "{% if %proceduresItems.count() > 0 %}":
+              entry:
+                "{% for index, procedureItem in %proceduresItems %}":
+                  "{% assign %}":
+                    - procedureId: "{{ %procedureItem.item.where(linkId='procedure-id').answer.valueString }}"
+                  "{% if %procedureId.exists() %}":
+                    reference: "Procedure/{{ %procedureId }}"
+                  "{% else %}":
+                    reference: "{{ 'urn:uuid:Procedure-' + %index.toString() }}"
+            "{% else %}":
+              emptyReason:
+                coding:
+                  - code: unavailable
+                    system: http://terminology.hl7.org/CodeSystem/list-empty-reason
+                    display: Unavailable
+    - "{% for index, problemItem in %problemItems %}":
+        "{% assign %}":
+          - problemId: "{{ %problemItem.item.where(linkId='condition-id').answer.valueString }}"
+          - problemCode: "{{ %problemItem.item.where(linkId='condition-code').answer.valueCoding }}"
+          - problemClinicalStatus: "{{ %problemItem.item.where(linkId='condition-clinical-status').answer.valueCoding }}"
+          - problemVerificationStatus: "{{ %problemItem.item.where(linkId='condition-verification-status').answer.valueCoding }}"
+          - problemCategory: "{[ %problemItem.item.where(linkId='condition-category').answer.valueCoding ]}"
+        "{% if %problemId.empty() and %problemCode.exists() %}":
+          fullUrl: "urn:uuid:Condition-{{ %index }}"
+          request:
+            method: POST
+            url: /Condition
+          resource:
+            resourceType: Condition
+            meta:
+              profile:
+                - "http://hl7.org/fhir/uv/ips/StructureDefinition/Condition-uv-ips"
+            clinicalStatus:
+              coding:
+                - "{{ %problemClinicalStatus }}"
+            code:
+              coding:
+                - "{{ %problemCode }}"
+            verificationStatus:
+              coding:
+                - "{{ %problemVerificationStatus }}"
+            category:
+              - "{% for problemCategoryItem in %problemCategory %}":
+                  coding:
+                    - "{{ %problemCategoryItem }}"
+            subject:
+              reference: "Patient/{{ %patientId }}"
+            text:
+              status: generated
+              div: "<div xmlns='http://www.w3.org/1999/xhtml'><p><b>Generated Narrative</b></p><p><b>identifier</b>: id: urn:uuid:Condition-{{%index}}</p><p><b>clinicalStatus</b>: <span title='Codes: {http://terminology.hl7.org/CodeSystem/condition-clinical {{%problemClinicalStatus.code}}}'>{{%problemClinicalStatus.display}}</span></p><p><b>code</b>: <span title='Codes: {http://snomed.info/sct {{%problemCode.code}} }'>{{%problemCode.display}}</span></p><p><b>subject</b>: <a href='#Patient_{{%patientId}}'>See above (Patient/{{%patientId}})</a></p></div>"
+    - "{% for index, allergyItem in %allergiesItems %}":
+        "{% assign %}":
+          - allergyId: "{{ %allergyItem.item.where(linkId='allergy-id').answer.valueString }}"
+          - allergyCode: "{{ %allergyItem.item.where(linkId='allergy-code').answer.valueCoding }}"
+          - allergyClinicalStatus: "{{ %allergyItem.item.where(linkId='allergy-clinical-status').answer.valueCoding }}"
+          - allergyVerificationStatus: "{{ %allergyItem.item.where(linkId='allergy-verification-status').answer.valueCoding }}"
+          - allergyCategory: "{[ %allergyItem.item.where(linkId='allergy-category').answer.valueCoding.code ]}"
+        "{% if %allergyId.empty() and %allergyCode.exists() %}":
+          fullUrl: "urn:uuid:AllergyIntolerance-{{ %index }}"
+          request:
+            method: POST
+            url: /AllergyIntolerance
+          resource:
+            resourceType: AllergyIntolerance
+            meta:
+              profile:
+                - "http://hl7.org/fhir/uv/ips/StructureDefinition/AllergyIntolerance-uv-ips"
+            clinicalStatus:
+              coding:
+                - "{{ %allergyClinicalStatus }}"
+            code:
+              coding:
+                - "{{ %allergyCode }}"
+            verificationStatus:
+              coding:
+                - "{{ %allergyVerificationStatus }}"
+            category: "{[ %allergyCategory ]}"
+            patient:
+              reference: "Patient/{{ %patientId }}"
+            text:
+              status: generated
+              div: "<div xmlns='http://www.w3.org/1999/xhtml'><p><b>Generated Narrative</b></p><p><b>identifier</b>: id: urn:uuid:AllergyIntolerance-{{%index}}</p><p><b>clinicalStatus</b>: <span title='Codes: {http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical {{%allergyClinicalStatus.code}}}'>{{%allergyClinicalStatus.display}}</span></p><p><b>code</b>: <span title='Codes: {http://snomed.info/sct {{%allergyCode.code}} }'>{{%allergyCode.display}}</span></p><p><b>subject</b>: <a href='#Patient_{{%patientId}}'>See above (Patient/{{%patientId}})</a></p></div>"
+    - "{% for index, medicationItem in %medicationsItems %}":
+        "{% assign %}":
+          - medicationId: "{{ %medicationItem.item.where(linkId='medication-statement-id').answer.valueString }}"
+          - medicationReference: "{{ %medicationItem.item.where(linkId='medication-medication').answer.valueReference }}"
+          - medicationStatus: "{{ %medicationItem.item.where(linkId='medication-status').answer.valueCoding.code }}"
+          - medicationStatusReason: "{[ %medicationItem.item.where(linkId='medication-status-reason').answer.valueCoding.code ]}"
+          - medicationEffectiveDateTime: "{{ %medicationItem.item.where(linkId='medication-effective-datetime').answer.valueDateTime }}"
+        "{% if %medicationId.empty() and %medicationReference.exists() %}":
+          fullUrl: "urn:uuid:MedicationStatement-{{ %index }}"
+          request:
+            method: POST
+            url: /MedicationStatement
+          resource:
+            resourceType: MedicationStatement
+            meta:
+              profile:
+                - "http://hl7.org/fhir/uv/ips/StructureDefinition/MedicationStatement-uv-ips"
+            status: "{{ %medicationStatus }}"
+            medicationReference: "{{ %medicationReference }}"
+            statusReason:
+              "{% for medicationStatusReasonItem in %medicationStatusReason %}":
+                coding:
+                  - code: "{{ %medicationStatusReasonItem }}"
+                    system: http://terminology.hl7.org/CodeSystem/medication-statement-status-reason
+                    display: "{{ %medicationStatusReasonItem }}"
+            effectiveDateTime: "{{ %medicationEffectiveDateTime }}"
+            subject:
+              reference: "Patient/{{ %patientId }}"
+            "{% if %medicationEffectiveDateTime.exists() %}":
+              text:
+                status: generated
+                div: "<div xmlns='http://www.w3.org/1999/xhtml'><p><b>Generated Narrative</b></p><p><b>identifier</b>: id: urn:uuid:MedicationStatement-{{%index}}</p><p><b>status</b>: <span title='Codes: {http://terminology.hl7.org/CodeSystem/medication-statement-status {{%medicationStatus}}}'>{{%medicationStatus}}</span></p><p><b>medicationReference</b>: <a href='#Medication_{{%medicationReference.reference}}'>See above (Medication/{{%medicationReference.reference}})</a></p><p><b>effectiveDateTime</b>: {{%medicationEffectiveDateTime}}</p><p><b>subject</b>: <a href='#Patient_{{%patientId}}'>See above (Patient/{{%patientId}})</a></p></div>"
+    - "{% for index, immunizationItem in %immunizationsItems %}":
+        "{% assign %}":
+          - immunizationId: "{{ %immunizationItem.item.where(linkId='immunization-id').answer.valueString }}"
+          - immunizationVaccineCode: "{{ %immunizationItem.item.where(linkId='immunization-vaccine-code').answer.valueCoding }}"
+          - immunizationStatus: "{{ %immunizationItem.item.where(linkId='immunization-status').answer.valueCoding.code }}"
+          - immunizationDate: "{{ %immunizationItem.item.where(linkId='immunization-occurrence-datetime').answer.valueDateTime }}"
+        "{% if %immunizationId.empty() and %immunizationVaccineCode.exists() %}":
+          fullUrl: "urn:uuid:Immunization-{{ %index }}"
+          request:
+            method: POST
+            url: /Immunization
+          resource:
+            resourceType: Immunization
+            meta:
+              profile:
+                - "http://hl7.org/fhir/uv/ips/StructureDefinition/Immunization-uv-ips"
+            status: "{{ %immunizationStatus }}"
+            vaccineCode:
+              coding:
+                - "{{ %immunizationVaccineCode }}"
+            occurrenceDateTime: "{{ %immunizationDate }}"
+            patient:
+              reference: "Patient/{{ %patientId }}"
+            "{% if %immunizationDate.exists() %}":
+              text:
+                status: generated
+                div: "<div xmlns='http://www.w3.org/1999/xhtml'><p><b>Generated Narrative</b></p><p><b>identifier</b>: id: urn:uuid:Immunization-{{%index}}</p><p><b>status</b>: <span title='Codes: {http://terminology.hl7.org/CodeSystem/immunization-status {{%immunizationStatus}}}'>{{%immunizationStatus}}</span></p><p><b>vaccineCode</b>: <span title='Codes: {http://snomed.info/sct {{%immunizationVaccineCode.code}} }'>{{%immunizationVaccineCode.display}}</span></p><p><b>occurrenceDateTime</b>: {{%immunizationDate}}</p><p><b>subject</b>: <a href='#Patient_{{%patientId}}'>See above (Patient/{{%patientId}})</a></p></div>"
+    - "{% for index, procedureItem in %proceduresItems %}":
+        "{% assign %}":
+          - procedureId: "{{ %procedureItem.item.where(linkId='procedure-id').answer.valueString }}"
+          - procedureCode: "{{ %procedureItem.item.where(linkId='procedure-code').answer.valueCoding }}"
+          - procedureStatus: "{{ %procedureItem.item.where(linkId='procedure-status').answer.valueCoding.code }}"
+          - procedurePerformedDateTime: "{{ %procedureItem.item.where(linkId='procedure-performed-datetime').answer.valueDateTime }}"
+        "{% if %procedureId.empty() and %procedureCode.exists() %}":
+          fullUrl: "urn:uuid:Procedure-{{ %index }}"
+          request:
+            method: POST
+            url: /Procedure
+          resource:
+            resourceType: Procedure
+            meta:
+              profile:
+                - "http://hl7.org/fhir/uv/ips/StructureDefinition/Procedure-uv-ips"
+            status: "{{ %procedureStatus }}"
+            performedDateTime: "{{ %procedurePerformedDateTime }}"
+            code:
+              coding:
+                - "{{ %procedureCode }}"
+            subject:
+              reference: "Patient/{{ %patientId }}"
+            text:
+              status: generated
+              div: "<div xmlns='http://www.w3.org/1999/xhtml'><p><b>Generated Narrative</b></p><p><b>identifier</b>: id: urn:uuid:Procedure-{{%index}}</p><p><b>status</b>: <span title='Codes: {http://terminology.hl7.org/CodeSystem/procedure-status {{%procedureStatus}}}'>{{%procedureStatus}}</span></p><p><b>code</b>: <span title='Codes: {http://snomed.info/sct {{%procedureCode.code}} }'>{{%procedureCode.display}}</span></p><p><b>subject</b>: <a href='#Patient_{{%patientId}}'>See above (Patient/{{%patientId}})</a></p></div>"
