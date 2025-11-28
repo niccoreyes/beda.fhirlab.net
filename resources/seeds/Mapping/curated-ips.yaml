@@ -246,10 +246,10 @@ body:
     - "{% for index, medicationItem in %medicationsItems %}":
         "{% assign %}":
           - medicationId: "{{ %medicationItem.item.where(linkId='medication-statement-id').answer.valueString }}"
-          - medicationReference: "{{ %medicationItem.item.where(linkId='medication-medication').answer.valueReference }}"
-          - medicationStatus: "{{ %medicationItem.item.where(linkId='medication-status').answer.valueCoding.code }}"
-          - medicationStatusReason: "{[ %medicationItem.item.where(linkId='medication-status-reason').answer.valueCoding.code ]}"
-          - medicationEffectiveDateTime: "{{ %medicationItem.item.where(linkId='medication-effective-datetime').answer.valueDateTime }}"
+          - medicationReference: "{{ %medicationItem.item.where(linkId.startsWith('medication-medication')).answer.valueReference }}"
+          - medicationStatus: "{{ %medicationItem.item.where(linkId.startsWith('medication-status')).answer.valueCoding.code }}"
+          - medicationStatusReason: "{[ %medicationItem.item.where(linkId.startsWith('medication-status-reason')).answer.valueCoding.code ]}"
+          - medicationEffectiveDateTime: "{{ %medicationItem.item.where(linkId.startsWith('medication-effective-datetime')).answer.valueDateTime }}"
         "{% if %medicationId.empty() and %medicationReference.exists() %}":
           fullUrl: "urn:uuid:MedicationStatement-{{ %index }}"
           request:

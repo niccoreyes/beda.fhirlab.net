@@ -392,6 +392,20 @@ item:
               language: text/fhirpath
               expression: "%PatientMedicationStatementsBundle.entry[0].resource.entry.resource"
               name: medication
+            variable:
+              - name: MedicationGroupIndex
+                language: text/fhirpath
+                expression: |
+                  %resource.repeat(item).where(linkId=%qitem.linkId).aggregate(
+                    iif(
+                      $this=%context,
+                      $index,
+                      $total
+                    )
+                  ).toString()
+              - name: MedicationSections
+                language: text/fhirpath
+                expression: "%resource.item.where(linkId='ips-section').item.where(linkId='medications-section').item.where(linkId='medications')"
             item:
               - linkId: medication-statement-id
                 text: Medication Statement ID
@@ -415,6 +429,19 @@ item:
                 choiceColumn:
                   - forDisplay: true
                     path: code.coding.first().display
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%MedicationSections[%MedicationGroupIndex].item.where(linkId='medication-statement-id').answer.valueString.empty()"
+              - linkId: medication-medication-read-only
+                text: Medication
+                type: reference
+                readOnly: true
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.medicationReference"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%MedicationSections[%MedicationGroupIndex].item.where(linkId='medication-statement-id').answer.valueString.exists()"
               - linkId: medication-status
                 text: Status
                 type: choice
@@ -423,6 +450,19 @@ item:
                   language: text/fhirpath
                   expression: "%context.status"
                 required: true
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%MedicationSections[%MedicationGroupIndex].item.where(linkId='medication-statement-id').answer.valueString.empty()"
+              - linkId: medication-status-read-only
+                text: Status
+                type: choice
+                readOnly: true
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.status"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%MedicationSections[%MedicationGroupIndex].item.where(linkId='medication-statement-id').answer.valueString.exists()"
               - linkId: medication-status-reason
                 text: Status Reason
                 type: choice
@@ -431,6 +471,19 @@ item:
                   language: text/fhirpath
                   expression: "%context.statusReason.coding"
                 answerValueSet: http://hl7.org/fhir/ValueSet/reason-medication-status-codes
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%MedicationSections[%MedicationGroupIndex].item.where(linkId='medication-statement-id').answer.valueString.empty()"
+              - linkId: medication-status-reason-read-only
+                text: Status Reason
+                type: choice
+                readOnly: true
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.statusReason.coding"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%MedicationSections[%MedicationGroupIndex].item.where(linkId='medication-statement-id').answer.valueString.exists()"
               - linkId: medication-effective-datetime
                 text: Date/Time
                 helpText: "The date/time when the medication is/was/will be taken"
@@ -438,6 +491,20 @@ item:
                 initialExpression:
                   language: text/fhirpath
                   expression: "%context.effectiveDateTime"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%MedicationSections[%MedicationGroupIndex].item.where(linkId='medication-statement-id').answer.valueString.empty()"
+              - linkId: medication-effective-datetime-read-only
+                text: Date/Time
+                helpText: "The date/time when the medication is/was/will be taken"
+                type: dateTime
+                readOnly: true
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.effectiveDateTime"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%MedicationSections[%MedicationGroupIndex].item.where(linkId='medication-statement-id').answer.valueString.exists()"
           - linkId: medications-summary
             text: Summary
             type: text
