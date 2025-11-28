@@ -126,7 +126,7 @@ item:
         type: string
         initialExpression:
           language: text/fhirpath
-          expression: "%Patient.name.first().given.first() + ' ' + %Patient.name.first().family + ' IPS document of ' + today() + ' ' + timeOfDay()"
+          expression: "%Patient.name.first().given.first() + ' ' + %Patient.name.first().family + ' IPS document'"
       - linkId: problems-section
         text: Problems
         type: group
@@ -139,6 +139,20 @@ item:
               language: text/fhirpath
               expression: "%PatientConditionsBundle.entry[0].resource.entry.resource"
               name: condition
+            variable:
+              - name: ConditionGroupIndex
+                language: text/fhirpath
+                expression: |
+                  %resource.repeat(item).where(linkId=%qitem.linkId).aggregate(
+                    iif(
+                      $this=%context,
+                      $index,
+                      $total
+                    )
+                  ).toString()
+              - name: ProblemSections
+                language: text/fhirpath
+                expression: "%resource.item.where(linkId='ips-section').item.where(linkId='problems-section').item.where(linkId='problems')"
             item:
               - linkId: condition-id
                 text: Condition ID
@@ -157,6 +171,19 @@ item:
                   expression: "%context.code.coding"
                 answerValueSet: http://hl7.org/fhir/uv/ips/ValueSet/problems-uv-ips
                 preferredTerminologyServer: https://tx.health-samurai.io/fhir
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%ProblemSections[%ConditionGroupIndex].item.where(linkId='condition-id').answer.valueString.empty()"
+              - linkId: condition-code-read-only
+                readOnly: true
+                text: Problem or diagnosis
+                type: choice
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.code.coding"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%ProblemSections[%ConditionGroupIndex].item.where(linkId='condition-id').answer.valueString.exists()"
               - linkId: condition-clinical-status
                 required: true
                 text: Clinical Status
@@ -165,6 +192,19 @@ item:
                 initialExpression:
                   language: text/fhirpath
                   expression: "%context.clinicalStatus.coding"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%ProblemSections[%ConditionGroupIndex].item.where(linkId='condition-id').answer.valueString.empty()"
+              - linkId: condition-clinical-status-read-only
+                readOnly: true
+                text: Clinical Status
+                type: choice
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.clinicalStatus.coding"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%ProblemSections[%ConditionGroupIndex].item.where(linkId='condition-id').answer.valueString.exists()"
               - linkId: condition-verification-status
                 text: Verification Status
                 type: choice
@@ -172,6 +212,19 @@ item:
                 initialExpression:
                   language: text/fhirpath
                   expression: "%context.verificationStatus.coding"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%ProblemSections[%ConditionGroupIndex].item.where(linkId='condition-id').answer.valueString.empty()"
+              - linkId: condition-verification-status-read-only
+                text: Verification Status
+                type: choice
+                readOnly: true
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.verificationStatus.coding"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%ProblemSections[%ConditionGroupIndex].item.where(linkId='condition-id').answer.valueString.exists()"
               - linkId: condition-category
                 text: Category
                 type: choice
@@ -180,6 +233,20 @@ item:
                 initialExpression:
                   language: text/fhirpath
                   expression: "%context.category.coding"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%ProblemSections[%ConditionGroupIndex].item.where(linkId='condition-id').answer.valueString.empty()"
+              - linkId: condition-category-read-only
+                text: Category
+                type: choice
+                readOnly: true
+                repeats: true
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.category.coding"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%ProblemSections[%ConditionGroupIndex].item.where(linkId='condition-id').answer.valueString.exists()"
           - linkId: problems-summary
             text: Summary
             type: text
@@ -199,6 +266,20 @@ item:
               language: text/fhirpath
               expression: "%PatientAllergiesBundle.entry[0].resource.entry.resource"
               name: allergy
+            variable:
+              - name: AllergyGroupIndex
+                language: text/fhirpath
+                expression: |
+                  %resource.repeat(item).where(linkId=%qitem.linkId).aggregate(
+                    iif(
+                      $this=%context,
+                      $index,
+                      $total
+                    )
+                  ).toString()
+              - name: AllergySections
+                language: text/fhirpath
+                expression: "%resource.item.where(linkId='ips-section').item.where(linkId='allergies-section').item.where(linkId='allergies')"
             item:
               - linkId: allergy-id
                 text: Allergy ID
@@ -216,6 +297,19 @@ item:
                 required: true
                 answerValueSet: http://hl7.org/fhir/ValueSet/allergyintolerance-code
                 preferredTerminologyServer: https://tx.health-samurai.io/fhir
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%AllergySections[%AllergyGroupIndex].item.where(linkId='allergy-id').answer.valueString.empty()"
+              - linkId: allergy-code-read-only
+                text: Allergy or Intolerance
+                type: choice
+                readOnly: true
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.code.coding"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%AllergySections[%AllergyGroupIndex].item.where(linkId='allergy-id').answer.valueString.exists()"
               - linkId: allergy-clinical-status
                 text: Clinical Status
                 type: choice
@@ -224,6 +318,19 @@ item:
                   language: text/fhirpath
                   expression: "%context.clinicalStatus.coding"
                 required: true
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%AllergySections[%AllergyGroupIndex].item.where(linkId='allergy-id').answer.valueString.empty()"
+              - linkId: allergy-clinical-status-read-only
+                text: Clinical Status
+                type: choice
+                readOnly: true
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.clinicalStatus.coding"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%AllergySections[%AllergyGroupIndex].item.where(linkId='allergy-id').answer.valueString.exists()"
               - linkId: allergy-verification-status
                 text: Verification Status
                 type: choice
@@ -231,6 +338,19 @@ item:
                 initialExpression:
                   language: text/fhirpath
                   expression: "%context.verificationStatus.coding"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%AllergySections[%AllergyGroupIndex].item.where(linkId='allergy-id').answer.valueString.empty()"
+              - linkId: allergy-verification-status-read-only
+                text: Verification Status
+                type: choice
+                readOnly: true
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.verificationStatus.coding"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%AllergySections[%AllergyGroupIndex].item.where(linkId='allergy-id').answer.valueString.exists()"
               - linkId: allergy-category
                 text: Category
                 type: choice
@@ -239,6 +359,20 @@ item:
                 initialExpression:
                   language: text/fhirpath
                   expression: "%context.category.coding"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%AllergySections[%AllergyGroupIndex].item.where(linkId='allergy-id').answer.valueString.empty()"
+              - linkId: allergy-category-read-only
+                text: Category
+                type: choice
+                readOnly: true
+                repeats: true
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.category.coding"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%AllergySections[%AllergyGroupIndex].item.where(linkId='allergy-id').answer.valueString.exists()"
           - linkId: allergies-summary
             text: Summary
             type: text
@@ -258,6 +392,20 @@ item:
               language: text/fhirpath
               expression: "%PatientMedicationStatementsBundle.entry[0].resource.entry.resource"
               name: medication
+            variable:
+              - name: MedicationGroupIndex
+                language: text/fhirpath
+                expression: |
+                  %resource.repeat(item).where(linkId=%qitem.linkId).aggregate(
+                    iif(
+                      $this=%context,
+                      $index,
+                      $total
+                    )
+                  ).toString()
+              - name: MedicationSections
+                language: text/fhirpath
+                expression: "%resource.item.where(linkId='ips-section').item.where(linkId='medications-section').item.where(linkId='medications')"
             item:
               - linkId: medication-statement-id
                 text: Medication Statement ID
@@ -281,6 +429,27 @@ item:
                 choiceColumn:
                   - forDisplay: true
                     path: code.coding.first().display
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%MedicationSections[%MedicationGroupIndex].item.where(linkId='medication-statement-id').answer.valueString.empty()"
+              - linkId: medication-medication-read-only
+                text: Medication
+                type: reference
+                readOnly: true
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.medicationReference"
+                answerExpression:
+                  language: application/x-fhir-query
+                  expression: "Medication?status=active"
+                referenceResource:
+                  - Medication
+                choiceColumn:
+                  - forDisplay: true
+                    path: code.coding.first().display
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%MedicationSections[%MedicationGroupIndex].item.where(linkId='medication-statement-id').answer.valueString.exists()"
               - linkId: medication-status
                 text: Status
                 type: choice
@@ -289,6 +458,19 @@ item:
                   language: text/fhirpath
                   expression: "%context.status"
                 required: true
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%MedicationSections[%MedicationGroupIndex].item.where(linkId='medication-statement-id').answer.valueString.empty()"
+              - linkId: medication-status-read-only
+                text: Status
+                type: choice
+                readOnly: true
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.status"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%MedicationSections[%MedicationGroupIndex].item.where(linkId='medication-statement-id').answer.valueString.exists()"
               - linkId: medication-status-reason
                 text: Status Reason
                 type: choice
@@ -297,6 +479,19 @@ item:
                   language: text/fhirpath
                   expression: "%context.statusReason.coding"
                 answerValueSet: http://hl7.org/fhir/ValueSet/reason-medication-status-codes
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%MedicationSections[%MedicationGroupIndex].item.where(linkId='medication-statement-id').answer.valueString.empty()"
+              - linkId: medication-status-reason-read-only
+                text: Status Reason
+                type: choice
+                readOnly: true
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.statusReason.coding"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%MedicationSections[%MedicationGroupIndex].item.where(linkId='medication-statement-id').answer.valueString.exists()"
               - linkId: medication-effective-datetime
                 text: Date/Time
                 helpText: "The date/time when the medication is/was/will be taken"
@@ -304,6 +499,20 @@ item:
                 initialExpression:
                   language: text/fhirpath
                   expression: "%context.effectiveDateTime"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%MedicationSections[%MedicationGroupIndex].item.where(linkId='medication-statement-id').answer.valueString.empty()"
+              - linkId: medication-effective-datetime-read-only
+                text: Date/Time
+                helpText: "The date/time when the medication is/was/will be taken"
+                type: dateTime
+                readOnly: true
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.effectiveDateTime"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%MedicationSections[%MedicationGroupIndex].item.where(linkId='medication-statement-id').answer.valueString.exists()"
           - linkId: medications-summary
             text: Summary
             type: text
@@ -323,6 +532,20 @@ item:
               language: text/fhirpath
               expression: "%PatientImmunizationsBundle.entry[0].resource.entry.resource"
               name: immunization
+            variable:
+              - name: ImmunizationGroupIndex
+                language: text/fhirpath
+                expression: |
+                  %resource.repeat(item).where(linkId=%qitem.linkId).aggregate(
+                    iif(
+                      $this=%context,
+                      $index,
+                      $total
+                    )
+                  ).toString()
+              - name: ImmunizationSections
+                language: text/fhirpath
+                expression: "%resource.item.where(linkId='ips-section').item.where(linkId='immunizations-section').item.where(linkId='immunizations')"
             item:
               - linkId: immunization-id
                 text: Immunization ID
@@ -340,6 +563,19 @@ item:
                   expression: "%context.vaccineCode.coding"
                 answerValueSet: http://hl7.org/fhir/uv/ips/ValueSet/vaccines-uv-ips
                 preferredTerminologyServer: https://tx.health-samurai.io/fhir
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%ImmunizationSections[%ImmunizationGroupIndex].item.where(linkId='immunization-id').answer.valueString.empty()"
+              - linkId: immunization-vaccine-code-read-only
+                text: Vaccine Code
+                type: choice
+                readOnly: true
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.vaccineCode.coding"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%ImmunizationSections[%ImmunizationGroupIndex].item.where(linkId='immunization-id').answer.valueString.exists()"
               - linkId: immunization-status
                 text: Status
                 type: choice
@@ -348,6 +584,19 @@ item:
                   language: text/fhirpath
                   expression: "%context.status"
                 required: true
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%ImmunizationSections[%ImmunizationGroupIndex].item.where(linkId='immunization-id').answer.valueString.empty()"
+              - linkId: immunization-status-read-only
+                text: Status
+                type: choice
+                readOnly: true
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.status"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%ImmunizationSections[%ImmunizationGroupIndex].item.where(linkId='immunization-id').answer.valueString.exists()"
               - linkId: immunization-occurrence-datetime
                 text: Occurrence Date/Time
                 helpText: "The date/time when the immunization is/was/will be administered"
@@ -355,6 +604,20 @@ item:
                 initialExpression:
                   language: text/fhirpath
                   expression: "%context.occurrenceDateTime"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%ImmunizationSections[%ImmunizationGroupIndex].item.where(linkId='immunization-id').answer.valueString.empty()"
+              - linkId: immunization-occurrence-datetime-read-only
+                text: Occurrence Date/Time
+                helpText: "The date/time when the immunization is/was/will be administered"
+                type: dateTime
+                readOnly: true
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.occurrenceDateTime"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%ImmunizationSections[%ImmunizationGroupIndex].item.where(linkId='immunization-id').answer.valueString.exists()"
           - linkId: immunizations-summary
             text: Summary
             type: text
@@ -374,6 +637,20 @@ item:
               language: text/fhirpath
               expression: "%PatientProceduresBundle.entry[0].resource.entry.resource"
               name: procedure
+            variable:
+              - name: ProcedureGroupIndex
+                language: text/fhirpath
+                expression: |
+                  %resource.repeat(item).where(linkId=%qitem.linkId).aggregate(
+                    iif(
+                      $this=%context,
+                      $index,
+                      $total
+                    )
+                  ).toString()
+              - name: ProcedureSections
+                language: text/fhirpath
+                expression: "%resource.item.where(linkId='ips-section').item.where(linkId='procedures-section').item.where(linkId='procedures')"
             item:
               - linkId: procedure-id
                 text: Procedure ID
@@ -390,6 +667,19 @@ item:
                   language: text/fhirpath
                   expression: "%context.code.coding"
                 answerValueSet: "http://hl7.org/fhir/ValueSet/procedure-code"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%ProcedureSections[%ProcedureGroupIndex].item.where(linkId='procedure-id').answer.valueString.empty()"
+              - linkId: procedure-code-read-only
+                text: Procedure
+                type: choice
+                readOnly: true
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.code.coding"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%ProcedureSections[%ProcedureGroupIndex].item.where(linkId='procedure-id').answer.valueString.exists()"
               - linkId: procedure-status
                 text: Status
                 type: choice
@@ -398,6 +688,19 @@ item:
                   language: text/fhirpath
                   expression: "%context.status"
                 required: true
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%ProcedureSections[%ProcedureGroupIndex].item.where(linkId='procedure-id').answer.valueString.empty()"
+              - linkId: procedure-status-read-only
+                text: Status
+                type: choice
+                readOnly: true
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.status"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%ProcedureSections[%ProcedureGroupIndex].item.where(linkId='procedure-id').answer.valueString.exists()"
               - linkId: procedure-performed-datetime
                 required: true
                 text: Performed Date/Time
@@ -406,6 +709,20 @@ item:
                 initialExpression:
                   language: text/fhirpath
                   expression: "%context.performedDateTime"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%ProcedureSections[%ProcedureGroupIndex].item.where(linkId='procedure-id').answer.valueString.empty()"
+              - linkId: procedure-performed-datetime-read-only
+                text: Performed Date/Time
+                helpText: "The date/time when the procedure is/was/will be performed"
+                type: dateTime
+                readOnly: true
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.performedDateTime"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%ProcedureSections[%ProcedureGroupIndex].item.where(linkId='procedure-id').answer.valueString.exists()"
           - linkId: procedures-summary
             text: Summary
             type: text

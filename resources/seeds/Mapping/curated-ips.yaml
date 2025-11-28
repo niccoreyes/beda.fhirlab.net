@@ -3,7 +3,7 @@ id: curated-ips
 type: FHIRPath
 body:
   "{% assign %}":
-    - documentTitle: "{{ %QuestionnaireResponse.answers('document-title') }}"
+    - documentTitle: "{{ %QuestionnaireResponse.answers('composition-title') }}"
     - authorId: "{{ %QuestionnaireResponse.answers('author-id') }}"
     - authorResourceType: "{{ %QuestionnaireResponse.answers('author-resource-type') }}"
     - patientId: "{{ %QuestionnaireResponse.answers('patient-id') }}"
@@ -43,7 +43,7 @@ body:
         date: "{{ now() }}"
         author:
           - reference: "{{ %authorResourceType + '/' + %authorId }}"
-        title: "{{ %patientName }}'s Patient summary document"
+        title: "{{ %documentTitle }}"
         section:
           - title: Problems
             code:
@@ -179,10 +179,10 @@ body:
     - "{% for index, problemItem in %problemItems %}":
         "{% assign %}":
           - problemId: "{{ %problemItem.item.where(linkId='condition-id').answer.valueString }}"
-          - problemCode: "{{ %problemItem.item.where(linkId='condition-code').answer.valueCoding }}"
-          - problemClinicalStatus: "{{ %problemItem.item.where(linkId='condition-clinical-status').answer.valueCoding }}"
-          - problemVerificationStatus: "{{ %problemItem.item.where(linkId='condition-verification-status').answer.valueCoding }}"
-          - problemCategory: "{[ %problemItem.item.where(linkId='condition-category').answer.valueCoding ]}"
+          - problemCode: "{{ %problemItem.item.where(linkId.startsWith('condition-code')).answer.valueCoding }}"
+          - problemClinicalStatus: "{{ %problemItem.item.where(linkId.startsWith('condition-clinical-status')).answer.valueCoding }}"
+          - problemVerificationStatus: "{{ %problemItem.item.where(linkId.startsWith('condition-verification-status')).answer.valueCoding }}"
+          - problemCategory: "{[ %problemItem.item.where(linkId.startsWith('condition-category')).answer.valueCoding ]}"
         "{% if %problemId.empty() and %problemCode.exists() %}":
           fullUrl: "urn:uuid:Condition-{{ %index }}"
           request:
@@ -214,10 +214,10 @@ body:
     - "{% for index, allergyItem in %allergiesItems %}":
         "{% assign %}":
           - allergyId: "{{ %allergyItem.item.where(linkId='allergy-id').answer.valueString }}"
-          - allergyCode: "{{ %allergyItem.item.where(linkId='allergy-code').answer.valueCoding }}"
-          - allergyClinicalStatus: "{{ %allergyItem.item.where(linkId='allergy-clinical-status').answer.valueCoding }}"
-          - allergyVerificationStatus: "{{ %allergyItem.item.where(linkId='allergy-verification-status').answer.valueCoding }}"
-          - allergyCategory: "{[ %allergyItem.item.where(linkId='allergy-category').answer.valueCoding.code ]}"
+          - allergyCode: "{{ %allergyItem.item.where(linkId.startsWith('allergy-code')).answer.valueCoding }}"
+          - allergyClinicalStatus: "{{ %allergyItem.item.where(linkId.startsWith('allergy-clinical-status')).answer.valueCoding }}"
+          - allergyVerificationStatus: "{{ %allergyItem.item.where(linkId.startsWith('allergy-verification-status')).answer.valueCoding }}"
+          - allergyCategory: "{[ %allergyItem.item.where(linkId.startsWith('allergy-category')).answer.valueCoding.code ]}"
         "{% if %allergyId.empty() and %allergyCode.exists() %}":
           fullUrl: "urn:uuid:AllergyIntolerance-{{ %index }}"
           request:
@@ -246,10 +246,10 @@ body:
     - "{% for index, medicationItem in %medicationsItems %}":
         "{% assign %}":
           - medicationId: "{{ %medicationItem.item.where(linkId='medication-statement-id').answer.valueString }}"
-          - medicationReference: "{{ %medicationItem.item.where(linkId='medication-medication').answer.valueReference }}"
-          - medicationStatus: "{{ %medicationItem.item.where(linkId='medication-status').answer.valueCoding.code }}"
-          - medicationStatusReason: "{[ %medicationItem.item.where(linkId='medication-status-reason').answer.valueCoding.code ]}"
-          - medicationEffectiveDateTime: "{{ %medicationItem.item.where(linkId='medication-effective-datetime').answer.valueDateTime }}"
+          - medicationReference: "{{ %medicationItem.item.where(linkId.startsWith('medication-medication')).answer.valueReference }}"
+          - medicationStatus: "{{ %medicationItem.item.where(linkId.startsWith('medication-status')).answer.valueCoding.code }}"
+          - medicationStatusReason: "{[ %medicationItem.item.where(linkId.startsWith('medication-status-reason')).answer.valueCoding.code ]}"
+          - medicationEffectiveDateTime: "{{ %medicationItem.item.where(linkId.startsWith('medication-effective-datetime')).answer.valueDateTime }}"
         "{% if %medicationId.empty() and %medicationReference.exists() %}":
           fullUrl: "urn:uuid:MedicationStatement-{{ %index }}"
           request:
@@ -278,9 +278,9 @@ body:
     - "{% for index, immunizationItem in %immunizationsItems %}":
         "{% assign %}":
           - immunizationId: "{{ %immunizationItem.item.where(linkId='immunization-id').answer.valueString }}"
-          - immunizationVaccineCode: "{{ %immunizationItem.item.where(linkId='immunization-vaccine-code').answer.valueCoding }}"
-          - immunizationStatus: "{{ %immunizationItem.item.where(linkId='immunization-status').answer.valueCoding.code }}"
-          - immunizationDate: "{{ %immunizationItem.item.where(linkId='immunization-occurrence-datetime').answer.valueDateTime }}"
+          - immunizationVaccineCode: "{{ %immunizationItem.item.where(linkId.startsWith('immunization-vaccine-code')).answer.valueCoding }}"
+          - immunizationStatus: "{{ %immunizationItem.item.where(linkId.startsWith('immunization-status')).answer.valueCoding.code }}"
+          - immunizationDate: "{{ %immunizationItem.item.where(linkId.startsWith('immunization-occurrence-datetime')).answer.valueDateTime }}"
         "{% if %immunizationId.empty() and %immunizationVaccineCode.exists() %}":
           fullUrl: "urn:uuid:Immunization-{{ %index }}"
           request:
@@ -305,9 +305,9 @@ body:
     - "{% for index, procedureItem in %proceduresItems %}":
         "{% assign %}":
           - procedureId: "{{ %procedureItem.item.where(linkId='procedure-id').answer.valueString }}"
-          - procedureCode: "{{ %procedureItem.item.where(linkId='procedure-code').answer.valueCoding }}"
-          - procedureStatus: "{{ %procedureItem.item.where(linkId='procedure-status').answer.valueCoding.code }}"
-          - procedurePerformedDateTime: "{{ %procedureItem.item.where(linkId='procedure-performed-datetime').answer.valueDateTime }}"
+          - procedureCode: "{{ %procedureItem.item.where(linkId.startsWith('procedure-code')).answer.valueCoding }}"
+          - procedureStatus: "{{ %procedureItem.item.where(linkId.startsWith('procedure-status')).answer.valueCoding.code }}"
+          - procedurePerformedDateTime: "{{ %procedureItem.item.where(linkId.startsWith('procedure-performed-datetime')).answer.valueDateTime }}"
         "{% if %procedureId.empty() and %procedureCode.exists() %}":
           fullUrl: "urn:uuid:Procedure-{{ %index }}"
           request:
