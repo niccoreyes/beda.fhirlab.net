@@ -179,10 +179,10 @@ body:
     - "{% for index, problemItem in %problemItems %}":
         "{% assign %}":
           - problemId: "{{ %problemItem.item.where(linkId='condition-id').answer.valueString }}"
-          - problemCode: "{{ %problemItem.item.where(linkId='condition-code').answer.valueCoding }}"
-          - problemClinicalStatus: "{{ %problemItem.item.where(linkId='condition-clinical-status').answer.valueCoding }}"
-          - problemVerificationStatus: "{{ %problemItem.item.where(linkId='condition-verification-status').answer.valueCoding }}"
-          - problemCategory: "{[ %problemItem.item.where(linkId='condition-category').answer.valueCoding ]}"
+          - problemCode: "{{ %problemItem.item.where(linkId.startsWith('condition-code')).answer.valueCoding }}"
+          - problemClinicalStatus: "{{ %problemItem.item.where(linkId.startsWith('condition-clinical-status')).answer.valueCoding }}"
+          - problemVerificationStatus: "{{ %problemItem.item.where(linkId.startsWith('condition-verification-status')).answer.valueCoding }}"
+          - problemCategory: "{[ %problemItem.item.where(linkId.startsWith('condition-category')).answer.valueCoding ]}"
         "{% if %problemId.empty() and %problemCode.exists() %}":
           fullUrl: "urn:uuid:Condition-{{ %index }}"
           request:

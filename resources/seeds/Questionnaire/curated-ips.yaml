@@ -139,6 +139,20 @@ item:
               language: text/fhirpath
               expression: "%PatientConditionsBundle.entry[0].resource.entry.resource"
               name: condition
+            variable:
+              - name: ConditionGroupIndex
+                language: text/fhirpath
+                expression: |
+                  %resource.repeat(item).where(linkId=%qitem.linkId).aggregate(
+                    iif(
+                      $this=%context,
+                      $index,
+                      $total
+                    )
+                  ).toString()
+              - name: ProblemSections
+                language: text/fhirpath
+                expression: "%resource.item.where(linkId='ips-section').item.where(linkId='problems-section').item.where(linkId='problems')"
             item:
               - linkId: condition-id
                 text: Condition ID
@@ -157,6 +171,20 @@ item:
                   expression: "%context.code.coding"
                 answerValueSet: http://hl7.org/fhir/uv/ips/ValueSet/problems-uv-ips
                 preferredTerminologyServer: https://tx.health-samurai.io/fhir
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%ProblemSections[%ConditionGroupIndex].item.where(linkId='condition-id').answer.valueString.empty()"
+              - linkId: condition-code-read-only
+                required: true
+                readOnly: true
+                text: Problem or diagnosis
+                type: choice
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.code.coding"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%ProblemSections[%ConditionGroupIndex].item.where(linkId='condition-id').answer.valueString.exists()"
               - linkId: condition-clinical-status
                 required: true
                 text: Clinical Status
@@ -165,6 +193,20 @@ item:
                 initialExpression:
                   language: text/fhirpath
                   expression: "%context.clinicalStatus.coding"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%ProblemSections[%ConditionGroupIndex].item.where(linkId='condition-id').answer.valueString.empty()"
+              - linkId: condition-clinical-status-read-only
+                required: true
+                readOnly: true
+                text: Clinical Status
+                type: choice
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.clinicalStatus.coding"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%ProblemSections[%ConditionGroupIndex].item.where(linkId='condition-id').answer.valueString.exists()"
               - linkId: condition-verification-status
                 text: Verification Status
                 type: choice
@@ -172,6 +214,19 @@ item:
                 initialExpression:
                   language: text/fhirpath
                   expression: "%context.verificationStatus.coding"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%ProblemSections[%ConditionGroupIndex].item.where(linkId='condition-id').answer.valueString.empty()"
+              - linkId: condition-verification-status-read-only
+                text: Verification Status
+                type: choice
+                readOnly: true
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.verificationStatus.coding"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%ProblemSections[%ConditionGroupIndex].item.where(linkId='condition-id').answer.valueString.exists()"
               - linkId: condition-category
                 text: Category
                 type: choice
@@ -180,6 +235,19 @@ item:
                 initialExpression:
                   language: text/fhirpath
                   expression: "%context.category.coding"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%ProblemSections[%ConditionGroupIndex].item.where(linkId='condition-id').answer.valueString.empty()"
+              - linkId: condition-category-read-only
+                text: Category
+                type: choice
+                readOnly: true
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.category.coding"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%ProblemSections[%ConditionGroupIndex].item.where(linkId='condition-id').answer.valueString.exists()"
           - linkId: problems-summary
             text: Summary
             type: text
