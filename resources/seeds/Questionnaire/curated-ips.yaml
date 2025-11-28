@@ -126,7 +126,7 @@ item:
         type: string
         initialExpression:
           language: text/fhirpath
-          expression: "%Patient.name.first().given.first() + ' ' + %Patient.name.first().family + ' IPS document of ' + today() + ' ' + timeOfDay()"
+          expression: "%Patient.name.first().given.first() + ' ' + %Patient.name.first().family + ' IPS document'"
       - linkId: problems-section
         text: Problems
         type: group

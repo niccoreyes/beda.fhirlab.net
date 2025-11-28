@@ -3,7 +3,7 @@ id: curated-ips
 type: FHIRPath
 body:
   "{% assign %}":
-    - documentTitle: "{{ %QuestionnaireResponse.answers('document-title') }}"
+    - documentTitle: "{{ %QuestionnaireResponse.answers('composition-title') }}"
     - authorId: "{{ %QuestionnaireResponse.answers('author-id') }}"
     - authorResourceType: "{{ %QuestionnaireResponse.answers('author-resource-type') }}"
     - patientId: "{{ %QuestionnaireResponse.answers('patient-id') }}"
@@ -43,7 +43,7 @@ body:
         date: "{{ now() }}"
         author:
           - reference: "{{ %authorResourceType + '/' + %authorId }}"
-        title: "{{ %patientName }}'s Patient summary document"
+        title: "{{ %documentTitle }}"
         section:
           - title: Problems
             code:
