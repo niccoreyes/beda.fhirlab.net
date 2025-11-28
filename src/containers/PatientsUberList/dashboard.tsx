@@ -46,6 +46,11 @@ function prepareComposition(
                 },
             },
             {
+                title: t`Date`,
+                key: 'date',
+                render: (resource) => formatHumanDateTime(resource.date),
+            },
+            {
                 title: '',
                 key: 'share',
                 render: (resource) => {
