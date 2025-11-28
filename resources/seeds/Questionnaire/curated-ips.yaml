@@ -524,6 +524,20 @@ item:
               language: text/fhirpath
               expression: "%PatientImmunizationsBundle.entry[0].resource.entry.resource"
               name: immunization
+            variable:
+              - name: ImmunizationGroupIndex
+                language: text/fhirpath
+                expression: |
+                  %resource.repeat(item).where(linkId=%qitem.linkId).aggregate(
+                    iif(
+                      $this=%context,
+                      $index,
+                      $total
+                    )
+                  ).toString()
+              - name: ImmunizationSections
+                language: text/fhirpath
+                expression: "%resource.item.where(linkId='ips-section').item.where(linkId='immunizations-section').item.where(linkId='immunizations')"
             item:
               - linkId: immunization-id
                 text: Immunization ID
@@ -541,6 +555,19 @@ item:
                   expression: "%context.vaccineCode.coding"
                 answerValueSet: http://hl7.org/fhir/uv/ips/ValueSet/vaccines-uv-ips
                 preferredTerminologyServer: https://tx.health-samurai.io/fhir
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%ImmunizationSections[%ImmunizationGroupIndex].item.where(linkId='immunization-id').answer.valueString.empty()"
+              - linkId: immunization-vaccine-code-read-only
+                text: Vaccine Code
+                type: choice
+                readOnly: true
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.vaccineCode.coding"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%ImmunizationSections[%ImmunizationGroupIndex].item.where(linkId='immunization-id').answer.valueString.exists()"
               - linkId: immunization-status
                 text: Status
                 type: choice
@@ -549,6 +576,19 @@ item:
                   language: text/fhirpath
                   expression: "%context.status"
                 required: true
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%ImmunizationSections[%ImmunizationGroupIndex].item.where(linkId='immunization-id').answer.valueString.empty()"
+              - linkId: immunization-status-read-only
+                text: Status
+                type: choice
+                readOnly: true
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.status"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%ImmunizationSections[%ImmunizationGroupIndex].item.where(linkId='immunization-id').answer.valueString.exists()"
               - linkId: immunization-occurrence-datetime
                 text: Occurrence Date/Time
                 helpText: "The date/time when the immunization is/was/will be administered"
@@ -556,6 +596,20 @@ item:
                 initialExpression:
                   language: text/fhirpath
                   expression: "%context.occurrenceDateTime"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%ImmunizationSections[%ImmunizationGroupIndex].item.where(linkId='immunization-id').answer.valueString.empty()"
+              - linkId: immunization-occurrence-datetime-read-only
+                text: Occurrence Date/Time
+                helpText: "The date/time when the immunization is/was/will be administered"
+                type: dateTime
+                readOnly: true
+                initialExpression:
+                  language: text/fhirpath
+                  expression: "%context.occurrenceDateTime"
+                enableWhenExpression:
+                  language: text/fhirpath
+                  expression: "%ImmunizationSections[%ImmunizationGroupIndex].item.where(linkId='immunization-id').answer.valueString.exists()"
           - linkId: immunizations-summary
             text: Summary
             type: text

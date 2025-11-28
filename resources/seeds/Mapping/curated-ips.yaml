@@ -278,9 +278,9 @@ body:
     - "{% for index, immunizationItem in %immunizationsItems %}":
         "{% assign %}":
           - immunizationId: "{{ %immunizationItem.item.where(linkId='immunization-id').answer.valueString }}"
-          - immunizationVaccineCode: "{{ %immunizationItem.item.where(linkId='immunization-vaccine-code').answer.valueCoding }}"
-          - immunizationStatus: "{{ %immunizationItem.item.where(linkId='immunization-status').answer.valueCoding.code }}"
-          - immunizationDate: "{{ %immunizationItem.item.where(linkId='immunization-occurrence-datetime').answer.valueDateTime }}"
+          - immunizationVaccineCode: "{{ %immunizationItem.item.where(linkId.startsWith('immunization-vaccine-code')).answer.valueCoding }}"
+          - immunizationStatus: "{{ %immunizationItem.item.where(linkId.startsWith('immunization-status')).answer.valueCoding.code }}"
+          - immunizationDate: "{{ %immunizationItem.item.where(linkId.startsWith('immunization-occurrence-datetime')).answer.valueDateTime }}"
         "{% if %immunizationId.empty() and %immunizationVaccineCode.exists() %}":
           fullUrl: "urn:uuid:Immunization-{{ %index }}"
           request:
