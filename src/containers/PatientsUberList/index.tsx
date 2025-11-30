@@ -85,6 +85,14 @@ export function PatientUberList() {
             ]}
             getRecordActions={(record) => [
                 navigationAction('Open', `/patients-ph/${record.resource.id}`),
+                questionnaireAction('Edit', 'patient-create-connectathon', {
+                    extra: {
+                        qrfProps: {
+                            launchContextParameters: [
+                                { name: 'Patient', resource: record.resource }]
+                        }
+                    }
+                }),
             ]}
             getHeaderActions={() => [
                 questionnaireAction(<Trans>Add patient</Trans>, 'patient-create-connectathon', {

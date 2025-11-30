@@ -3,6 +3,7 @@ type: FHIRPath
 resourceType: Mapping
 body:
   "{% assign %}":
+    - id: "{{ %QuestionnaireResponse.answers('patientId') }}"
     - firstName: "{{ %QuestionnaireResponse.answers('first-name') }}"
     - lastName: "{{ %QuestionnaireResponse.answers('last-name') }}"
     - gender: "{{ %QuestionnaireResponse.answers('gender') }}"
@@ -24,8 +25,12 @@ body:
     - addressCountry: "{{ %QuestionnaireResponse.answers('address-country') }}"
     - addPatient:
         request:
-          url: /Patient
-          method: POST
+          "{% if %id.exists() %}":
+            url: /Patient/{{ %id }}
+            method: PUT
+          "{% else %}":
+            url: /Patient
+            method: POST
         fullUrl: urn:uuid:patient-id
         resource:
           meta:

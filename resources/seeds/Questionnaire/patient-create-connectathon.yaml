@@ -3,6 +3,18 @@ meta:
     - https://emr-core.beda.software/StructureDefinition/fhir-emr-questionnaire
 name: patient-create-connectathon
 item:
+  - text: PatientId
+    type: string
+    linkId: patientId
+    required: true
+    extension:
+      - url: http://hl7.org/fhir/StructureDefinition/questionnaire-hidden
+        valueBoolean: true
+      - url: >-
+          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
+        valueExpression:
+          language: text/fhirpath
+          expression: '%Patient.id'
   - text: First name
     type: string
     linkId: first-name
@@ -115,6 +127,13 @@ extension:
   - url: https://emr-core.beda.software/StructureDefinition/questionnaire-mapper
     valueReference:
       reference: Mapping/patient-create-extract-connectathon
+  - url: http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-launchContext
+    extension:
+      - url: name
+        valueCoding:
+          code: Patient
+      - url: type
+        valueCode: Patient
 status: active
 id: patient-create-connectathon
 url: patient-create
