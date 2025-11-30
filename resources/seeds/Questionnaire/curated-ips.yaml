@@ -708,7 +708,7 @@ item:
                 type: dateTime
                 initialExpression:
                   language: text/fhirpath
-                  expression: "%context.performedDateTime"
+                  expression: "%context.performedDateTime | %context.performedPeriod.start"
                 enableWhenExpression:
                   language: text/fhirpath
                   expression: "%ProcedureSections[%ProcedureGroupIndex].item.where(linkId='procedure-id').answer.valueString.empty()"
@@ -719,7 +719,7 @@ item:
                 readOnly: true
                 initialExpression:
                   language: text/fhirpath
-                  expression: "%context.performedDateTime"
+                  expression: "%context.performedDateTime | %context.performedPeriod.start"
                 enableWhenExpression:
                   language: text/fhirpath
                   expression: "%ProcedureSections[%ProcedureGroupIndex].item.where(linkId='procedure-id').answer.valueString.exists()"
