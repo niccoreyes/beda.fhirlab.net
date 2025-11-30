@@ -13,7 +13,7 @@ body:
     - indigenous: "{{ %QuestionnaireResponse.answers('indigenous') }}"
     - indigenousGroup: "{{ %QuestionnaireResponse.answers('indigenous-group') }}"
     - race: "{{ %QuestionnaireResponse.answers('race') }}"
-    - marital-status: "{{ %QuestionnaireResponse.answers('marital-status') }}"
+    - maritalStatus: "{{ %QuestionnaireResponse.answers('marital-status') }}"
     - philhealthId: "{{ %QuestionnaireResponse.answers('philhealth-id') }}"
     - addressLine: "{{ %QuestionnaireResponse.answers('address-line') }}"
     - addressRegion: "{{ %QuestionnaireResponse.answers('address-region') }}"
@@ -31,7 +31,6 @@ body:
           "{% else %}":
             url: /Patient
             method: POST
-        fullUrl: urn:uuid:patient-id
         resource:
           meta:
             profile:
@@ -43,6 +42,11 @@ body:
                 - "{{ %firstName }}"
               family: "{{ %lastName }}"
           "{% merge %}":
+            - "{% if %maritalStatus.exists() %}":
+                maritalStatus:
+                  coding:
+                  - "{{ %maritalStatus }}"
+                  text: "{{ %maritalStatus.display }}"
             - "{% if %gender.exists() %}":
                 gender: "{{ %gender.code }}"
             - "{% if %birthDate.exists() %}":

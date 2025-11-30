@@ -97,6 +97,12 @@ export function PatientUberList() {
             getHeaderActions={() => [
                 questionnaireAction(<Trans>Add patient</Trans>, 'patient-create-connectathon', {
                     icon: <PlusOutlined />,
+                    extra: {
+                        qrfProps: {
+                            launchContextParameters: [
+                                { name: 'Patient', resource: {resourceType: 'Patient'}}]
+                        }
+                    }
                 }),
             ]}
             getReportColumns={(bundle) => [
