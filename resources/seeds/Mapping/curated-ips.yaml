@@ -56,7 +56,7 @@ body:
               "{% if %problemsSummary.exists() %}":
                 div: "{{ %problemsSummary }}"
               "{% else %}":
-                div: "No problems found"
+                div: "No summary provided"
             "{% if %problemItems.count() > 0 %}":
               entry:
                 "{% for index, problemItem in %problemItems %}":
@@ -82,7 +82,7 @@ body:
               "{% if %allergiesSummary.exists() %}":
                 div: "{{ %allergiesSummary }}"
               "{% else %}":
-                div: "No allergies found"
+                div: "No summary provided"
             "{% if %allergiesItems.count() > 0 %}":
               entry:
                 "{% for index, allergyItem in %allergiesItems %}":
@@ -108,7 +108,7 @@ body:
               "{% if %medicationsSummary.exists() %}":
                 div: "{{ %medicationsSummary }}"
               "{% else %}":
-                div: "No medications found"
+                div: "No summary provided"
             "{% if %medicationsItems.count() > 0 %}":
               entry:
                 "{% for index, medicationItem in %medicationsItems %}":
@@ -134,7 +134,7 @@ body:
               "{% if %immunizationsSummary.exists() %}":
                 div: "{{ %immunizationsSummary }}"
               "{% else %}":
-                div: "No immunizations found"
+                div: "No summary provided"
             "{% if %immunizationsItems.count() > 0 %}":
               entry:
                 "{% for index, immunizationItem in %immunizationsItems %}":
@@ -160,7 +160,7 @@ body:
               "{% if %proceduresSummary.exists() %}":
                 div: "{{ %proceduresSummary }}"
               "{% else %}":
-                div: "No procedures found"
+                div: "No summary provided"
             "{% if %proceduresItems.count() > 0 %}":
               entry:
                 "{% for index, procedureItem in %proceduresItems %}":
