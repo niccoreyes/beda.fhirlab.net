@@ -151,12 +151,10 @@ item:
               - linkId: condition-code
                 required: true
                 text: Problem or diagnosis
-                type: choice
+                type: text
                 initialExpression:
                   language: text/fhirpath
-                  expression: "%context.code.coding"
-                answerValueSet: http://hl7.org/fhir/uv/ips/ValueSet/problems-uv-ips
-                preferredTerminologyServer: https://tx.health-samurai.io/fhir
+                  expression: "(%context.code.text | %context.code.coding.display)"
               - linkId: condition-clinical-status
                 required: true
                 text: Clinical Status
@@ -323,6 +321,20 @@ item:
               language: text/fhirpath
               expression: "%PatientImmunizationsBundle.entry[0].resource.entry.resource"
               name: immunization
+            variable:
+              - name: ImmunizationGroupIndex
+                language: text/fhirpath
+                expression: |
+                  %resource.repeat(item).where(linkId=%qitem.linkId).aggregate(
+                    iif(
+                      $this=%context,
+                      $index,
+                      $total
+                    )
+                  ).toString()
+              - name: ImmunizationSections
+                language: text/fhirpath
+                expression: "%resource.item.where(linkId='ips-section').item.where(linkId='immunizations-section').item.where(linkId='immunizations')"
             item:
               - linkId: immunization-id
                 text: Immunization ID

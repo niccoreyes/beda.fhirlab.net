@@ -178,15 +178,20 @@ body:
     - "{% for index, problemItem in %problemItems %}":
         "{% assign %}":
           - problemId: "{{ %problemItem.item.where(linkId='condition-id').answer.valueString }}"
-          - problemCode: "{{ %problemItem.item.where(linkId.startsWith('condition-code')).answer.valueCoding }}"
+          - problemCodeAnswer: "{{ %problemItem.item.where(linkId='condition-code').answer }}"
+          - problemCode: "{{ %problemCodeAnswer.valueCoding | %problemCodeAnswer.valueString }}"
           - problemClinicalStatus: "{{ %problemItem.item.where(linkId.startsWith('condition-clinical-status')).answer.valueCoding }}"
           - problemVerificationStatus: "{{ %problemItem.item.where(linkId.startsWith('condition-verification-status')).answer.valueCoding }}"
           - problemCategory: "{[ %problemItem.item.where(linkId.startsWith('condition-category')).answer.valueCoding ]}"
-        "{% if %problemId.empty() and %problemCode.exists() %}":
-          fullUrl: "urn:uuid:Condition-{{ %index }}"
+        "{% if %problemCode.exists() %}":
+          fullUrl: "urn:uuid:Condition-{{ %problemId | %index }}"
           request:
-            method: POST
-            url: /Condition
+            "{% if %problemId.exists() %}":
+              method: PUT
+              url: /Condition/{{ %problemId }}
+            "{% else %}":
+              method: POST
+              url: /Condition
           resource:
             resourceType: Condition
             meta:
@@ -196,8 +201,11 @@ body:
               coding:
                 - "{{ %problemClinicalStatus }}"
             code:
-              coding:
-                - "{{ %problemCode }}"
+              "{% if %problemCode is String %}":
+                text: "{{ %problemCode }}"
+              "{% else %}":
+                coding:
+                  - "{{ %problemCode }}"
             verificationStatus:
               coding:
                 - "{{ %problemVerificationStatus }}"
@@ -209,7 +217,7 @@ body:
               reference: "Patient/{{ %patientId }}"
             text:
               status: generated
-              div: "<div xmlns='http://www.w3.org/1999/xhtml'><p><b>Generated Narrative</b></p><p><b>identifier</b>: id: urn:uuid:Condition-{{%index}}</p><p><b>clinicalStatus</b>: <span title='Codes: {http://terminology.hl7.org/CodeSystem/condition-clinical {{%problemClinicalStatus.code}}}'>{{%problemClinicalStatus.display}}</span></p><p><b>code</b>: <span title='Codes: {http://snomed.info/sct {{%problemCode.code}} }'>{{%problemCode.display}}</span></p><p><b>subject</b>: <a href='#Patient_{{%patientId}}'>See above (Patient/{{%patientId}})</a></p></div>"
+              div: "<div xmlns='http://www.w3.org/1999/xhtml'><p><b>Generated Narrative</b></p><p><b>identifier</b>: id: urn:uuid:Condition-{{%index}}</p><p><b>clinicalStatus</b>: <span title='Codes: {http://terminology.hl7.org/CodeSystem/condition-clinical {{%problemClinicalStatus.code}}}'>{{%problemClinicalStatus.display}}</span></p><p><b>code</b>: <span title='Diagnosis}'>{{%problemCode.display | %problemCode}}</span></p><p><b>subject</b>: <a href='#Patient_{{%patientId}}'>See above (Patient/{{%patientId}})</a></p></div>"
     - "{% for index, allergyItem in %allergiesItems %}":
         "{% assign %}":
           - allergyId: "{{ %allergyItem.item.where(linkId='allergy-id').answer.valueString }}"
