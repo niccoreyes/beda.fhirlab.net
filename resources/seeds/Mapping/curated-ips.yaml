@@ -13,7 +13,6 @@ body:
     - immunizationsSummary: "{{ %QuestionnaireResponse.answers('immunizations-summary') }}"
     - proceduresSummary: "{{ %QuestionnaireResponse.answers('procedures-summary') }}"
     - problemsSummary: "{{ %QuestionnaireResponse.answers('problems-summary') }}"
-    - proceduresIDs: "{[ %QuestionnaireResponse.answers('procedure-id') ]}"
     - problemItems: "{[ %QuestionnaireResponse.item.where(linkId='ips-section').item.where(linkId='problems-section').item.where(linkId='problems') ]}"
     - allergiesItems: "{[ %QuestionnaireResponse.item.where(linkId='ips-section').item.where(linkId='allergies-section').item.where(linkId='allergies') ]}"
     - medicationsItems: "{[ %QuestionnaireResponse.item.where(linkId='ips-section').item.where(linkId='medications-section').item.where(linkId='medications') ]}"
