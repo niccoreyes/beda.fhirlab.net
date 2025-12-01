@@ -280,11 +280,43 @@ item:
               - linkId: medication-status
                 text: Status
                 type: choice
-                answerValueSet: http://hl7.org/fhir/ValueSet/medication-statement-status
                 initialExpression:
                   language: text/fhirpath
-                  expression: "%context.status"
+                  expression: "%Questionnaire.repeat(item).where(linkId='medication-status').answerOption.valueCoding.where(code=%context.status)"
                 required: true
+                answerOption:
+                  - valueCoding:
+                      system: https://hl7.org/fhir/R4/codesystem-medication-statement-status.html
+                      code: active
+                      display: Active
+                  - valueCoding:
+                      system: https://hl7.org/fhir/R4/codesystem-medication-statement-status.html
+                      code: completed
+                      display: Completed
+                  - valueCoding:
+                      system: https://hl7.org/fhir/R4/codesystem-medication-statement-status.html
+                      code: entered-in-error
+                      display: Entered in Error
+                  - valueCoding:
+                      system: https://hl7.org/fhir/R4/codesystem-medication-statement-status.html
+                      code: intended
+                      display: Intended
+                  - valueCoding:
+                      system: https://hl7.org/fhir/R4/codesystem-medication-statement-status.html
+                      code: stopped
+                      display: Stopped
+                  - valueCoding:
+                      system: https://hl7.org/fhir/R4/codesystem-medication-statement-status.html
+                      code: on-hold
+                      display: On Hold
+                  - valueCoding:
+                      system: https://hl7.org/fhir/R4/codesystem-medication-statement-status.html
+                      code: unknown
+                      display: Unknown
+                  - valueCoding:
+                      system: https://hl7.org/fhir/R4/codesystem-medication-statement-status.html
+                      code: not-taken
+                      display: Not Taken
               - linkId: medication-status-reason
                 text: Status Reason
                 type: choice
@@ -337,13 +369,26 @@ item:
               - linkId: immunization-status
                 text: Status
                 type: choice
-                answerValueSet: http://hl7.org/fhir/ValueSet/immunization-status
+                answerOption:
+                  - valueCoding:
+                      system: http://hl7.org/fhir/event-status
+                      code: completed
+                      display: Completed
+                  - valueCoding:
+                      system: http://hl7.org/fhir/event-status
+                      code: entered-in-error
+                      display: Entered in Error
+                  - valueCoding:
+                      system: http://hl7.org/fhir/event-status
+                      code: not-done
+                      display: Not Done
                 initialExpression:
                   language: text/fhirpath
-                  expression: "%context.status"
+                  expression: "%Questionnaire.repeat(item).where(linkId='immunization-status').answerOption.valueCoding.where(code=%context.status)"
                 required: true
               - linkId: immunization-occurrence-datetime
                 text: Occurrence Date/Time
+                required: true
                 helpText: "The date/time when the immunization is/was/will be administered"
                 type: dateTime
                 initialExpression:
@@ -378,12 +423,11 @@ item:
                   expression: "%context.id"
               - linkId: procedure-code
                 text: Procedure
-                type: choice
+                type: text
                 required: true
                 initialExpression:
                   language: text/fhirpath
-                  expression: "%context.code.coding"
-                answerValueSet: "http://hl7.org/fhir/ValueSet/procedure-code"
+                  expression: "(%context.code.text | %context.code.coding.display)"
               - linkId: procedure-status
                 text: Status
                 type: choice
