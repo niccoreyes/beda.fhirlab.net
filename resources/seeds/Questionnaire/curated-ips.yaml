@@ -207,13 +207,11 @@ item:
                   expression: "%context.id"
               - linkId: allergy-code
                 text: Allergy or Intolerance
-                type: choice
+                type: text
                 initialExpression:
                   language: text/fhirpath
-                  expression: "%context.code.coding"
+                  expression: "(%context.code.text | %context.code.coding.display)"
                 required: true
-                answerValueSet: http://hl7.org/fhir/ValueSet/allergyintolerance-code
-                preferredTerminologyServer: https://tx.health-samurai.io/fhir
               - linkId: allergy-clinical-status
                 text: Clinical Status
                 type: choice

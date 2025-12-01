@@ -221,15 +221,20 @@ body:
     - "{% for index, allergyItem in %allergiesItems %}":
         "{% assign %}":
           - allergyId: "{{ %allergyItem.item.where(linkId='allergy-id').answer.valueString }}"
-          - allergyCode: "{{ %allergyItem.item.where(linkId.startsWith('allergy-code')).answer.valueCoding }}"
+          - allergyCodeAnswer: "{{ %allergyItem.item.where(linkId='allergy-code').answer }}"
+          - allergyCode: "{{ %allergyCodeAnswer.valueCoding | %allergyCodeAnswer.valueString }}"
           - allergyClinicalStatus: "{{ %allergyItem.item.where(linkId.startsWith('allergy-clinical-status')).answer.valueCoding }}"
           - allergyVerificationStatus: "{{ %allergyItem.item.where(linkId.startsWith('allergy-verification-status')).answer.valueCoding }}"
           - allergyCategory: "{[ %allergyItem.item.where(linkId.startsWith('allergy-category')).answer.valueCoding.code ]}"
-        "{% if %allergyId.empty() and %allergyCode.exists() %}":
+        "{% if %allergyCode.exists() %}":
           fullUrl: "urn:uuid:AllergyIntolerance-{{ %index }}"
           request:
-            method: POST
-            url: /AllergyIntolerance
+            "{% if %allergyId.exists() %}":
+              method: PUT
+              url: /AllergyIntolerance/{{ %allergyId }}
+            "{% else %}":
+              method: POST
+              url: /AllergyIntolerance
           resource:
             resourceType: AllergyIntolerance
             meta:
@@ -239,8 +244,11 @@ body:
               coding:
                 - "{{ %allergyClinicalStatus }}"
             code:
-              coding:
-                - "{{ %allergyCode }}"
+              "{% if %allergyCode is String %}":
+                text: "{{ %allergyCode }}"
+              "{% else %}":
+                coding:
+                  - "{{ %allergyCode }}"
             verificationStatus:
               coding:
                 - "{{ %allergyVerificationStatus }}"
@@ -249,7 +257,7 @@ body:
               reference: "Patient/{{ %patientId }}"
             text:
               status: generated
-              div: "<div xmlns='http://www.w3.org/1999/xhtml'><p><b>Generated Narrative</b></p><p><b>identifier</b>: id: urn:uuid:AllergyIntolerance-{{%index}}</p><p><b>clinicalStatus</b>: <span title='Codes: {http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical {{%allergyClinicalStatus.code}}}'>{{%allergyClinicalStatus.display}}</span></p><p><b>code</b>: <span title='Codes: {http://snomed.info/sct {{%allergyCode.code}} }'>{{%allergyCode.display}}</span></p><p><b>subject</b>: <a href='#Patient_{{%patientId}}'>See above (Patient/{{%patientId}})</a></p></div>"
+              div: "<div xmlns='http://www.w3.org/1999/xhtml'><p><b>Generated Narrative</b></p><p><b>identifier</b>: id: urn:uuid:AllergyIntolerance-{{%index}}</p><p><b>clinicalStatus</b>: <span title='Codes: {http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical {{%allergyClinicalStatus.code}}}'>{{%allergyClinicalStatus.display}}</span></p><p><b>code</b>: <span title='Allergy or Intolerance}'>{{%allergyCode.display | %allergyCode}}</span></p><p><b>subject</b>: <a href='#Patient_{{%patientId}}'>See above (Patient/{{%patientId}})</a></p></div>"
     - "{% for index, medicationItem in %medicationsItems %}":
         "{% assign %}":
           - medicationId: "{{ %medicationItem.item.where(linkId='medication-statement-id').answer.valueString }}"
