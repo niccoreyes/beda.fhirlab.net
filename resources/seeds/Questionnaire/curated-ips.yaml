@@ -151,10 +151,12 @@ item:
               - linkId: condition-code
                 required: true
                 text: Problem or diagnosis
-                type: text
+                type: choice
                 initialExpression:
                   language: text/fhirpath
-                  expression: "(%context.code.text | %context.code.coding.display)"
+                  expression: "%context.code.coding"
+                answerValueSet: http://hl7.org/fhir/uv/ips/ValueSet/problems-uv-ips
+                preferredTerminologyServer: https://tx.health-samurai.io/fhir
               - linkId: condition-clinical-status
                 required: true
                 text: Clinical Status
@@ -212,10 +214,12 @@ item:
                   expression: "%context.id"
               - linkId: allergy-code
                 text: Allergy or Intolerance
-                type: text
+                type: choice
                 initialExpression:
                   language: text/fhirpath
-                  expression: "(%context.code.text | %context.code.coding.display)"
+                  expression: "%context.code.coding"
+                answerValueSet: http://hl7.org/fhir/ValueSet/allergyintolerance-code
+                preferredTerminologyServer: https://tx.health-samurai.io/fhir
                 required: true
               - linkId: allergy-clinical-status
                 text: Clinical Status
@@ -371,11 +375,13 @@ item:
                   expression: "%context.id"
               - linkId: immunization-vaccine-code
                 text: Vaccine Code
-                type: text
+                type: choice
                 required: true
                 initialExpression:
                   language: text/fhirpath
-                  expression: "(%context.vaccineCode.text | %context.vaccineCode.coding.display)"
+                  expression: "%context.vaccineCode.coding"
+                answerValueSet: http://hl7.org/fhir/uv/ips/ValueSet/vaccines-uv-ips
+                preferredTerminologyServer: https://tx.health-samurai.io/fhir
               - linkId: immunization-status
                 text: Status
                 type: choice
@@ -438,11 +444,12 @@ item:
                   expression: "%context.id"
               - linkId: procedure-code
                 text: Procedure
-                type: text
+                type: choice
                 required: true
                 initialExpression:
                   language: text/fhirpath
-                  expression: "(%context.code.text | %context.code.coding.display)"
+                  expression: "%context.code.coding"
+                answerValueSet: http://hl7.org/fhir/ValueSet/procedure-code
               - linkId: procedure-status
                 text: Status
                 type: choice
