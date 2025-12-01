@@ -319,20 +319,6 @@ item:
               language: text/fhirpath
               expression: "%PatientImmunizationsBundle.entry[0].resource.entry.resource"
               name: immunization
-            variable:
-              - name: ImmunizationGroupIndex
-                language: text/fhirpath
-                expression: |
-                  %resource.repeat(item).where(linkId=%qitem.linkId).aggregate(
-                    iif(
-                      $this=%context,
-                      $index,
-                      $total
-                    )
-                  ).toString()
-              - name: ImmunizationSections
-                language: text/fhirpath
-                expression: "%resource.item.where(linkId='ips-section').item.where(linkId='immunizations-section').item.where(linkId='immunizations')"
             item:
               - linkId: immunization-id
                 text: Immunization ID
@@ -343,13 +329,11 @@ item:
                   expression: "%context.id"
               - linkId: immunization-vaccine-code
                 text: Vaccine Code
-                type: choice
+                type: text
                 required: true
                 initialExpression:
                   language: text/fhirpath
-                  expression: "%context.vaccineCode.coding"
-                answerValueSet: http://hl7.org/fhir/uv/ips/ValueSet/vaccines-uv-ips
-                preferredTerminologyServer: https://tx.health-samurai.io/fhir
+                  expression: "(%context.vaccineCode.text | %context.vaccineCode.coding.display)"
               - linkId: immunization-status
                 text: Status
                 type: choice
