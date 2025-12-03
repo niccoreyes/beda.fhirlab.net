@@ -67,11 +67,12 @@ function AnalyticsHeader(props: AnalyticsHeaderProps) {
                 <Select<Coding>
                     value={filters.selectedGender}
                     options={GENDER_OPTIONS}
-                    onChange={handleGenderChange}
+                    onChange={handleGenderChange as any}
                     getOptionLabel={getOptionLabel}
                     classNamePrefix="react-select"
                     placeholder={t`Choose gender`}
                     isClearable
+                    isMulti={false}
                 />
             </S.FieldWrapper>
             <S.FieldWrapper>
