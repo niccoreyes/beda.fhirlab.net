@@ -244,6 +244,40 @@ item:
                 initialExpression:
                   language: text/fhirpath
                   expression: "%context.category.coding"
+              - linkId: allergy-reaction-group
+                text: Reaction
+                type: group
+                repeats: true
+                itemPopulationContext:
+                  language: text/fhirpath
+                  expression: "%context.reaction"
+                item:
+                  - linkId: allergy-manifestation
+                    text: Manifestation
+                    type: text
+                    required: true
+                    initialExpression:
+                      language: text/fhirpath
+                      expression: "(%context.manifestation.text | %context.manifestation.coding.display)"
+                  - linkId: allergy-severity
+                    text: Severity
+                    type: choice
+                    initialExpression:
+                      language: text/fhirpath
+                      expression: "%Questionnaire.repeat(item).where(linkId='allergy-severity').answerOption.valueCoding.where(code=%context.severity)"
+                    answerOption:
+                      - valueCoding:
+                          system: http://hl7.org/fhir/reaction-event-severity
+                          code: mild
+                          display: Mild
+                      - valueCoding:
+                          system: http://hl7.org/fhir/reaction-event-severity
+                          code: moderate
+                          display: Moderate
+                      - valueCoding:
+                          system: http://hl7.org/fhir/reaction-event-severity
+                          code: severe
+                          display: Severe
           - linkId: allergies-summary
             text: Summary
             type: text
