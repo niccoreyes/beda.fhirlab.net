@@ -184,7 +184,7 @@ body:
           - problemVerificationStatus: "{{ %problemItem.item.where(linkId.startsWith('condition-verification-status')).answer.valueCoding }}"
           - problemCategory: "{[ %problemItem.item.where(linkId.startsWith('condition-category')).answer.valueCoding ]}"
         "{% if %problemCode.exists() %}":
-          fullUrl: "urn:uuid:Condition-{{ %problemId | %index }}"
+          fullUrl: "{{'urn:uuid:Condition-' + %problemId.toString() | %index.toString()}}"
           request:
             "{% if %problemId.exists() %}":
               method: PUT
@@ -226,8 +226,9 @@ body:
           - allergyClinicalStatus: "{{ %allergyItem.item.where(linkId.startsWith('allergy-clinical-status')).answer.valueCoding }}"
           - allergyVerificationStatus: "{{ %allergyItem.item.where(linkId.startsWith('allergy-verification-status')).answer.valueCoding }}"
           - allergyCategory: "{[ %allergyItem.item.where(linkId.startsWith('allergy-category')).answer.valueCoding.code ]}"
+          - allergyReactionItems: "{[ %allergyItem.item.where(linkId.startsWith('allergy-reaction-group')) ]}"
         "{% if %allergyCode.exists() %}":
-          fullUrl: "urn:uuid:AllergyIntolerance-{{ %index }}"
+          fullUrl: "{{'urn:uuid:AllergyIntolerance-' + %index.toString()}}"
           request:
             "{% if %allergyId.exists() %}":
               method: PUT
@@ -258,6 +259,20 @@ body:
             text:
               status: generated
               div: "<div xmlns='http://www.w3.org/1999/xhtml'><p><b>Generated Narrative</b></p><p><b>identifier</b>: id: urn:uuid:AllergyIntolerance-{{%index}}</p><p><b>clinicalStatus</b>: <span title='Codes: {http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical {{%allergyClinicalStatus.code}}}'>{{%allergyClinicalStatus.display}}</span></p><p><b>code</b>: <span title='Allergy or Intolerance}'>{{%allergyCode.display | %allergyCode}}</span></p><p><b>subject</b>: <a href='#Patient_{{%patientId}}'>See above (Patient/{{%patientId}})</a></p></div>"
+            reaction:
+              - "{% for allergyReactionItem in %allergyReactionItems %}":
+                  "{% assign %}":
+                    - allergyReactionManifestationAnswer: "{{ %allergyReactionItem.item.where(linkId='allergy-manifestation').answer }}"
+                    - allergyReactionManifestation: "{{ %allergyReactionManifestationAnswer.valueCoding | %allergyReactionManifestationAnswer.valueString }}"
+                    - allergyReactionSeverity: "{{ %allergyReactionItem.item.where(linkId='allergy-severity').answer.valueCoding.code }}"
+                  manifestation:
+                    - "{% if %allergyReactionManifestation is String %}":
+                        text: "{{ %allergyReactionManifestation }}"
+                      "{% else %}":
+                        coding:
+                          - "{{ %allergyReactionManifestation }}"
+                  severity: "{{ %allergyReactionSeverity }}"
+
     - "{% for index, medicationItem in %medicationsItems %}":
         "{% assign %}":
           - medicationStatementId: "{{ %medicationItem.item.where(linkId='medication-statement-id').answer.valueString }}"
@@ -266,7 +281,7 @@ body:
           - medicationStatusReason: "{[ %medicationItem.item.where(linkId.startsWith('medication-status-reason')).answer.valueCoding.code ]}"
           - medicationEffectiveDateTime: "{{ %medicationItem.item.where(linkId.startsWith('medication-effective-datetime')).answer.valueDateTime }}"
         "{% if %medicationReference.exists() %}":
-          fullUrl: "urn:uuid:MedicationStatement-{{ %index }}"
+          fullUrl: "{{'urn:uuid:MedicationStatement-' + %index.toString()}}"
           request:
             "{% if %medicationStatementId.exists() %}":
               method: PUT
@@ -302,7 +317,7 @@ body:
           - immunizationStatus: "{{ %immunizationItem.item.where(linkId.startsWith('immunization-status')).answer.valueCoding.code }}"
           - immunizationDate: "{{ %immunizationItem.item.where(linkId.startsWith('immunization-occurrence-datetime')).answer.valueDateTime }}"
         "{% if %immunizationVaccineCode.exists() %}":
-          fullUrl: "urn:uuid:Immunization-{{ %index }}"
+          fullUrl: "{{'urn:uuid:Immunization-' + %index.toString()}}"
           request:
             "{% if %immunizationId.exists() %}":
               method: PUT
@@ -337,7 +352,7 @@ body:
           - procedureStatus: "{{ %procedureItem.item.where(linkId.startsWith('procedure-status')).answer.valueCoding.code }}"
           - procedurePerformedDateTime: "{{ %procedureItem.item.where(linkId.startsWith('procedure-performed-datetime')).answer.valueDateTime }}"
         "{% if %procedureCode.exists() %}":
-          fullUrl: "urn:uuid:Procedure-{{ %index }}"
+          fullUrl: "{{'urn:uuid:Procedure-' + %index.toString()}}"
           request:
             "{% if %procedureId.exists() %}":
               method: PUT

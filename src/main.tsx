@@ -39,6 +39,7 @@ import { ThemeProvider } from '@beda.software/emr/theme';
 import { matchCurrentUserRole, Role } from '@beda.software/emr/utils';
 import { isSuccess, RemoteDataResult, isFailure } from '@beda.software/remote-data';
 
+import { Analytics } from './containers/Analytics';
 import { EncountersUberList } from './containers/EncountersUberList';
 import { ImmunizationsUberList } from './containers/ImmunizationsUberList ';
 import { MedicationsUberList } from './containers/MedicationsUberList';
@@ -48,11 +49,10 @@ import { PatientUberList } from './containers/PatientsUberList';
 import { PatientDetails } from './containers/PatientsUberList/detail';
 import { PractitionersUberList } from './containers/PractitionersUberList ';
 import { ProceduresUberList } from './containers/ProceduresUberList';
-import { QuestionnaireList } from "./containers/Questionnaire/list";
-import { NewQuestionnaire } from "./containers/Questionnaire/new";
+import { QuestionnaireList } from './containers/Questionnaire/list';
+import { NewQuestionnaire } from './containers/Questionnaire/new';
 import { SignIn } from './containers/SignIn';
 import { dynamicActivate, getCurrentLocale } from './services/i18n';
-
 
 async function expandEMRValueSet(
     answerValueSet: string | undefined,
@@ -64,7 +64,11 @@ async function expandEMRValueSet(
     }
 
     if (answerValueSet) {
-        const res = await expandExternalTerminology(preferredTerminologyServer ?? 'https://tx.fhirlab.net/fhir', answerValueSet, searchText);
+        const res = await expandExternalTerminology(
+            preferredTerminologyServer ?? 'https://tx.fhirlab.net/fhir',
+            answerValueSet,
+            searchText,
+        );
         if (isSuccess(res)) {
             return res.data;
         }
@@ -74,10 +78,10 @@ async function expandEMRValueSet(
 }
 
 interface AidboxRole {
-    resourceType: "Role",
-    name: string,
-    user: Reference,
-    links: Record<string,Reference>,
+    resourceType: 'Role';
+    name: string;
+    user: Reference;
+    links: Record<string, Reference>;
 }
 
 export async function populateUserInfoSharedState(): Promise<RemoteDataResult<User>> {
@@ -93,18 +97,21 @@ export async function populateUserInfoSharedState(): Promise<RemoteDataResult<Us
     if (user.role) {
         await fetchUserRoleDetails(user);
     } else {
-        await createFHIRResource<AidboxRole>({
-            resourceType: "Role",
-            name: "admin",
-            user: {
-                reference: `User/${user.id}`,
+        await createFHIRResource<AidboxRole>(
+            {
+                resourceType: 'Role',
+                name: 'admin',
+                user: {
+                    reference: `User/${user.id}`,
+                },
+                links: {
+                    organization: {
+                        reference: 'Organization/beda-emr',
+                    },
+                },
             },
-            links: {
-                organization: {
-                    reference: "Organization/beda-emr",
-                }
-            }
-        }, { ".user.id": user.id });
+            { '.user.id': user.id },
+        );
         const updatedUserResponse = await getUserInfo();
         if (isFailure(updatedUserResponse)) {
             return updatedUserResponse;
@@ -117,8 +124,6 @@ export async function populateUserInfoSharedState(): Promise<RemoteDataResult<Us
 
     return userResponse;
 }
-
-
 
 export const AppWithContext = () => {
     useEffect(() => {
@@ -151,6 +156,7 @@ export const AppWithContext = () => {
                                         { label: t`Medications`, path: '/medications-ph', icon: <MedicationsIcon /> },
                                         { label: t`Procedures`, path: '/procedures-ph', icon: <ServicesIcon /> },
                                         { label: t`Questionnaire`, path: '/questionnaires-ph', icon: <ServicesIcon /> },
+                                        { label: t`Analytics`, path: '/analytics-ph', icon: <ServicesIcon /> },
                                     ],
                                     [Role.Practitioner]: () => [],
                                     [Role.Patient]: () => [],
@@ -177,8 +183,15 @@ export const AppWithContext = () => {
                                         <Route path="/observations-ph" element={<ObservationsUberList />} />
                                         <Route path="/medications-ph" element={<MedicationsUberList />} />
                                         <Route path="/questionnaires-ph" element={<QuestionnaireList />} />
-                                        <Route path="/questionnaires-ph/aidbox-forms-builder/new" element={<NewQuestionnaire />} />
-                                        <Route path="/questionnaires-ph/aidbox-forms-builder/:id/edit" element={<NewQuestionnaire />} />
+                                        <Route path="/analytics-ph" element={<Analytics />} />
+                                        <Route
+                                            path="/questionnaires-ph/aidbox-forms-builder/new"
+                                            element={<NewQuestionnaire />}
+                                        />
+                                        <Route
+                                            path="/questionnaires-ph/aidbox-forms-builder/:id/edit"
+                                            element={<NewQuestionnaire />}
+                                        />
                                     </>
                                 }
                             />
