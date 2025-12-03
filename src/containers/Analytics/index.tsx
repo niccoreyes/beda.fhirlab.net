@@ -147,7 +147,7 @@ export function Analytics() {
                                 {data.map((entry, index) => (
                                     <S.LegendItem key={index}>
                                         <S.ColorIndicator $color={COLORS[index % COLORS.length]} />
-                                        <S.LegendText>{`${entry.title} | terminology code: ${entry.code}`}</S.LegendText>
+                                        <S.LegendText>{entry.title ? `${entry.title} | terminology code: ${entry.code}` : t`No data`}</S.LegendText>
                                     </S.LegendItem>
                                 ))}
                             </S.LegendContainer>
