@@ -1,5 +1,5 @@
 import { t } from '@lingui/macro';
-import { Button, Flex, Table, Typography } from 'antd';
+import { Flex, Typography } from 'antd';
 import { Coding } from 'fhir/r4b';
 import { Moment } from 'moment';
 import { useCallback } from 'react';
@@ -22,19 +22,17 @@ interface AnalyticsHeaderProps {
 
 function ActiveDataDetails(props: ActiveDataDetailsProps) {
     const { response } = useActiveDataDetails(props);
-    console.log('response', response);
+
     return (
-        <Flex style={{ padding: '16px', border: '1px solid #e0e0e0', borderRadius: '8px' }} vertical align="flex-start">
-            <Button type="link" onClick={props.onClose} style={{ alignSelf: 'flex-end' }}>
+        <S.ActiveDataDetailsContainer>
+            <S.CloseButton type="link" onClick={props.onClose}>
                 {t`Close`}
-            </Button>
+            </S.CloseButton>
             <RenderRemoteData remoteData={response} renderLoading={Spinner}>
                 {(data) => {
-                    console.log('data', data);
                     return (
-                        <Table
+                        <S.DetailsTable
                             rowKey={props.activeData.code}
-                            style={{ width: '100%' }}
                             bordered
                             pagination={false}
                             dataSource={[
@@ -52,7 +50,7 @@ function ActiveDataDetails(props: ActiveDataDetailsProps) {
                     );
                 }}
             </RenderRemoteData>
-        </Flex>
+        </S.ActiveDataDetailsContainer>
     );
 }
 

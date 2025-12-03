@@ -1,4 +1,4 @@
-import { Flex, Typography } from 'antd';
+import { Button, Flex, Table, Typography } from 'antd';
 import styled from 'styled-components';
 
 export const S = {
@@ -61,5 +61,18 @@ export const S = {
         font-weight: 500;
         font-size: 14px;
         color: ${({ theme }) => theme.neutralPalette?.gray_13 || '#000'};
+    `,
+    ActiveDataDetailsContainer: styled(Flex)`
+        padding: 16px;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        flex-direction: column;
+        align-items: flex-start;
+    `,
+    CloseButton: styled(Button)`
+        align-self: flex-end;
+    `,
+    DetailsTable: styled(Table)`
+        width: 100%;
     `,
 };
