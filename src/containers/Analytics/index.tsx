@@ -1,5 +1,5 @@
 import { t } from '@lingui/macro';
-import { Flex, Typography } from 'antd';
+import { Empty, Flex, Typography } from 'antd';
 import { Coding } from 'fhir/r4b';
 import { Moment } from 'moment';
 import { useCallback } from 'react';
@@ -106,48 +106,57 @@ export function Analytics() {
                 {(data) => {
                     return (
                         <S.MainContainer>
-                            {/* Responsive Chart Container */}
-                            <Flex vertical gap={16}>
-                                <S.ChartContainer>
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <PieChart>
-                                            <Pie
-                                                data={data}
-                                                dataKey="count"
-                                                nameKey="title"
-                                                cx="50%"
-                                                cy="50%"
-                                                outerRadius="80%"
-                                                onClick={(data) => {
-                                                    setActiveData({
-                                                        code: data.code,
-                                                        title: data.title,
-                                                        count: data.count,
-                                                    });
-                                                }}
-                                            >
-                                                {data.map((_, index) => (
-                                                    <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                                                ))}
-                                            </Pie>
-                                            <Tooltip />
-                                        </PieChart>
-                                    </ResponsiveContainer>
-                                </S.ChartContainer>
-                                {activeData && (
-                                    <ActiveDataDetails
-                                        filters={filters}
-                                        activeData={activeData}
-                                        onClose={() => setActiveData(null)}
-                                    />
-                                )}
-                            </Flex>
-                            {/* Legend */}
+                            {data.length > 0 ? (
+                                <Flex vertical gap={16}>
+                                    <S.ChartContainer>
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <PieChart>
+                                                <Pie
+                                                    data={data}
+                                                    dataKey="count"
+                                                    nameKey="title"
+                                                    cx="50%"
+                                                    cy="50%"
+                                                    outerRadius="80%"
+                                                    onClick={(data) => {
+                                                        setActiveData({
+                                                            code: data.code,
+                                                            title: data.title,
+                                                            count: data.count,
+                                                        });
+                                                    }}
+                                                >
+                                                    {data.map((_, index) => (
+                                                        <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                                                    ))}
+                                                </Pie>
+                                                <Tooltip />
+                                            </PieChart>
+                                        </ResponsiveContainer>
+                                    </S.ChartContainer>
+                                    {activeData && (
+                                        <ActiveDataDetails
+                                            filters={filters}
+                                            activeData={activeData}
+                                            onClose={() => setActiveData(null)}
+                                        />
+                                    )}
+                                </Flex>
+                            ) : (
+                                <Empty
+                                    description={t`No data`}
+                                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                                />
+                            )}
                             <S.LegendContainer>
                                 {data.map((entry, index) => (
                                     <S.LegendItem key={index}>
                                         <S.ColorIndicator $color={COLORS[index % COLORS.length]} />
-                                        <S.LegendText>{entry.title ? `${entry.title} | terminology code: ${entry.code}` : t`No data`}</S.LegendText>
+                                        <S.LegendText>
+                                            {entry.title
+                                                ? `${entry.title} | terminology code: ${entry.code}`
+                                                : t`No data`}
+                                        </S.LegendText>
                                     </S.LegendItem>
                                 ))}
                             </S.LegendContainer>
