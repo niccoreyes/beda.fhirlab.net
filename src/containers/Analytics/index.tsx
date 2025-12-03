@@ -11,7 +11,7 @@ import { RenderRemoteData } from '@beda.software/fhir-react';
 
 import { S } from './Analytics.styles';
 import { COLORS, GENDER_OPTIONS } from './constants';
-import { AnalyticsFilters, ChartData, useAnalytics } from './hooks';
+import { AnalyticsFilters, useActiveDataDetails, useAnalytics, ActiveDataDetailsProps } from './hooks';
 const { RangePicker } = DatePicker;
 
 interface AnalyticsHeaderProps {
@@ -20,28 +20,38 @@ interface AnalyticsHeaderProps {
     handleDateRangeChange: (dates: [Moment | null, Moment | null] | null) => void;
 }
 
-interface ActiveDataDetailsProps {
-    activeData: ChartData;
-    total: number;
-    onClose: () => void;
-}
-
 function ActiveDataDetails(props: ActiveDataDetailsProps) {
+    const { response } = useActiveDataDetails(props);
+    console.log('response', response);
     return (
         <Flex style={{ padding: '16px', border: '1px solid #e0e0e0', borderRadius: '8px' }} vertical align="flex-start">
             <Button type="link" onClick={props.onClose} style={{ alignSelf: 'flex-end' }}>
                 {t`Close`}
             </Button>
-            <Table
-                style={{ width: '100%' }}
-                bordered
-                pagination={false}
-                dataSource={[{ total: props.total, vaccined: props.activeData.count }]}
-                columns={[
-                    { title: 'Total', dataIndex: 'total', key: 'total' },
-                    { title: 'Vaccined', dataIndex: 'vaccined', key: 'vaccined' },
-                ]}
-            />
+            <RenderRemoteData remoteData={response} renderLoading={Spinner}>
+                {(data) => {
+                    console.log('data', data);
+                    return (
+                        <Table
+                            rowKey={props.activeData.code}
+                            style={{ width: '100%' }}
+                            bordered
+                            pagination={false}
+                            dataSource={[
+                                {
+                                    total: data.total_patients,
+                                    key: `${data.total_patients}-${props.activeData.code}`,
+                                    vaccined: data.vaccinated_patients,
+                                },
+                            ]}
+                            columns={[
+                                { title: 'Total patients', dataIndex: 'total', key: 'total-patients' },
+                                { title: 'Vaccined', dataIndex: 'vaccined', key: 'vaccined' },
+                            ]}
+                        />
+                    );
+                }}
+            </RenderRemoteData>
         </Flex>
     );
 }
@@ -128,7 +138,7 @@ export function Analytics() {
                                 </S.ChartContainer>
                                 {activeData && (
                                     <ActiveDataDetails
-                                        total={0}
+                                        filters={filters}
                                         activeData={activeData}
                                         onClose={() => setActiveData(null)}
                                     />

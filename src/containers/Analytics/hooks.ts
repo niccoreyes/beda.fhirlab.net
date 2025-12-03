@@ -5,6 +5,7 @@ import { SingleValue } from 'react-select';
 
 import { service } from '@beda.software/emr/services';
 import { formatFHIRDate, useService } from '@beda.software/fhir-react';
+import { mapSuccess } from '@beda.software/remote-data';
 
 export interface ChartData {
     title: string;
@@ -62,4 +63,46 @@ export function useAnalytics() {
     }, []);
 
     return { response, filters, handleGenderChange, handleDateRangeChange, activeData, setActiveData };
+}
+
+export interface ActiveDataDetailsProps {
+    activeData: ChartData;
+    onClose: () => void;
+    filters: AnalyticsFilters;
+}
+
+export function useActiveDataDetails(props: ActiveDataDetailsProps) {
+    const { activeData, filters } = props;
+
+    const [response] = useService(async () => {
+        const patientConditions: string[] = [];
+        const params: (string | null)[] = [];
+
+        if (filters.birthDateRange?.[0] && filters.birthDateRange?.[1]) {
+            patientConditions.push("(resource#>>'{birthDate}')::date >= ? and (resource#>>'{birthDate}')::date <= ?");
+            params.push(formatFHIRDate(filters.birthDateRange[0]), formatFHIRDate(filters.birthDateRange[1]));
+        }
+
+        if (filters.selectedGender?.code) {
+            patientConditions.push("resource#>>'{gender}' = ?");
+            params.push(filters.selectedGender.code);
+        }
+        const immunizationConditions = ["i.resource#>>'{vaccineCode,coding,0,code}' = ?"];
+        params.push(activeData.code);
+        const patientWhereClause = patientConditions.length > 0 ? `WHERE ${patientConditions.join(' AND ')}` : '';
+        const immunizationWhereClause =
+            immunizationConditions.length > 0 ? `WHERE ${immunizationConditions.join(' AND ')}` : '';
+
+        const sqlQuery = `with filtered_patients as (select id from patient ${patientWhereClause}) select (select count(*) from filtered_patients) as total_patients, (select count(distinct i.resource#>>'{patient,id}') from immunization i join filtered_patients fp on i.resource#>>'{patient,id}' = fp.id ${immunizationWhereClause}) as vaccinated_patients`;
+        const sqlResponse = mapSuccess(
+            await service<Array<{ total_patients: number; vaccinated_patients: number }>>({
+                url: '/$sql',
+                method: 'POST',
+                data: [sqlQuery, ...params],
+            }),
+            (data) => data[0],
+        );
+        return sqlResponse;
+    }, [activeData.code, filters]);
+    return { response };
 }
