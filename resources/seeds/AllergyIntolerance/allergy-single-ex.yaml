@@ -19,3 +19,10 @@ clinicalStatus:
       display: Active
 patient:
   reference: Patient/patient-single-ex
+reaction:
+  - manifestation:
+      - coding:
+          - code: "4386001"
+            system: "http://snomed.info/sct"
+            display: "Bronchospasm"
+    severity: mild
