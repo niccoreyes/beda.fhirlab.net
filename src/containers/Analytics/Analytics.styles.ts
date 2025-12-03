@@ -1,9 +1,18 @@
-import { Flex } from 'antd';
+import { Flex, Typography } from 'antd';
 import styled from 'styled-components';
 
 export const S = {
     HeaderContainer: styled(Flex)`
         gap: 16px;
+    `,
+    FieldWrapper: styled(Flex)`
+        flex-direction: column;
+        gap: 8px;
+    `,
+    Label: styled(Typography.Text)`
+        font-weight: 500;
+        font-size: 14px;
+        color: ${({ theme }) => theme.neutralPalette?.gray_13 || '#000'};
     `,
     ChartContainer: styled(Flex)`
         flex: 1 1 300px; /* grow on large screens, shrink on small */

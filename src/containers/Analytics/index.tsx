@@ -29,21 +29,27 @@ function AnalyticsHeader(props: AnalyticsHeaderProps) {
 
     return (
         <S.HeaderContainer>
-            <Select<Coding>
-                value={filters.selectedGender}
-                options={GENDER_OPTIONS}
-                onChange={handleGenderChange}
-                getOptionLabel={getOptionLabel}
-                classNamePrefix="react-select"
-                placeholder={t`Choose gender`}
-                isClearable
-            />
-            <RangePicker
-                placeholder={[t`Start date`, t`End date`]}
-                value={filters.birthDateRange}
-                onChange={handleDateRangeChange}
-                allowClear
-            />
+            <S.FieldWrapper>
+                <S.Label>{t`Gender`}</S.Label>
+                <Select<Coding>
+                    value={filters.selectedGender}
+                    options={GENDER_OPTIONS}
+                    onChange={handleGenderChange}
+                    getOptionLabel={getOptionLabel}
+                    classNamePrefix="react-select"
+                    placeholder={t`Choose gender`}
+                    isClearable
+                />
+            </S.FieldWrapper>
+            <S.FieldWrapper>
+                <S.Label>{t`Birth Date`}</S.Label>
+                <RangePicker
+                    placeholder={[t`Date from`, t`Date to`]}
+                    value={filters.birthDateRange}
+                    onChange={handleDateRangeChange}
+                    allowClear
+                />
+            </S.FieldWrapper>
         </S.HeaderContainer>
     );
 }
