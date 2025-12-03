@@ -17,6 +17,7 @@ export interface AnalyticsFilters {
 }
 
 export function useAnalytics() {
+    const [activeData, setActiveData] = useState<ChartData | null>(null);
     const [filters, setFilters] = useState<AnalyticsFilters>({
         selectedGender: null,
         birthDateRange: null,
@@ -60,5 +61,5 @@ export function useAnalytics() {
         }));
     }, []);
 
-    return { response, filters, handleGenderChange, handleDateRangeChange };
+    return { response, filters, handleGenderChange, handleDateRangeChange, activeData, setActiveData };
 }

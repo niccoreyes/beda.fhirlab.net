@@ -47,4 +47,19 @@ export const S = {
         word-break: break-word;
         color: ${({ theme }) => theme.primary};
     `,
+    ActiveDataContainer: styled(Flex)`
+        flex-direction: column;
+        gap: 8px;
+        background-color: ${({ theme }) => theme.neutralPalette?.gray_1 || '#fff'};
+    `,
+    ActiveDataTitle: styled(Typography.Text)`
+        font-weight: 500;
+        font-size: 14px;
+        color: ${({ theme }) => theme.primary};
+    `,
+    ActiveDataCount: styled(Typography.Text)`
+        font-weight: 500;
+        font-size: 14px;
+        color: ${({ theme }) => theme.neutralPalette?.gray_13 || '#000'};
+    `,
 };

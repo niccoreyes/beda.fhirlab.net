@@ -1,4 +1,5 @@
 import { t } from '@lingui/macro';
+import { Button, Flex, Table, Typography } from 'antd';
 import { Coding } from 'fhir/r4b';
 import { Moment } from 'moment';
 import { useCallback } from 'react';
@@ -10,8 +11,7 @@ import { RenderRemoteData } from '@beda.software/fhir-react';
 
 import { S } from './Analytics.styles';
 import { COLORS, GENDER_OPTIONS } from './constants';
-import { AnalyticsFilters, useAnalytics } from './hooks';
-
+import { AnalyticsFilters, ChartData, useAnalytics } from './hooks';
 const { RangePicker } = DatePicker;
 
 interface AnalyticsHeaderProps {
@@ -20,9 +20,34 @@ interface AnalyticsHeaderProps {
     handleDateRangeChange: (dates: [Moment | null, Moment | null] | null) => void;
 }
 
+interface ActiveDataDetailsProps {
+    activeData: ChartData;
+    total: number;
+    onClose: () => void;
+}
+
+function ActiveDataDetails(props: ActiveDataDetailsProps) {
+    return (
+        <Flex style={{ padding: '16px', border: '1px solid #e0e0e0', borderRadius: '8px' }} vertical align="flex-start">
+            <Button type="link" onClick={props.onClose} style={{ alignSelf: 'flex-end' }}>
+                {t`Close`}
+            </Button>
+            <Table
+                style={{ width: '100%' }}
+                bordered
+                pagination={false}
+                dataSource={[{ total: props.total, vaccined: props.activeData.count }]}
+                columns={[
+                    { title: 'Total', dataIndex: 'total', key: 'total' },
+                    { title: 'Vaccined', dataIndex: 'vaccined', key: 'vaccined' },
+                ]}
+            />
+        </Flex>
+    );
+}
+
 function AnalyticsHeader(props: AnalyticsHeaderProps) {
     const { filters, handleGenderChange, handleDateRangeChange } = props;
-    console.log('filters', filters);
     const getOptionLabel = useCallback((option: Coding) => {
         return option?.display || '';
     }, []);
@@ -55,7 +80,7 @@ function AnalyticsHeader(props: AnalyticsHeaderProps) {
 }
 
 export function Analytics() {
-    const { response, filters, handleGenderChange, handleDateRangeChange } = useAnalytics();
+    const { response, filters, handleGenderChange, handleDateRangeChange, activeData, setActiveData } = useAnalytics();
 
     return (
         <PageContainer
@@ -68,37 +93,53 @@ export function Analytics() {
                 />
             }
         >
+            <Typography.Title level={5}>{t`Immunizations by vaccine`}</Typography.Title>
             <RenderRemoteData remoteData={response} renderLoading={Spinner}>
                 {(data) => {
                     return (
                         <S.MainContainer>
                             {/* Responsive Chart Container */}
-                            <S.ChartContainer>
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <PieChart>
-                                        <Pie
-                                            data={data}
-                                            dataKey="count"
-                                            nameKey="title"
-                                            cx="50%"
-                                            cy="50%"
-                                            outerRadius="80%" // scales with container width
-                                        >
-                                            {data.map((_, index) => (
-                                                <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                                            ))}
-                                        </Pie>
-                                        <Tooltip />
-                                    </PieChart>
-                                </ResponsiveContainer>
-                            </S.ChartContainer>
-
+                            <Flex vertical gap={16}>
+                                <S.ChartContainer>
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <PieChart>
+                                            <Pie
+                                                data={data}
+                                                dataKey="count"
+                                                nameKey="title"
+                                                cx="50%"
+                                                cy="50%"
+                                                outerRadius="80%"
+                                                onClick={(data) => {
+                                                    setActiveData({
+                                                        code: data.code,
+                                                        title: data.title,
+                                                        count: data.count,
+                                                    });
+                                                }}
+                                            >
+                                                {data.map((_, index) => (
+                                                    <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                                                ))}
+                                            </Pie>
+                                            <Tooltip />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                </S.ChartContainer>
+                                {activeData && (
+                                    <ActiveDataDetails
+                                        total={0}
+                                        activeData={activeData}
+                                        onClose={() => setActiveData(null)}
+                                    />
+                                )}
+                            </Flex>
                             {/* Legend */}
                             <S.LegendContainer>
                                 {data.map((entry, index) => (
                                     <S.LegendItem key={index}>
                                         <S.ColorIndicator $color={COLORS[index % COLORS.length]} />
-                                        <S.LegendText>{entry.title}</S.LegendText>
+                                        <S.LegendText>{`${entry.title} | terminology code: ${entry.code}`}</S.LegendText>
                                     </S.LegendItem>
                                 ))}
                             </S.LegendContainer>
