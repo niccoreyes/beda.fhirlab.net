@@ -5,7 +5,7 @@ import { useCallback } from 'react';
 import { SingleValue } from 'react-select';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
-import { DatePicker, PageContainer, Select } from '@beda.software/emr/components';
+import { DatePicker, PageContainer, Select, Spinner } from '@beda.software/emr/components';
 import { RenderRemoteData } from '@beda.software/fhir-react';
 
 import { S } from './Analytics.styles';
@@ -62,7 +62,7 @@ export function Analytics() {
                 />
             }
         >
-            <RenderRemoteData remoteData={response}>
+            <RenderRemoteData remoteData={response} renderLoading={Spinner}>
                 {(data) => {
                     return (
                         <S.MainContainer>
