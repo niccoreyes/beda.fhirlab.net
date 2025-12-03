@@ -254,11 +254,13 @@ item:
                 item:
                   - linkId: allergy-manifestation
                     text: Manifestation
-                    type: text
+                    type: choice
                     required: true
                     initialExpression:
                       language: text/fhirpath
-                      expression: "(%context.manifestation.text | %context.manifestation.coding.display)"
+                      expression: "%context.manifestation.coding"
+                    answerValueSet: http://hl7.org/fhir/uv/ips/ValueSet/allergy-reaction-uv-ips
+                    preferredTerminologyServer: https://tx.health-samurai.io/fhir
                   - linkId: allergy-severity
                     text: Severity
                     type: choice
