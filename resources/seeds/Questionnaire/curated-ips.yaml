@@ -155,8 +155,7 @@ item:
                 initialExpression:
                   language: text/fhirpath
                   expression: "%context.code.coding"
-                answerValueSet: http://hl7.org/fhir/uv/ips/ValueSet/problems-uv-ips
-                preferredTerminologyServer: https://tx.health-samurai.io/fhir
+                answerValueSet: https://tx.fhirlab.net/ValueSet/problems
               - linkId: condition-clinical-status
                 required: true
                 text: Clinical Status
@@ -218,8 +217,7 @@ item:
                 initialExpression:
                   language: text/fhirpath
                   expression: "%context.code.coding"
-                answerValueSet: http://hl7.org/fhir/ValueSet/allergyintolerance-code
-                preferredTerminologyServer: https://tx.health-samurai.io/fhir
+                answerValueSet: https://tx.fhirlab.net/ValueSet/allergyintolerance
                 required: true
               - linkId: allergy-clinical-status
                 text: Clinical Status
@@ -259,8 +257,7 @@ item:
                     initialExpression:
                       language: text/fhirpath
                       expression: "%context.manifestation.coding"
-                    answerValueSet: http://hl7.org/fhir/uv/ips/ValueSet/allergy-reaction-uv-ips
-                    preferredTerminologyServer: https://tx.health-samurai.io/fhir
+                    answerValueSet: https://tx.fhirlab.net/ValueSet/reaction
                   - linkId: allergy-severity
                     text: Severity
                     type: choice
@@ -416,8 +413,7 @@ item:
                 initialExpression:
                   language: text/fhirpath
                   expression: "%context.vaccineCode.coding"
-                answerValueSet: http://hl7.org/fhir/uv/ips/ValueSet/vaccines-uv-ips
-                preferredTerminologyServer: https://tx.health-samurai.io/fhir
+                answerValueSet: https://tx.fhirlab.net/ValueSet/vaccines
               - linkId: immunization-status
                 text: Status
                 type: choice
@@ -485,7 +481,7 @@ item:
                 initialExpression:
                   language: text/fhirpath
                   expression: "%context.code.coding"
-                answerValueSet: http://hl7.org/fhir/ValueSet/procedure-code
+                answerValueSet: https://tx.fhirlab.net/ValueSet/procedure
               - linkId: procedure-status
                 text: Status
                 type: choice
