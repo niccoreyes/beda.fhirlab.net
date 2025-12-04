@@ -93,7 +93,7 @@ export function Analytics() {
 
     return (
         <PageContainer
-            title={t`Analytics`}
+            title={t`Immunization dashboard`}
             headerContent={
                 <AnalyticsHeader
                     filters={filters}

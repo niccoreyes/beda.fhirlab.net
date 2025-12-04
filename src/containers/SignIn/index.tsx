@@ -25,10 +25,10 @@ export function SignIn(props: SignInProps) {
         <S.Container>
             <S.Form>
                 <S.Header>
-                    <S.Text>Welcome to PH Core EMR</S.Text>
+                    <S.Text>Welcome to Beda EMR</S.Text>
                 </S.Header>
                 <S.Message>
-                    <b> It is a customized version of Beda EMR that fully support PH Core FHIR IG </b>
+                    <b> It is a customized version of Beda EMR for FHIR® Lab project</b>
                 </S.Message>
                 <Button
                     type="primary"

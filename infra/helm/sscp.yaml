@@ -1,0 +1,31 @@
+emr:
+  image: ghcr.io/beda-software/beda.fhirlab.net
+  tag: latest
+sdc:
+  image: bedasoftware/fhir-sdc
+  tag: 1.0.0a20
+  aidbox_init_url: https://aidbox.fhirlab.net
+  app_url: https://sdc.beda.fhirlab.net
+  secrets:
+    beda-app-init-1:
+      envVar: APP_INIT_CLIENT_ID
+    beda-app-init-2:
+      envVar: APP_INIT_CLIENT_SECRET
+    beda-app-init-3:
+      envVar: APP_SECRET
+converter:
+  image: bedasoftware/aidbox-fhir-converter
+  tag: main
+  aidbox_init_url: https://aidbox.fhirlab.net
+  app_url: https://converter.beda.fhirlab.net
+  secrets:
+    beda-app-init-1:
+      envVar: AIDBOX_CLIENT_ID
+      envKey: APP_INIT_CLIENT_ID
+    beda-app-init-2:
+      envVar: AIDBOX_CLIENT_SECRET
+      envKey: APP_INIT_CLIENT_SECRET
+    beda-app-init-3:
+      envVar: APP_SECRET
+
+
