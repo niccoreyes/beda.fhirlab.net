@@ -481,7 +481,7 @@ item:
                 initialExpression:
                   language: text/fhirpath
                   expression: "%context.code.coding"
-                answerValueSet: https://tx.fhirlab.net/ValueSet/procedure
+                answerValueSet: https://tx.fhirlab.net/ValueSet/procedures
               - linkId: procedure-status
                 text: Status
                 type: choice
