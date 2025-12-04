@@ -156,7 +156,6 @@ item:
                   language: text/fhirpath
                   expression: "%context.code.coding"
                 answerValueSet: http://hl7.org/fhir/uv/ips/ValueSet/problems-uv-ips
-                preferredTerminologyServer: https://tx.health-samurai.io/fhir
               - linkId: condition-clinical-status
                 required: true
                 text: Clinical Status
@@ -219,7 +218,6 @@ item:
                   language: text/fhirpath
                   expression: "%context.code.coding"
                 answerValueSet: http://hl7.org/fhir/ValueSet/allergyintolerance-code
-                preferredTerminologyServer: https://tx.health-samurai.io/fhir
                 required: true
               - linkId: allergy-clinical-status
                 text: Clinical Status
@@ -260,7 +258,6 @@ item:
                       language: text/fhirpath
                       expression: "%context.manifestation.coding"
                     answerValueSet: http://hl7.org/fhir/uv/ips/ValueSet/allergy-reaction-uv-ips
-                    preferredTerminologyServer: https://tx.health-samurai.io/fhir
                   - linkId: allergy-severity
                     text: Severity
                     type: choice
@@ -417,7 +414,6 @@ item:
                   language: text/fhirpath
                   expression: "%context.vaccineCode.coding"
                 answerValueSet: http://hl7.org/fhir/uv/ips/ValueSet/vaccines-uv-ips
-                preferredTerminologyServer: https://tx.health-samurai.io/fhir
               - linkId: immunization-status
                 text: Status
                 type: choice
