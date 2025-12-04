@@ -184,7 +184,7 @@ body:
           - problemVerificationStatus: "{{ %problemItem.item.where(linkId.startsWith('condition-verification-status')).answer.valueCoding }}"
           - problemCategory: "{[ %problemItem.item.where(linkId.startsWith('condition-category')).answer.valueCoding ]}"
         "{% if %problemCode.exists() %}":
-          fullUrl: "{{'urn:uuid:Condition-' + %problemId.toString() | %index.toString()}}"
+          fullUrl: "{{ 'urn:uuid:Condition-' + %index.toString() }}"
           request:
             "{% if %problemId.exists() %}":
               method: PUT
