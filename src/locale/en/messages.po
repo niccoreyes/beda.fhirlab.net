@@ -17,7 +17,7 @@ msgstr ""
 msgid "Add organization"
 msgstr ""
 
-#: src/containers/PatientsUberList/index.tsx:90
+#: src/containers/PatientsUberList/index.tsx:98
 msgid "Add patient"
 msgstr ""
 
@@ -25,11 +25,20 @@ msgstr ""
 msgid "Add practitioner"
 msgstr ""
 
+#: src/main.tsx:159
+msgid "Analytics"
+msgstr ""
+
 #: src/containers/PatientsUberList/index.tsx:23
 #: src/containers/PatientsUberList/index.tsx:57
 msgid "Birth date"
 msgstr ""
 
+#: src/containers/Analytics/index.tsx:79
+msgid "Birth Date"
+msgstr ""
+
+#: src/containers/Analytics/index.tsx:73
 #: src/containers/PatientsUberList/index.tsx:64
 msgid "Choose gender"
 msgstr ""
@@ -40,11 +49,15 @@ msgstr ""
 msgid "Choose status"
 msgstr ""
 
+#: src/containers/Analytics/index.tsx:29
+msgid "Close"
+msgstr ""
+
 #: src/containers/EncountersUberList/index.tsx:113
 msgid "Create encounter"
 msgstr ""
 
-#: src/containers/ImmunizationsUberList /index.tsx:99
+#: src/containers/ImmunizationsUberList /index.tsx:113
 msgid "Create immunization"
 msgstr ""
 
@@ -56,15 +69,24 @@ msgstr ""
 msgid "Create observation"
 msgstr ""
 
-#: src/containers/ProceduresUberList/index.tsx:65
+#: src/containers/ProceduresUberList/index.tsx:83
 msgid "Create procedure"
 msgstr ""
 
 #: src/containers/OrganizationsUberList/index.tsx:25
+#: src/containers/PatientsUberList/dashboard.tsx:49
 msgid "Date"
 msgstr ""
 
-#: src/main.tsx:79
+#: src/containers/Analytics/index.tsx:81
+msgid "Date from"
+msgstr ""
+
+#: src/containers/Analytics/index.tsx:81
+msgid "Date to"
+msgstr ""
+
+#: src/main.tsx:143
 msgid "Encounters"
 msgstr ""
 
@@ -84,15 +106,28 @@ msgstr ""
 msgid "Find practitioner"
 msgstr ""
 
+#: src/containers/Analytics/index.tsx:66
 #: src/containers/PatientsUberList/index.tsx:30
 msgid "Gender"
 msgstr ""
 
-#: src/main.tsx:90
+#: src/containers/Analytics/index.tsx:96
+msgid "Immunization dashboard"
+msgstr ""
+
+#: src/main.tsx:154
 msgid "Immunizations"
 msgstr ""
 
-#: src/main.tsx:92
+#: src/containers/Analytics/index.tsx:105
+msgid "Immunizations by vaccine"
+msgstr ""
+
+#: src/containers/PatientsUberList/dashboard.tsx:64
+msgid "IPS Bundle is copied to clipboard"
+msgstr ""
+
+#: src/main.tsx:156
 msgid "Medications"
 msgstr ""
 
@@ -102,11 +137,16 @@ msgstr ""
 msgid "Name"
 msgstr ""
 
+#: src/containers/Analytics/index.tsx:148
+#: src/containers/Analytics/index.tsx:159
+msgid "No data"
+msgstr ""
+
 #: src/containers/EncountersUberList/index.tsx:119
 msgid "Number of Encounters"
 msgstr ""
 
-#: src/containers/ImmunizationsUberList /index.tsx:105
+#: src/containers/ImmunizationsUberList /index.tsx:119
 msgid "Number of Iimmunizations"
 msgstr ""
 
@@ -122,7 +162,7 @@ msgstr ""
 msgid "Number of Organization"
 msgstr ""
 
-#: src/containers/PatientsUberList/index.tsx:96
+#: src/containers/PatientsUberList/index.tsx:110
 msgid "Number of Patients"
 msgstr ""
 
@@ -130,33 +170,41 @@ msgstr ""
 msgid "Number of Practitioner"
 msgstr ""
 
-#: src/containers/ProceduresUberList/index.tsx:71
+#: src/containers/ProceduresUberList/index.tsx:89
 msgid "Number of Procedures"
 msgstr ""
 
-#: src/main.tsx:91
+#: src/main.tsx:155
 msgid "Observations"
 msgstr ""
 
 #: src/containers/OrganizationsUberList/index.tsx:12
-#: src/main.tsx:86
+#: src/main.tsx:150
 msgid "Organizations"
 msgstr ""
 
 #: src/containers/PatientsUberList/index.tsx:12
-#: src/main.tsx:78
+#: src/main.tsx:142
 msgid "Patients"
 msgstr ""
 
 #: src/containers/PractitionersUberList /index.tsx:12
-#: src/main.tsx:81
+#: src/main.tsx:145
 msgid "Practitioners"
 msgstr ""
 
-#: src/main.tsx:93
+#: src/main.tsx:157
 msgid "Procedures"
 msgstr ""
 
-#: src/containers/PatientsUberList/index.tsx:37
-msgid "SSN"
+#: src/main.tsx:158
+msgid "Questionnaire"
 msgstr ""
+
+#: src/containers/PatientsUberList/dashboard.tsx:67
+msgid "Share"
+msgstr ""
+
+#: src/containers/PatientsUberList/index.tsx:37
+#~ msgid "SSN"
+#~ msgstr ""
