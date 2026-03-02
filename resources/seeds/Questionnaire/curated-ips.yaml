@@ -151,10 +151,11 @@ item:
               - linkId: condition-code
                 required: true
                 text: Problem or diagnosis
-                type: text
+                type: choice
                 initialExpression:
                   language: text/fhirpath
-                  expression: "(%context.code.text | %context.code.coding.display)"
+                  expression: "%context.code.coding"
+                answerValueSet: https://tx.fhirlab.net/ValueSet/problems
               - linkId: condition-clinical-status
                 required: true
                 text: Clinical Status
@@ -212,10 +213,11 @@ item:
                   expression: "%context.id"
               - linkId: allergy-code
                 text: Allergy or Intolerance
-                type: text
+                type: choice
                 initialExpression:
                   language: text/fhirpath
-                  expression: "(%context.code.text | %context.code.coding.display)"
+                  expression: "%context.code.coding"
+                answerValueSet: https://tx.fhirlab.net/ValueSet/allergyintolerance
                 required: true
               - linkId: allergy-clinical-status
                 text: Clinical Status
@@ -250,11 +252,12 @@ item:
                 item:
                   - linkId: allergy-manifestation
                     text: Manifestation
-                    type: text
+                    type: choice
                     required: true
                     initialExpression:
                       language: text/fhirpath
-                      expression: "(%context.manifestation.text | %context.manifestation.coding.display)"
+                      expression: "%context.manifestation.coding"
+                    answerValueSet: https://tx.fhirlab.net/ValueSet/reaction
                   - linkId: allergy-severity
                     text: Severity
                     type: choice
@@ -405,11 +408,12 @@ item:
                   expression: "%context.id"
               - linkId: immunization-vaccine-code
                 text: Vaccine Code
-                type: text
+                type: choice
                 required: true
                 initialExpression:
                   language: text/fhirpath
-                  expression: "(%context.vaccineCode.text | %context.vaccineCode.coding.display)"
+                  expression: "%context.vaccineCode.coding"
+                answerValueSet: https://tx.fhirlab.net/ValueSet/vaccines
               - linkId: immunization-status
                 text: Status
                 type: choice
@@ -472,11 +476,12 @@ item:
                   expression: "%context.id"
               - linkId: procedure-code
                 text: Procedure
-                type: text
+                type: choice
                 required: true
                 initialExpression:
                   language: text/fhirpath
-                  expression: "(%context.code.text | %context.code.coding.display)"
+                  expression: "%context.code.coding"
+                answerValueSet: https://tx.fhirlab.net/ValueSet/procedures
               - linkId: procedure-status
                 text: Status
                 type: choice
