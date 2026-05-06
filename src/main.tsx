@@ -18,7 +18,7 @@ import '@beda.software/emr/dist/style.css';
 import { Route } from 'react-router-dom';
 
 import { User } from '@beda.software/aidbox-types';
-import { App } from '@beda.software/emr/containers';
+import { EMR } from '@beda.software/emr/containers';
 import { ValueSetExpandProvider } from '@beda.software/emr/contexts';
 import { MenuLayout } from '@beda.software/emr/dist/components/BaseLayout/Sidebar/SidebarTop/context';
 import { PatientDashboardProvider } from '@beda.software/emr/dist/components/Dashboard/contexts';
@@ -125,6 +125,34 @@ export async function populateUserInfoSharedState(): Promise<RemoteDataResult<Us
     return userResponse;
 }
 
+function menuLayout() {
+    return matchCurrentUserRole({
+        [Role.Admin]: () => [
+            { label: t`Patients`, path: '/patients-ph', icon: <PatientsIcon /> },
+            { label: t`Encounters`, path: '/encounters-ph', icon: <EncountersIcon /> },
+            {
+                label: t`Practitioners`,
+                path: '/practitioners-ph',
+                icon: <PractitionersIcon />,
+            },
+            {
+                label: t`Organizations`,
+                path: '/organizations-ph',
+                icon: <OrganizationsIcon />,
+            },
+            { label: t`Immunizations`, path: '/immunizations-ph', icon: <InvoicesIcon /> },
+            { label: t`Observations`, path: '/observations-ph', icon: <ServicesIcon /> },
+            { label: t`Medications`, path: '/medications-ph', icon: <MedicationsIcon /> },
+            { label: t`Procedures`, path: '/procedures-ph', icon: <ServicesIcon /> },
+            { label: t`Questionnaire`, path: '/questionnaires-ph', icon: <ServicesIcon /> },
+            { label: t`Analytics`, path: '/analytics-ph', icon: <ServicesIcon /> },
+        ],
+        [Role.Practitioner]: () => [],
+        [Role.Patient]: () => [],
+        [Role.Receptionist]: () => [],
+    })
+}
+
 export const AppWithContext = () => {
     useEffect(() => {
         dynamicActivate(getCurrentLocale());
@@ -135,67 +163,38 @@ export const AppWithContext = () => {
             <ValueSetExpandProvider.Provider value={expandEMRValueSet}>
                 <PatientDashboardProvider dashboard={dashboard}>
                     <ThemeProvider>
-                        <MenuLayout.Provider
-                            value={() =>
-                                matchCurrentUserRole({
-                                    [Role.Admin]: () => [
-                                        { label: t`Patients`, path: '/patients-ph', icon: <PatientsIcon /> },
-                                        { label: t`Encounters`, path: '/encounters-ph', icon: <EncountersIcon /> },
-                                        {
-                                            label: t`Practitioners`,
-                                            path: '/practitioners-ph',
-                                            icon: <PractitionersIcon />,
-                                        },
-                                        {
-                                            label: t`Organizations`,
-                                            path: '/organizations-ph',
-                                            icon: <OrganizationsIcon />,
-                                        },
-                                        { label: t`Immunizations`, path: '/immunizations-ph', icon: <InvoicesIcon /> },
-                                        { label: t`Observations`, path: '/observations-ph', icon: <ServicesIcon /> },
-                                        { label: t`Medications`, path: '/medications-ph', icon: <MedicationsIcon /> },
-                                        { label: t`Procedures`, path: '/procedures-ph', icon: <ServicesIcon /> },
-                                        { label: t`Questionnaire`, path: '/questionnaires-ph', icon: <ServicesIcon /> },
-                                        { label: t`Analytics`, path: '/analytics-ph', icon: <ServicesIcon /> },
-                                    ],
-                                    [Role.Practitioner]: () => [],
-                                    [Role.Patient]: () => [],
-                                    [Role.Receptionist]: () => [],
-                                })
+                        <EMR
+                            menuLayout={menuLayout}
+                            populateUserInfoSharedState={populateUserInfoSharedState}
+                            anonymousRoutes={
+                                <>
+                                    <Route path="/signin" element={<SignIn />} />
+                                </>
                             }
-                        >
-                            <App
-                                populateUserInfoSharedState={populateUserInfoSharedState}
-                                anonymousRoutes={
-                                    <>
-                                        <Route path="/signin" element={<SignIn />} />
-                                    </>
-                                }
-                                authenticatedRoutes={
-                                    <>
-                                        <Route path="/patients-ph" element={<PatientUberList />} />
-                                        <Route path="/patients-ph/:id/*" element={<PatientDetails />} />
-                                        <Route path="/encounters-ph" element={<EncountersUberList />} />
-                                        <Route path="/practitioners-ph" element={<PractitionersUberList />} />
-                                        <Route path="/organizations-ph" element={<OrganizationsUberList />} />
-                                        <Route path="/procedures-ph" element={<ProceduresUberList />} />
-                                        <Route path="/immunizations-ph" element={<ImmunizationsUberList />} />
-                                        <Route path="/observations-ph" element={<ObservationsUberList />} />
-                                        <Route path="/medications-ph" element={<MedicationsUberList />} />
-                                        <Route path="/questionnaires-ph" element={<QuestionnaireList />} />
-                                        <Route path="/analytics-ph" element={<Analytics />} />
-                                        <Route
-                                            path="/questionnaires-ph/aidbox-forms-builder/new"
-                                            element={<NewQuestionnaire />}
-                                        />
-                                        <Route
-                                            path="/questionnaires-ph/aidbox-forms-builder/:id/edit"
-                                            element={<NewQuestionnaire />}
-                                        />
-                                    </>
-                                }
-                            />
-                        </MenuLayout.Provider>
+                            authenticatedRoutes={
+                                <>
+                                    <Route path="/patients-ph" element={<PatientUberList />} />
+                                    <Route path="/patients-ph/:id/*" element={<PatientDetails />} />
+                                    <Route path="/encounters-ph" element={<EncountersUberList />} />
+                                    <Route path="/practitioners-ph" element={<PractitionersUberList />} />
+                                    <Route path="/organizations-ph" element={<OrganizationsUberList />} />
+                                    <Route path="/procedures-ph" element={<ProceduresUberList />} />
+                                    <Route path="/immunizations-ph" element={<ImmunizationsUberList />} />
+                                    <Route path="/observations-ph" element={<ObservationsUberList />} />
+                                    <Route path="/medications-ph" element={<MedicationsUberList />} />
+                                    <Route path="/questionnaires-ph" element={<QuestionnaireList />} />
+                                    <Route path="/analytics-ph" element={<Analytics />} />
+                                    <Route
+                                        path="/questionnaires-ph/aidbox-forms-builder/new"
+                                        element={<NewQuestionnaire />}
+                                    />
+                                    <Route
+                                        path="/questionnaires-ph/aidbox-forms-builder/:id/edit"
+                                        element={<NewQuestionnaire />}
+                                    />
+                                </>
+                            }
+                        />
                     </ThemeProvider>
                 </PatientDashboardProvider>
             </ValueSetExpandProvider.Provider>
