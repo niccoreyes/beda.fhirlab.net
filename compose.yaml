@@ -1,6 +1,6 @@
 services:
   sdc:
-    image: bedasoftware/fhir-sdc:1.0.0a20
+    image: bedasoftware/fhir-sdc:2.0.0a2
     depends_on:
       devbox:
         condition: service_healthy
@@ -27,7 +27,7 @@ services:
     volumes:
       - ./resources/init-bundles:/resources/init-bundles
   devbox-db:
-    image: "healthsamurai/aidboxdb:13.2"
+    image: "postgres:18"
     env_file:
       - ./env/db
     healthcheck:
@@ -67,10 +67,6 @@ services:
         condition: service_healthy
     env_file:
       - ./env/fhir-converters-app
-  fhirpath-mapping:
-    image: bedasoftware/fhirpath-extract:0.2.0
-    ports:
-      - 8091:8090
   questionnaire-fce-fhir-converter:
     image: bedasoftware/questionnaire-fce-fhir-converter:latest
     healthcheck:
@@ -78,15 +74,3 @@ services:
       interval: 5s
       timeout: 30s
       retries: 50
-  sdc-ide:
-    # image: bedasoftware/sdc-ide:master
-    build:
-      context: ../sdc-ide
-      dockerfile: Dockerfile
-    depends_on:
-      devbox:
-        condition: service_healthy
-    ports:
-      - 3001:5000
-    env_file:
-      - ./env/sdc-ide
