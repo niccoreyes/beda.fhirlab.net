@@ -119,7 +119,7 @@ export function Analytics() {
                                                     cx="50%"
                                                     cy="50%"
                                                     outerRadius="80%"
-                                                    onClick={(data) => {
+                                                    onClick={(data:any) => {
                                                         setActiveData({
                                                             code: data.code,
                                                             title: data.title,

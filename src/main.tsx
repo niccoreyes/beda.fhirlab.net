@@ -20,7 +20,6 @@ import { Route } from 'react-router-dom';
 import { User } from '@beda.software/aidbox-types';
 import { EMR } from '@beda.software/emr/containers';
 import { ValueSetExpandProvider } from '@beda.software/emr/contexts';
-import { MenuLayout } from '@beda.software/emr/dist/components/BaseLayout/Sidebar/SidebarTop/context';
 import { PatientDashboardProvider } from '@beda.software/emr/dist/components/Dashboard/contexts';
 import { fetchUserRoleDetails } from '@beda.software/emr/dist/containers/App/utils';
 import { dashboard } from '@beda.software/emr/dist/dashboard.config';
