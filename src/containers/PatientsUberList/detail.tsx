@@ -76,6 +76,7 @@ function Documents({ patient }: { patient: WithId<Patient> }) {
                             await sdcExtact(result.questionnaireResponse);
                             window.history.back();
                         }}
+                        launchContextParameters={[{'name': 'patient', resource: patient}]}
                     />
                 }
             />
