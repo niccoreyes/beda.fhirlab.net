@@ -80,7 +80,14 @@ function Documents({ patient }: { patient: WithId<Patient> }) {
                     />
                 }
             />
-            <Route path="/:qrId/*" element={<PatientDocumentDetails patient={patient} />} />
+            <Route
+                path="/:qrId/*"
+                element={
+                    <PatientDocumentDetails
+                        patient={patient}
+                        launchContextParameters={[{ 'name': 'patient', resource: patient }]}/>
+                }
+            />
         </Routes>
     );
 }
