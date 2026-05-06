@@ -1,8 +1,8 @@
 name: Build image and restart services
 on:
   push:
-    branches:
-      - main
+    tags:
+      - "v*.*.*"
 jobs:
   Release:
     runs-on: ubuntu-latest
@@ -41,10 +41,14 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract branch name
+        shell: bash
+        run: echo "branch=$(echo ${GITHUB_REF#refs/tags/v})" >>$GITHUB_OUTPUT
+        id: extract_branch
       - name: Build and push the Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.extract_branch.outputs.branch }}
