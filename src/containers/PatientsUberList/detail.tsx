@@ -8,11 +8,11 @@ import { PatientDocuments } from '@beda.software/emr/dist/containers/PatientDeta
 import { PatientOverview } from '@beda.software/emr/dist/containers/PatientDetails/PatientOverviewDynamic/index';
 import { ResourceDetailPage, Tab } from '@beda.software/emr/dist/uberComponents/ResourceDetailPage/index';
 import { compileAsFirst, selectCurrentUserRoleResource } from '@beda.software/emr/dist/utils/index';
-import { WithId } from '@beda.software/fhir-react';
-import { isFailure, isSuccess } from '@beda.software/remote-data';
+import { WithId, extractBundleResources } from '@beda.software/fhir-react';
+import { isFailure, isSuccess, mapSuccess } from '@beda.software/remote-data';
 
 import { dashboard } from './dashboard';
-import { getFHIRResource, service } from '@beda.software/emr/services';
+import { getFHIRResources, service } from '@beda.software/emr/services';
 
 const getName = compileAsFirst<Patient, string>("Patient.name.given.first() + ' ' + Patient.name.family");
 
@@ -32,7 +32,10 @@ const tabs: Array<Tab<WithId<Patient>>> = [
 const getResult = compileAsFirst<Parameters, Bundle>("Parameters.parameter.where(name='return').resource");
 
 async function sdcExtact(qr: QuestionnaireResponse){
-    const questionnaire = await getFHIRResource<Questionnaire>({ reference: `Questionnaire/${qr.questionnaire}` });
+    const questionnaire = mapSuccess(
+        await getFHIRResources<Questionnaire>('Questionnaire', { url: qr.questionnaire }),
+        (bundle) => extractBundleResources(bundle).Questionnaire[0]!
+    );
     if (isFailure(questionnaire)) {
         console.log("ERROR", questionnaire.error)
         return;
