@@ -6,10 +6,10 @@ meta:
 status: completed
 vaccineCode:
   coding:
-    - system: http://hl7.org/fhir/sid/cvx
-      code: '141'
-      display: Influenza, seasonal, injectable
-  text: Influenza, seasonal, injectable
+    - system: urn:oid:1.2.36.1.2001.1005.17
+      code: GNFLU
+      display: Generic Influenza
+  text: Generic Influenza
 patient:
   reference: Patient/patient-single-ex
   display: Juan Dela Cruz
@@ -95,4 +95,4 @@ text:
   status: generated
   div: >-
     <div xmlns="http://www.w3.org/1999/xhtml">PH Core Immunization for Juan Dela Cruz
-    — Influenza, seasonal, injectable — status completed.</div>
+    — Generic Influenza — status completed.</div>
