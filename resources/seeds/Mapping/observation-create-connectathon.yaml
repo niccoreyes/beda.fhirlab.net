@@ -6,17 +6,23 @@ body:
     - patient: "{{ %QuestionnaireResponse.answers('patient') }}"
     - patientId: "{{ %patient.reference.replace('Patient/', '') }}"
     - patientName: "{{ %patient.display }}"
+    - encounterRef: "{{ %QuestionnaireResponse.answers('encounter') }}"
+    - performerRef: "{{ %QuestionnaireResponse.answers('performer') }}"
+    - status: "{{ %QuestionnaireResponse.answers('status') }}"
+    - statusCode: "{{ iif(%status.code.exists(), %status.code, iif(%status.exists(), %status, 'final')) }}"
+    - effectiveDateTime: "{{ %QuestionnaireResponse.answers('effective-date-time') }}"
     - temperature: "{{ %QuestionnaireResponse.answers('temperature') }}"
     - bloodPressureSystolic: "{{ %QuestionnaireResponse.answers('blood-pressure-systolic') }}"
     - bloodPressureDiastolic: "{{ %QuestionnaireResponse.answers('blood-pressure-diastolic') }}"
     - bloodPressureArm: "{{ %QuestionnaireResponse.answers('blood-pressure-arm') }}"
-    - bloodPressurePosition: "{{ %QuestionnaireResponse.answers('blood-pressure-positions') }}"
+    - bloodPressurePosition: "{{ %QuestionnaireResponse.answers('blood-pressure-position') }}"
     - pulseRate: "{{ %QuestionnaireResponse.answers('pulse-rate') }}"
     - respiratoryRate: "{{ %QuestionnaireResponse.answers('respiratory-rate') }}"
     - oxygenSaturation: "{{ %QuestionnaireResponse.answers('oxygen-saturation') }}"
     - height: "{{ %QuestionnaireResponse.answers('height') }}"
     - weight: "{{ %QuestionnaireResponse.answers('weight') }}"
     - bmi: "{{ %QuestionnaireResponse.answers('bmi') }}"
+    - patientLabel: "{{ iif(%patientName.exists(), %patientName, 'Patient/' + %patientId) }}"
 
   resourceType: Bundle
   type: transaction
@@ -29,8 +35,13 @@ body:
           resourceType: Observation
           meta:
             profile:
-            - urn://example.com/ph-core/fhir/StructureDefinition/ph-core-observation
-          status: final
+              - https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-observation
+          status: "{{ %statusCode }}"
+          category:
+            - coding:
+                - system: http://terminology.hl7.org/CodeSystem/observation-category
+                  code: vital-signs
+                  display: Vital Signs
           code:
             coding:
               - system: http://loinc.org
@@ -39,12 +50,21 @@ body:
           subject:
             reference: "Patient/{{ %patientId }}"
             display: "{{ %patientName }}"
-          effectiveDateTime: "{{ now() }}"
+          effectiveDateTime: "{{ %effectiveDateTime }}"
+          text:
+            status: generated
+            div: "<div xmlns='http://www.w3.org/1999/xhtml'>PH Core Observation — body temperature {{ %temperature.value }} °C for {{ %patientLabel }}.</div>"
           valueQuantity:
             value: "{{ %temperature.value }}"
-            unit: celsius
+            unit: °C
             system: http://unitsofmeasure.org
-            code: celsius
+            code: Cel
+          "{% merge %}":
+            - "{% if %encounterRef.exists() %}":
+                encounter: "{{ %encounterRef }}"
+            - "{% if %performerRef.exists() %}":
+                performer:
+                  - "{{ %performerRef }}"
 
     - "{% if %bloodPressureSystolic.exists() and %bloodPressureDiastolic.exists() %}":
         request:
@@ -54,22 +74,28 @@ body:
           resourceType: Observation
           meta:
             profile:
-            - urn://example.com/ph-core/fhir/StructureDefinition/ph-core-observation
-          status: final
+              - https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-observation
+              - http://hl7.org/fhir/StructureDefinition/vitalsigns
+              - http://hl7.org/fhir/StructureDefinition/bp
+          status: "{{ %statusCode }}"
+          category:
+            - coding:
+                - system: http://terminology.hl7.org/CodeSystem/observation-category
+                  code: vital-signs
+                  display: Vital Signs
           code:
             coding:
               - system: http://loinc.org
                 code: 85354-9
-                display: Blood pressure
+                display: Blood pressure panel with all children optional
+            text: Blood pressure systolic & diastolic
           subject:
             reference: "Patient/{{ %patientId }}"
             display: "{{ %patientName }}"
-          bodySite:
-            "{% if %bloodPressureArm.exists() or %bloodPressurePosition.exists() %}":
-              coding:
-                - "{{ %bloodPressureArm }}"
-                - "{{ %bloodPressurePosition }}"
-          effectiveDateTime: "{{ now() }}"
+          effectiveDateTime: "{{ %effectiveDateTime }}"
+          text:
+            status: generated
+            div: "<div xmlns='http://www.w3.org/1999/xhtml'>PH Core Observation — blood pressure {{ %bloodPressureSystolic.value }}/{{ %bloodPressureDiastolic.value }} mmHg for {{ %patientLabel }}{{ iif(%bloodPressureArm.display.exists(), ' (' + %bloodPressureArm.display + ')', '') }}{{ iif(%bloodPressurePosition.display.exists(), ', ' + %bloodPressurePosition.display, '') }}.</div>"
           component:
             - code:
                 coding:
@@ -80,7 +106,7 @@ body:
                 value: "{{ %bloodPressureSystolic.value }}"
                 unit: mmHg
                 system: http://unitsofmeasure.org
-                code: mmHg
+                code: mm[Hg]
             - code:
                 coding:
                   - system: http://loinc.org
@@ -90,7 +116,22 @@ body:
                 value: "{{ %bloodPressureDiastolic.value }}"
                 unit: mmHg
                 system: http://unitsofmeasure.org
-                code: mmHg
+                code: mm[Hg]
+          "{% merge %}":
+            - "{% if %encounterRef.exists() %}":
+                encounter: "{{ %encounterRef }}"
+            - "{% if %performerRef.exists() %}":
+                performer:
+                  - "{{ %performerRef }}"
+            - "{% if %bloodPressureArm.exists() %}":
+                bodySite:
+                  coding:
+                    - "{{ %bloodPressureArm }}"
+            - "{% if %bloodPressurePosition.exists() %}":
+                method:
+                  coding:
+                    - "{{ %bloodPressurePosition }}"
+                  text: "{{ %bloodPressurePosition.display }}"
 
     - "{% if %pulseRate.exists() %}":
         request:
@@ -100,8 +141,13 @@ body:
           resourceType: Observation
           meta:
             profile:
-            - urn://example.com/ph-core/fhir/StructureDefinition/ph-core-observation
-          status: final
+              - https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-observation
+          status: "{{ %statusCode }}"
+          category:
+            - coding:
+                - system: http://terminology.hl7.org/CodeSystem/observation-category
+                  code: vital-signs
+                  display: Vital Signs
           code:
             coding:
               - system: http://loinc.org
@@ -110,12 +156,21 @@ body:
           subject:
             reference: "Patient/{{ %patientId }}"
             display: "{{ %patientName }}"
-          effectiveDateTime: "{{ now() }}"
+          effectiveDateTime: "{{ %effectiveDateTime }}"
+          text:
+            status: generated
+            div: "<div xmlns='http://www.w3.org/1999/xhtml'>PH Core Observation — heart rate {{ %pulseRate.value }} /min for {{ %patientLabel }}.</div>"
           valueQuantity:
             value: "{{ %pulseRate.value }}"
-            unit: bpm
+            unit: /min
             system: http://unitsofmeasure.org
-            code: bpm
+            code: /min
+          "{% merge %}":
+            - "{% if %encounterRef.exists() %}":
+                encounter: "{{ %encounterRef }}"
+            - "{% if %performerRef.exists() %}":
+                performer:
+                  - "{{ %performerRef }}"
 
     - "{% if %respiratoryRate.exists() %}":
         request:
@@ -125,8 +180,13 @@ body:
           resourceType: Observation
           meta:
             profile:
-            - urn://example.com/ph-core/fhir/StructureDefinition/ph-core-observation
-          status: final
+              - https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-observation
+          status: "{{ %statusCode }}"
+          category:
+            - coding:
+                - system: http://terminology.hl7.org/CodeSystem/observation-category
+                  code: vital-signs
+                  display: Vital Signs
           code:
             coding:
               - system: http://loinc.org
@@ -135,12 +195,21 @@ body:
           subject:
             reference: "Patient/{{ %patientId }}"
             display: "{{ %patientName }}"
-          effectiveDateTime: "{{ now() }}"
+          effectiveDateTime: "{{ %effectiveDateTime }}"
+          text:
+            status: generated
+            div: "<div xmlns='http://www.w3.org/1999/xhtml'>PH Core Observation — respiratory rate {{ %respiratoryRate.value }} /min for {{ %patientLabel }}.</div>"
           valueQuantity:
             value: "{{ %respiratoryRate.value }}"
-            unit: bpm
+            unit: /min
             system: http://unitsofmeasure.org
-            code: bpm
+            code: /min
+          "{% merge %}":
+            - "{% if %encounterRef.exists() %}":
+                encounter: "{{ %encounterRef }}"
+            - "{% if %performerRef.exists() %}":
+                performer:
+                  - "{{ %performerRef }}"
 
     - "{% if %oxygenSaturation.exists() %}":
         request:
@@ -150,22 +219,36 @@ body:
           resourceType: Observation
           meta:
             profile:
-            - urn://example.com/ph-core/fhir/StructureDefinition/ph-core-observation
-          status: final
+              - https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-observation
+          status: "{{ %statusCode }}"
+          category:
+            - coding:
+                - system: http://terminology.hl7.org/CodeSystem/observation-category
+                  code: vital-signs
+                  display: Vital Signs
           code:
             coding:
               - system: http://loinc.org
                 code: 59408-5
-                display: Oxygen saturation
+                display: Oxygen saturation in Arterial blood by Pulse oximetry
           subject:
             reference: "Patient/{{ %patientId }}"
             display: "{{ %patientName }}"
-          effectiveDateTime: "{{ now() }}"
+          effectiveDateTime: "{{ %effectiveDateTime }}"
+          text:
+            status: generated
+            div: "<div xmlns='http://www.w3.org/1999/xhtml'>PH Core Observation — oxygen saturation {{ %oxygenSaturation.value }}% for {{ %patientLabel }}.</div>"
           valueQuantity:
             value: "{{ %oxygenSaturation.value }}"
-            unit: "%"
+            unit: '%'
             system: http://unitsofmeasure.org
-            code: "%"
+            code: '%'
+          "{% merge %}":
+            - "{% if %encounterRef.exists() %}":
+                encounter: "{{ %encounterRef }}"
+            - "{% if %performerRef.exists() %}":
+                performer:
+                  - "{{ %performerRef }}"
 
     - "{% if %height.exists() %}":
         request:
@@ -175,8 +258,13 @@ body:
           resourceType: Observation
           meta:
             profile:
-            - urn://example.com/ph-core/fhir/StructureDefinition/ph-core-observation
-          status: final
+              - https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-observation
+          status: "{{ %statusCode }}"
+          category:
+            - coding:
+                - system: http://terminology.hl7.org/CodeSystem/observation-category
+                  code: vital-signs
+                  display: Vital Signs
           code:
             coding:
               - system: http://loinc.org
@@ -185,12 +273,21 @@ body:
           subject:
             reference: "Patient/{{ %patientId }}"
             display: "{{ %patientName }}"
-          effectiveDateTime: "{{ now() }}"
+          effectiveDateTime: "{{ %effectiveDateTime }}"
+          text:
+            status: generated
+            div: "<div xmlns='http://www.w3.org/1999/xhtml'>PH Core Observation — body height {{ %height.value }} cm for {{ %patientLabel }}.</div>"
           valueQuantity:
             value: "{{ %height.value }}"
             unit: cm
             code: cm
             system: http://unitsofmeasure.org
+          "{% merge %}":
+            - "{% if %encounterRef.exists() %}":
+                encounter: "{{ %encounterRef }}"
+            - "{% if %performerRef.exists() %}":
+                performer:
+                  - "{{ %performerRef }}"
 
     - "{% if %weight.exists() %}":
         request:
@@ -200,8 +297,13 @@ body:
           resourceType: Observation
           meta:
             profile:
-            - urn://example.com/ph-core/fhir/StructureDefinition/ph-core-observation
-          status: final
+              - https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-observation
+          status: "{{ %statusCode }}"
+          category:
+            - coding:
+                - system: http://terminology.hl7.org/CodeSystem/observation-category
+                  code: vital-signs
+                  display: Vital Signs
           code:
             coding:
               - system: http://loinc.org
@@ -210,12 +312,21 @@ body:
           subject:
             reference: "Patient/{{ %patientId }}"
             display: "{{ %patientName }}"
-          effectiveDateTime: "{{ now() }}"
+          effectiveDateTime: "{{ %effectiveDateTime }}"
+          text:
+            status: generated
+            div: "<div xmlns='http://www.w3.org/1999/xhtml'>PH Core Observation — body weight {{ %weight.value }} kg for {{ %patientLabel }}.</div>"
           valueQuantity:
             value: "{{ %weight.value }}"
             unit: kg
             system: http://unitsofmeasure.org
             code: kg
+          "{% merge %}":
+            - "{% if %encounterRef.exists() %}":
+                encounter: "{{ %encounterRef }}"
+            - "{% if %performerRef.exists() %}":
+                performer:
+                  - "{{ %performerRef }}"
 
     - "{% if %bmi.exists() %}":
         request:
@@ -225,19 +336,33 @@ body:
           resourceType: Observation
           meta:
             profile:
-            - urn://example.com/ph-core/fhir/StructureDefinition/ph-core-observation
-          status: final
+              - https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-observation
+          status: "{{ %statusCode }}"
+          category:
+            - coding:
+                - system: http://terminology.hl7.org/CodeSystem/observation-category
+                  code: vital-signs
+                  display: Vital Signs
           code:
             coding:
               - system: http://loinc.org
                 code: 39156-5
-                display: BMI
+                display: Body mass index (BMI) [Ratio]
           subject:
             reference: "Patient/{{ %patientId }}"
             display: "{{ %patientName }}"
-          effectiveDateTime: "{{ now() }}"
+          effectiveDateTime: "{{ %effectiveDateTime }}"
+          text:
+            status: generated
+            div: "<div xmlns='http://www.w3.org/1999/xhtml'>PH Core Observation — BMI {{ %bmi }} kg/m2 for {{ %patientLabel }}.</div>"
           valueQuantity:
             value: "{{ %bmi }}"
-            unit: "kg/m2"
+            unit: kg/m2
             system: http://unitsofmeasure.org
-            code: "kg/m2"
+            code: kg/m2
+          "{% merge %}":
+            - "{% if %encounterRef.exists() %}":
+                encounter: "{{ %encounterRef }}"
+            - "{% if %performerRef.exists() %}":
+                performer:
+                  - "{{ %performerRef }}"
