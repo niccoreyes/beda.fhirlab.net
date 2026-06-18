@@ -1,9 +1,38 @@
 import { PlusOutlined } from '@ant-design/icons';
 import { t, Trans } from '@lingui/macro';
-import { Procedure } from 'fhir/r4b';
+import { Procedure, Reference } from 'fhir/r4b';
 
 import { questionnaireAction, ResourceListPage } from '@beda.software/emr/components';
 import { SearchBarColumnType } from '@beda.software/emr/dist/components/SearchBar/types';
+import { compileAsFirst, formatHumanDateTime } from '@beda.software/emr/utils';
+
+function getSubjectLabel(subject?: Reference): string | undefined {
+    if (!subject) {
+        return undefined;
+    }
+    if (subject.display) {
+        return subject.display;
+    }
+    if (subject.reference) {
+        return subject.reference;
+    }
+    const aidboxSubject = subject as Reference & { id?: string; resourceType?: string };
+    if (aidboxSubject.id && aidboxSubject.resourceType) {
+        return `${aidboxSubject.resourceType}/${aidboxSubject.id}`;
+    }
+    return undefined;
+}
+
+function getPerformedDateTime(resource: Procedure): string | undefined {
+    return (
+        resource.performedDateTime ??
+        (resource as Procedure & { performed?: { dateTime?: string; Period?: { start?: string } } }).performed?.dateTime ??
+        resource.performedPeriod?.start ??
+        (resource as Procedure & { performed?: { Period?: { start?: string } } }).performed?.Period?.start
+    );
+}
+
+export const getProcedureCode = compileAsFirst<Procedure, string>('Procedure.code.coding.first().display');
 
 export function ProceduresUberList() {
     return (
@@ -20,18 +49,23 @@ export function ProceduresUberList() {
                     },
                 },
                 {
+                    title: 'Date',
+                    dataIndex: 'date',
+                    key: 'date',
+                    width: 200,
+                    render: (_text: any, { resource }) => formatHumanDateTime(getPerformedDateTime(resource)),
+                },
+                {
                     title: 'Code',
                     key: 'code',
                     render: (_text: any, { resource }) => {
-                        return resource.code?.text ?? resource.code?.coding?.[0]?.display;
+                        return resource.code?.text ?? getProcedureCode(resource) ?? resource.code?.coding?.[0]?.display;
                     },
                 },
                 {
                     title: 'Patient',
                     key: 'patient',
-                    render: (_text: any, { resource }) => {
-                        return resource.subject.display ?? resource.subject.reference;
-                    },
+                    render: (_text: any, { resource }) => getSubjectLabel(resource.subject),
                 },
             ]}
             getFilters={() => [
@@ -44,16 +78,16 @@ export function ProceduresUberList() {
                         {
                             value: {
                                 Coding: {
-                                    code: 'in-progress',
-                                    display: 'In progress',
+                                    code: 'completed',
+                                    display: 'Completed',
                                 },
                             },
                         },
                         {
                             value: {
                                 Coding: {
-                                    code: 'finished',
-                                    display: 'Finished',
+                                    code: 'in-progress',
+                                    display: 'In progress',
                                 },
                             },
                         },
@@ -79,9 +113,27 @@ period.start.toString().split('.')[0].split('T')[1]`,
                     placement: ['search-bar', 'table'],
                 },
             ]}
+            getRecordActions={(record) => [
+                questionnaireAction('Edit', 'procedure-create-connectathon', {
+                    extra: {
+                        qrfProps: {
+                            launchContextParameters: [
+                                { name: 'Procedure', resource: record.resource },
+                            ],
+                        },
+                    },
+                }),
+            ]}
             getHeaderActions={() => [
                 questionnaireAction(<Trans>Create procedure</Trans>, 'procedure-create-connectathon', {
                     icon: <PlusOutlined />,
+                    extra: {
+                        qrfProps: {
+                            launchContextParameters: [
+                                { name: 'Procedure', resource: { resourceType: 'Procedure' } },
+                            ],
+                        },
+                    },
                 }),
             ]}
             getReportColumns={(bundle) => [
