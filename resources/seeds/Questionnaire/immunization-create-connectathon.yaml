@@ -348,6 +348,8 @@ item:
           expression: '%Immunization.note.text.first()'
 resourceType: Questionnaire
 title: Immunization create PH
+subjectType:
+  - Patient
 extension:
   - url: https://emr-core.beda.software/StructureDefinition/questionnaire-mapper
     valueReference:
