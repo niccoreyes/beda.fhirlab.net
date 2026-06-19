@@ -44,7 +44,7 @@ extension:
   - url: https://fhir.doh.gov.ph/phcore/StructureDefinition/administered-product
     valueReference:
       reference: Medication/medication-single-ex
-      display: Product containing aspirin (medicinal product)
+      display: Twinact
 route:
   coding:
     - system: http://terminology.hl7.org/CodeSystem/v3-RouteOfAdministration
