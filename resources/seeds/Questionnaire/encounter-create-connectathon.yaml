@@ -372,6 +372,8 @@ item:
           expression: '%Encounter.period.end'
 resourceType: Questionnaire
 title: Encounter create PH
+subjectType:
+  - Patient
 extension:
   - url: https://emr-core.beda.software/StructureDefinition/questionnaire-mapper
     valueReference:
