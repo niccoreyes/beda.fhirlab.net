@@ -232,6 +232,7 @@ item:
   - text: Educational Attainment
     type: choice
     linkId: educational-attainment
+    # TODO: uncomment answerValueSet when tx.fhirlab.net expands educational-attainments
     # answerValueSet: https://fhir.doh.gov.ph/phcore/ValueSet/educational-attainments
     answerOption:
       - valueCoding:
@@ -248,6 +249,7 @@ item:
       - text: Occupation
         type: choice
         linkId: occupation-classification
+        # TODO: uncomment answerValueSet when tx.fhirlab.net expands occupational-classifications
         # answerValueSet: https://fhir.doh.gov.ph/phcore/ValueSet/occupational-classifications
         answerOption:
           - valueCoding:
@@ -349,6 +351,7 @@ item:
       - text: Region
         type: choice
         linkId: address-region
+        # TODO: uncomment answerValueSet when tx.fhirlab.net expands regions
         # answerValueSet: https://fhir.doh.gov.ph/phcore/ValueSet/regions
         answerOption:
           - valueCoding:
@@ -364,6 +367,7 @@ item:
       - text: Province
         type: choice
         linkId: address-province
+        # TODO: uncomment answerValueSet when tx.fhirlab.net expands provinces
         # answerValueSet: https://fhir.doh.gov.ph/phcore/ValueSet/provinces
         answerOption:
           - valueCoding:
@@ -379,6 +383,7 @@ item:
       - text: City Municipality
         type: choice
         linkId: address-city-municipality
+        # TODO: uncomment answerValueSet when tx.fhirlab.net expands cities
         # answerValueSet: https://fhir.doh.gov.ph/phcore/ValueSet/cities
         answerOption:
           - valueCoding:
@@ -394,6 +399,7 @@ item:
       - text: Barangay
         type: choice
         linkId: address-barangay
+        # TODO: uncomment answerValueSet when tx.fhirlab.net expands barangays
         # answerValueSet: https://fhir.doh.gov.ph/phcore/ValueSet/barangays
         answerOption:
           - valueCoding:
