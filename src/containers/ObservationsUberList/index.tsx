@@ -17,7 +17,7 @@ function getQuantity(holder?: AidboxQuantityHolder): Quantity | undefined {
     return holder.valueQuantity ?? holder.value?.Quantity;
 }
 
-function getEffectiveDateTime(resource: Observation): string | undefined {
+export function getEffectiveDateTime(resource: Observation): string | undefined {
     return resource.effectiveDateTime ?? (resource as Observation & { effective?: { dateTime?: string } }).effective?.dateTime;
 }
 
