@@ -1,0 +1,67 @@
+id: practitionerrole-create-extract-connectathon
+type: FHIRPath
+resourceType: Mapping
+body:
+  "{% assign %}":
+    - id: "{{ %QuestionnaireResponse.answers('practitionerRoleId') }}"
+    - practitionerRef: "{{ %QuestionnaireResponse.answers('practitioner') }}"
+    - organizationRef: "{{ %QuestionnaireResponse.answers('organization') }}"
+    - code: "{{ %QuestionnaireResponse.answers('code') }}"
+    - specialties: "{[ %QuestionnaireResponse.repeat(item).where(linkId='specialty').answer.valueCoding ]}"
+    - identifierValue: "{{ %QuestionnaireResponse.answers('identifier-value') }}"
+    - phone: "{{ %QuestionnaireResponse.answers('phone') }}"
+    - email: "{{ %QuestionnaireResponse.answers('email') }}"
+    - codeDisplay: "{{ iif(%code.display.exists(), %code.display, %code.text) }}"
+    - practitionerDisplay: "{{ iif(%practitionerRef.display.exists(), %practitionerRef.display, %practitionerRef.reference) }}"
+    - organizationDisplay: "{{ iif(%organizationRef.display.exists(), %organizationRef.display, %organizationRef.reference) }}"
+    - narrativeDiv: "<div xmlns='http://www.w3.org/1999/xhtml'>PH Core PractitionerRole{{ iif(%practitionerDisplay.exists(), ' for ' + %practitionerDisplay, '') }}{{ iif(%organizationDisplay.exists(), ' at ' + %organizationDisplay, '') }}{{ iif(%codeDisplay.exists(), ' — ' + %codeDisplay, '') }}.</div>"
+    - addPractitionerRole:
+        request:
+          "{% if %id.exists() %}":
+            url: /PractitionerRole/{{ %id }}
+            method: PUT
+          "{% else %}":
+            url: /PractitionerRole
+            method: POST
+        resource:
+          resourceType: PractitionerRole
+          meta:
+            profile:
+              - https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-practitionerrole
+          id:
+            "{% if %id.exists() %}": "{{ %id }}"
+          practitioner: "{{ %practitionerRef }}"
+          text:
+            status: generated
+            div: "{{ %narrativeDiv }}"
+          "{% merge %}":
+            - "{% if %organizationRef.exists() %}":
+                organization: "{{ %organizationRef }}"
+            - "{% if %code.exists() %}":
+                code:
+                  - coding:
+                      - "{{ %code }}"
+                    text: "{{ %codeDisplay }}"
+            - "{% if %specialties.exists() %}":
+                specialty:
+                  - "{% for specialty in %specialties %}":
+                      coding:
+                        - "{{ %specialty }}"
+                      text: "{{ %specialty.display }}"
+            - "{% if %identifierValue.exists() %}":
+                identifier:
+                  - value: "{{ %identifierValue }}"
+            - "{% if %phone.exists() or %email.exists() %}":
+                telecom:
+                  - "{% if %phone.exists() %}":
+                      system: phone
+                      value: "{{ %phone }}"
+                      use: work
+                  - "{% if %email.exists() %}":
+                      system: email
+                      value: "{{ %email }}"
+                      use: work
+  resourceType: Bundle
+  type: transaction
+  entry:
+    - "{{ %addPractitionerRole }}"
