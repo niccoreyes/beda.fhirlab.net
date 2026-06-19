@@ -21,9 +21,7 @@ item:
     linkId: phone
     extension:
       - url: http://hl7.org/fhir/StructureDefinition/regex
-        valueString: >-
-          ^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})(?:
-          *x(\d+))?\s*$
+        valueString: ^\+63(?:[\s.-]?9\d{2}[\s.-]?\d{3}[\s.-]?\d{4}|9\d{9})$
       - url: http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl
         valueCodeableConcept:
           coding:

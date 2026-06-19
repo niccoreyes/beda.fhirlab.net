@@ -1,9 +1,20 @@
 import { PlusOutlined } from '@ant-design/icons';
 import { t, Trans } from '@lingui/macro';
-import { PractitionerRole } from 'fhir/r4b';
+import { Practitioner, PractitionerRole } from 'fhir/r4b';
 
 import { questionnaireAction, ResourceListPage } from '@beda.software/emr/components';
 import { SearchBarColumnType } from '@beda.software/emr/dist/components/SearchBar/types';
+
+function practitionerLaunchContext(resource: PractitionerRole) {
+    const practitionerId = resource.practitioner?.reference?.replace('Practitioner/', '');
+
+    return [
+        { name: 'PractitionerRole', resource },
+        ...(practitionerId
+            ? [{ name: 'Practitioner', resource: { resourceType: 'Practitioner', id: practitionerId } as Practitioner }]
+            : [{ name: 'Practitioner', resource: { resourceType: 'Practitioner' } as Practitioner }]),
+    ];
+}
 
 export function PractitionerRolesUberList() {
     return (
@@ -64,9 +75,7 @@ export function PractitionerRolesUberList() {
                 questionnaireAction('Edit', 'practitionerrole-create-connectathon', {
                     extra: {
                         qrfProps: {
-                            launchContextParameters: [
-                                { name: 'PractitionerRole', resource: record.resource },
-                            ],
+                            launchContextParameters: practitionerLaunchContext(record.resource),
                         },
                     },
                 }),
@@ -76,9 +85,9 @@ export function PractitionerRolesUberList() {
                     icon: <PlusOutlined />,
                     extra: {
                         qrfProps: {
-                            launchContextParameters: [
-                                { name: 'PractitionerRole', resource: { resourceType: 'PractitionerRole' } },
-                            ],
+                            launchContextParameters: practitionerLaunchContext({
+                                resourceType: 'PractitionerRole',
+                            }),
                         },
                     },
                 }),

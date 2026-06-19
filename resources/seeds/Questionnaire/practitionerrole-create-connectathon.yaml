@@ -40,6 +40,16 @@ item:
         valueExpression:
           language: text/fhirpath
           expression: '%PractitionerRole.practitioner'
+      - url: >-
+          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-itemPopulationContext
+        extension:
+          - url: name
+            valueCoding:
+              code: SelectedPractitioner
+          - url: context
+            valueExpression:
+              language: application/x-fhir-query
+              expression: "%QuestionnaireResponse.item.where(linkId='practitioner').answer.valueReference.reference"
   - text: Organization
     type: reference
     linkId: organization
@@ -106,9 +116,7 @@ item:
     linkId: phone
     extension:
       - url: http://hl7.org/fhir/StructureDefinition/regex
-        valueString: >-
-          ^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})(?:
-          *x(\d+))?\s*$
+        valueString: ^\+63(?:[\s.-]?9\d{2}[\s.-]?\d{3}[\s.-]?\d{4}|9\d{9})$
       - url: http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl
         valueCodeableConcept:
           coding:
@@ -117,7 +125,24 @@ item:
           http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
         valueExpression:
           language: text/fhirpath
-          expression: "%PractitionerRole.telecom.where(system='phone').value.first()"
+          expression: >-
+            iif(%PractitionerRole.telecom.where(system='phone').value.exists(),
+            %PractitionerRole.telecom.where(system='phone').value.first(),
+            %Practitioner.telecom.where(system='phone').value.first())
+      - url: >-
+          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-calculatedExpression
+        valueExpression:
+          language: text/fhirpath
+          expression: >-
+            iif(%QuestionnaireResponse.item.where(linkId='phone').answer.valueString.exists(),
+            %QuestionnaireResponse.item.where(linkId='phone').answer.valueString,
+            iif(%PractitionerRole.telecom.where(system='phone').value.exists(),
+            %PractitionerRole.telecom.where(system='phone').value.first(),
+            iif(%SelectedPractitioner.telecom.where(system='phone').value.exists(),
+            %SelectedPractitioner.telecom.where(system='phone').value.first(),
+            iif(%Practitioner.telecom.where(system='phone').value.exists(),
+            %Practitioner.telecom.where(system='phone').value.first(),
+            ''))))
   - text: Email
     type: string
     linkId: email
@@ -126,7 +151,24 @@ item:
           http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
         valueExpression:
           language: text/fhirpath
-          expression: "%PractitionerRole.telecom.where(system='email').value.first()"
+          expression: >-
+            iif(%PractitionerRole.telecom.where(system='email').value.exists(),
+            %PractitionerRole.telecom.where(system='email').value.first(),
+            %Practitioner.telecom.where(system='email').value.first())
+      - url: >-
+          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-calculatedExpression
+        valueExpression:
+          language: text/fhirpath
+          expression: >-
+            iif(%QuestionnaireResponse.item.where(linkId='email').answer.valueString.exists(),
+            %QuestionnaireResponse.item.where(linkId='email').answer.valueString,
+            iif(%PractitionerRole.telecom.where(system='email').value.exists(),
+            %PractitionerRole.telecom.where(system='email').value.first(),
+            iif(%SelectedPractitioner.telecom.where(system='email').value.exists(),
+            %SelectedPractitioner.telecom.where(system='email').value.first(),
+            iif(%Practitioner.telecom.where(system='email').value.exists(),
+            %Practitioner.telecom.where(system='email').value.first(),
+            ''))))
 resourceType: Questionnaire
 title: PractitionerRole create PH
 extension:
@@ -140,6 +182,13 @@ extension:
           code: PractitionerRole
       - url: type
         valueCode: PractitionerRole
+  - url: http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-launchContext
+    extension:
+      - url: name
+        valueCoding:
+          code: Practitioner
+      - url: type
+        valueCode: Practitioner
 status: active
 id: practitionerrole-create-connectathon
 url: practitionerrole-create
