@@ -258,6 +258,8 @@ item:
     linkId: blood-pressure
 resourceType: Questionnaire
 title: Observation create PH
+subjectType:
+  - Patient
 extension:
   - url: https://emr-core.beda.software/StructureDefinition/questionnaire-mapper
     valueReference:
