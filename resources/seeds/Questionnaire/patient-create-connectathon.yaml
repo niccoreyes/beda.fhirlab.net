@@ -232,7 +232,12 @@ item:
   - text: Educational Attainment
     type: choice
     linkId: educational-attainment
-    answerValueSet: https://fhir.doh.gov.ph/phcore/ValueSet/educational-attainments
+    # answerValueSet: https://fhir.doh.gov.ph/phcore/ValueSet/educational-attainments
+    answerOption:
+      - valueCoding:
+          system: https://psa.gov.ph/classification/psced/level
+          code: C201303
+          display: College Graduate
     extension:
       - url: >-
           http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
@@ -243,7 +248,12 @@ item:
       - text: Occupation
         type: choice
         linkId: occupation-classification
-        answerValueSet: https://fhir.doh.gov.ph/phcore/ValueSet/occupational-classifications
+        # answerValueSet: https://fhir.doh.gov.ph/phcore/ValueSet/occupational-classifications
+        answerOption:
+          - valueCoding:
+              system: https://psa.gov.ph/classification/psoc/unit
+              code: "211101"
+              display: Medical Doctor
         extension:
           - url: >-
               http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
@@ -339,7 +349,12 @@ item:
       - text: Region
         type: choice
         linkId: address-region
-        answerValueSet: https://fhir.doh.gov.ph/phcore/ValueSet/regions
+        # answerValueSet: https://fhir.doh.gov.ph/phcore/ValueSet/regions
+        answerOption:
+          - valueCoding:
+              system: https://psa.gov.ph/classification/psgc
+              code: "0102800000"
+              display: Ilocos Norte
         extension:
           - url: >-
               http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
@@ -349,7 +364,12 @@ item:
       - text: Province
         type: choice
         linkId: address-province
-        answerValueSet: https://fhir.doh.gov.ph/phcore/ValueSet/provinces
+        # answerValueSet: https://fhir.doh.gov.ph/phcore/ValueSet/provinces
+        answerOption:
+          - valueCoding:
+              system: https://psa.gov.ph/classification/psgc
+              code: "1705100000"
+              display: Occidental Mindoro
         extension:
           - url: >-
               http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
@@ -359,7 +379,12 @@ item:
       - text: City Municipality
         type: choice
         linkId: address-city-municipality
-        answerValueSet: https://fhir.doh.gov.ph/phcore/ValueSet/cities
+        # answerValueSet: https://fhir.doh.gov.ph/phcore/ValueSet/cities
+        answerOption:
+          - valueCoding:
+              system: https://psa.gov.ph/classification/psgc
+              code: "1380100000"
+              display: City of Caloocan
         extension:
           - url: >-
               http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
@@ -369,7 +394,12 @@ item:
       - text: Barangay
         type: choice
         linkId: address-barangay
-        answerValueSet: https://fhir.doh.gov.ph/phcore/ValueSet/barangays
+        # answerValueSet: https://fhir.doh.gov.ph/phcore/ValueSet/barangays
+        answerOption:
+          - valueCoding:
+              system: https://psa.gov.ph/classification/psgc
+              code: "1380100001"
+              display: Barangay 1
         extension:
           - url: >-
               http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
