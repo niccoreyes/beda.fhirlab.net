@@ -172,6 +172,8 @@ item:
           expression: '%Procedure.outcome.coding.first()'
 resourceType: Questionnaire
 title: Procedure create PH
+subjectType:
+  - Patient
 extension:
   - url: https://emr-core.beda.software/StructureDefinition/questionnaire-mapper
     valueReference:
