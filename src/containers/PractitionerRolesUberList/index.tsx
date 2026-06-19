@@ -1,18 +1,34 @@
 import { PlusOutlined } from '@ant-design/icons';
 import { t, Trans } from '@lingui/macro';
-import { Practitioner, PractitionerRole } from 'fhir/r4b';
+import { Bundle, Practitioner, PractitionerRole } from 'fhir/r4b';
 
 import { questionnaireAction, ResourceListPage } from '@beda.software/emr/components';
 import { SearchBarColumnType } from '@beda.software/emr/dist/components/SearchBar/types';
 
-function practitionerLaunchContext(resource: PractitionerRole) {
+function practitionerFromBundle(bundle: Bundle, practitionerId?: string) {
+    if (!practitionerId) {
+        return undefined;
+    }
+
+    return bundle.entry
+        ?.map((entry) => entry.resource)
+        .find(
+            (resource): resource is Practitioner =>
+                resource?.resourceType === 'Practitioner' && resource.id === practitionerId,
+        );
+}
+
+function practitionerLaunchContext(resource: PractitionerRole, bundle?: Bundle) {
     const practitionerId = resource.practitioner?.reference?.replace('Practitioner/', '');
+    const practitioner =
+        practitionerFromBundle(bundle ?? { resourceType: 'Bundle', type: 'searchset' }, practitionerId) ??
+        (practitionerId
+            ? ({ resourceType: 'Practitioner', id: practitionerId } as Practitioner)
+            : ({ resourceType: 'Practitioner' } as Practitioner));
 
     return [
         { name: 'PractitionerRole', resource },
-        ...(practitionerId
-            ? [{ name: 'Practitioner', resource: { resourceType: 'Practitioner', id: practitionerId } as Practitioner }]
-            : [{ name: 'Practitioner', resource: { resourceType: 'Practitioner' } as Practitioner }]),
+        { name: 'Practitioner', resource: practitioner },
     ];
 }
 
@@ -21,6 +37,7 @@ export function PractitionerRolesUberList() {
         <ResourceListPage<PractitionerRole>
             headerTitle={t`Practitioner roles`}
             resourceType="PractitionerRole"
+            searchParams={{ _include: ['PractitionerRole:practitioner'] }}
             getTableColumns={() => [
                 {
                     title: <Trans>Practitioner</Trans>,
@@ -75,7 +92,7 @@ export function PractitionerRolesUberList() {
                 questionnaireAction('Edit', 'practitionerrole-create-connectathon', {
                     extra: {
                         qrfProps: {
-                            launchContextParameters: practitionerLaunchContext(record.resource),
+                            launchContextParameters: practitionerLaunchContext(record.resource, record.bundle),
                         },
                     },
                 }),
