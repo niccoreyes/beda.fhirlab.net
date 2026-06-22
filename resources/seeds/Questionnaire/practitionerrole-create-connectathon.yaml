@@ -76,8 +76,36 @@ item:
     answerOption:
       - valueCoding:
           system: http://snomed.info/sct
+          code: "394577000"
+          display: Anesthetics
+      - valueCoding:
+          system: http://snomed.info/sct
+          code: "394579002"
+          display: Cardiology
+      - valueCoding:
+          system: http://snomed.info/sct
+          code: "394582007"
+          display: Dermatology
+      - valueCoding:
+          system: http://snomed.info/sct
           code: "394583002"
           display: Endocrinology
+      - valueCoding:
+          system: http://snomed.info/sct
+          code: "419772000"
+          display: Family practice
+      - valueCoding:
+          system: http://snomed.info/sct
+          code: "419192003"
+          display: Internal medicine
+      - valueCoding:
+          system: http://snomed.info/sct
+          code: "394585009"
+          display: Obstetrics and gynecology
+      - valueCoding:
+          system: http://snomed.info/sct
+          code: "394537008"
+          display: Pediatrics
     initialExpression:
       language: text/fhirpath
       expression: "%PractitionerRole.specialty.coding"
