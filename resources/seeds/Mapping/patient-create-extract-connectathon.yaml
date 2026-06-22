@@ -41,42 +41,45 @@ body:
             - given:
                 - "{{ %firstName }}"
               family: "{{ %lastName }}"
-          maritalStatus:
-            "{% if %maritalStatus.exists() %}":
-              coding:
-                - "{{ %maritalStatus }}"
-              text: "{{ %maritalStatus.display }}"
-          gender:
-            "{% if %gender.exists() %}": "{{ %gender.code }}"
-          birthDate:
-            "{% if %birthDate.exists() %}": "{{ %birthDate }}"
-          identifier:
-            "{% if %philhealthId.exists() %}":
-              - system: "urn://example.com/ph-core/fhir/NamingSystem/philhealth-id-ns"
-                value: "{{ %philhealthId }}"
-          address:
-            "{% if %addressLine.exists() or %addressRegion.exists() or %addressProvince.exists() or %addressCityMunicipality.exists() or %addressCity.exists() or %addressDistrict.exists() or %addressPostalCode.exists() or %addressCountry.exists() %}":
-              - line:
-                  "{% if %addressLine.exists() %}":
-                    - "{{ %addressLine }}"
-                extension:
-                  - "{% if %addressRegion.exists() %}":
-                      url: "urn://example.com/ph-core/fhir/StructureDefinition/region"
-                      valueCoding: "{{ %addressRegion }}"
-                  - "{% if %addressProvince.exists() %}":
-                      url: "urn://example.com/ph-core/fhir/StructureDefinition/province"
-                      valueCoding: "{{ %addressProvince }}"
-                  - "{% if %addressCityMunicipality.exists() %}":
-                      url: "urn://example.com/ph-core/fhir/StructureDefinition/city-municipality"
-                      valueCoding: "{{ %addressCityMunicipality }}"
-                city:
-                  "{% if %addressCity.exists() %}": "{{ %addressCity }}"
-                district:
-                  "{% if %addressDistrict.exists() %}": "{{ %addressDistrict }}"
-                postalCode:
-                  "{% if %addressPostalCode.exists() %}": "{{ %addressPostalCode }}"
-                country:
-                  "{% if %addressCountry.exists() %}": "{{ %addressCountry.code }}"
+          "{% merge %}":
+            - "{% if %maritalStatus.exists() %}":
+                maritalStatus:
+                  coding:
+                  - "{{ %maritalStatus }}"
+                  text: "{{ %maritalStatus.display }}"
+            - "{% if %gender.exists() %}":
+                gender: "{{ %gender.code }}"
+            - "{% if %birthDate.exists() %}":
+                birthDate: "{{ %birthDate }}"
+            - "{% if %philhealthId.exists() %}":
+                identifier:
+                  - system: "urn://example.com/ph-core/fhir/NamingSystem/philhealth-id-ns"
+                    value: "{{ %philhealthId }}"
+            - "{% if %addressLine.exists() or %addressRegion.exists() or %addressProvince.exists() or %addressCityMunicipality.exists() or %addressCity.exists() or %addressDistrict.exists() or %addressPostalCode.exists() or %addressCountry.exists() %}":
+                address:
+                  - "{% merge %}":
+                      - "{% if %addressLine.exists() %}":
+                          line:
+                            - "{{ %addressLine }}"
+                      - "{% if %addressRegion.exists() or %addressProvince.exists() or %addressCityMunicipality.exists() %}":
+                          extension:
+                            - "{% if %addressRegion.exists() %}":
+                                url: "urn://example.com/ph-core/fhir/StructureDefinition/region"
+                                valueCoding: "{{ %addressRegion }}"
+                            - "{% if %addressProvince.exists() %}":
+                                url: "urn://example.com/ph-core/fhir/StructureDefinition/province"
+                                valueCoding: "{{ %addressProvince }}"
+                            - "{% if %addressCityMunicipality.exists() %}":
+                                url: "urn://example.com/ph-core/fhir/StructureDefinition/city-municipality"
+                                valueCoding: "{{ %addressCityMunicipality }}"
+                      - "{% if %addressCity.exists() %}":
+                          city: "{{ %addressCity }}"
+                      - "{% if %addressDistrict.exists() %}":
+                          district: "{{ %addressDistrict }}"
+                      - "{% if %addressPostalCode.exists() %}":
+                          postalCode: "{{ %addressPostalCode }}"
+                      - "{% if %addressCountry.exists() %}":
+                          country: "{{ %addressCountry.code }}"
           extension:
             - "{% for nationalityItem in %nationalityGroup %}":
                 - "{% assign %}":
@@ -90,12 +93,13 @@ body:
                           coding:
                             - "{{ %nationality }}"
                     - "{% if %nationalityStart.exists() or %nationalityEnd.exists() %}":
-                        url: period
                         valuePeriod:
-                          start:
-                            "{% if %nationalityStart.exists() %}": "{{ %nationalityStart }}"
-                          end:
-                            "{% if %nationalityEnd.exists() %}": "{{ %nationalityEnd }}"
+                          "{% merge %}":
+                            - "{% if %nationalityStart.exists() %}":
+                                start: "{{ %nationalityStart}}"
+                            - "{% if %nationalityEnd.exists() %}":
+                                end: "{{ %nationalityEnd }}"
+                        url: period
                   url: "http://hl7.org/fhir/StructureDefinition/patient-nationality"
             - "{% if %religion.exists() %}":
                 url: "http://hl7.org/fhir/StructureDefinition/patient-religion"
