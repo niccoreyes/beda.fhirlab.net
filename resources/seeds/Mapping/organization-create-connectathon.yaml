@@ -168,7 +168,7 @@ body:
                                   - "{% if %contactAddressPostalCode.exists() %}":
                                       postalCode: "{{ %contactAddressPostalCode }}"
                                   - "{% if %contactAddressCountry.exists() %}":
-                                      country: "{{ iif(%contactAddressCountry.code.exists(), %contactAddressCountry.code, %contactAddressCountry) }}"
+                                      country: "{{ %contactAddressCountry.code }}"
   resourceType: Bundle
   type: transaction
   entry:

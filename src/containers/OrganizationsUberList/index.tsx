@@ -4,8 +4,13 @@ import { Organization } from 'fhir/r4b';
 
 import { questionnaireAction, ResourceListPage } from '@beda.software/emr/components';
 import { SearchBarColumnType } from '@beda.software/emr/dist/components/SearchBar/types';
+import { compileAsFirst } from '@beda.software/emr/utils';
 
 const NHFR_SYSTEM = 'https://fhir.doh.gov.ph/phcore/Identifier/doh-nhfr-code';
+
+const getNhfrCode = compileAsFirst<Organization, string>(
+    `Organization.identifier.where(system='${NHFR_SYSTEM}').value`,
+);
 
 export function OrganizationsUberList() {
     return (
@@ -24,8 +29,7 @@ export function OrganizationsUberList() {
                     title: <Trans>DOH NHFR Code</Trans>,
                     dataIndex: 'identifier',
                     key: 'identifier',
-                    render: (_text, { resource }) =>
-                        resource.identifier?.find(({ system }) => system === NHFR_SYSTEM)?.value,
+                    render: (_text, { resource }) => getNhfrCode(resource),
                     width: '25%',
                 },
                 {
