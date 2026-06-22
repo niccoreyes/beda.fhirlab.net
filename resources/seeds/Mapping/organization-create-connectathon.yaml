@@ -30,20 +30,16 @@ body:
       "{% if %addAddress %}":
         address:
           - use: "{{ %addressUse.code }}"
-            "{% if %addressRegion.exists() or %province.exists() or %cityMunicipality.exists() or %barangay.exists() %}":
-              extension:
-                - "{% if %addressRegion.exists() %}":
-                    - url: urn://example.com/ph-core/fhir/StructureDefinition/region
-                      valueCoding: "{{ %addressRegion }}"
-
-                - "{% if %province.exists() %}":
-                    - url: urn://example.com/ph-core/fhir/StructureDefinition/province
-                      valueCoding: "{{ %province }}"
-
-                - "{% if %cityMunicipality.exists() %}":
-                    - url: urn://example.com/ph-core/fhir/StructureDefinition/city-municipality
-                      valueCoding: "{{ %cityMunicipality }}"
-
-                - "{% if %barangay.exists() %}":
-                    - url: urn://example.com/ph-core/fhir/StructureDefinition/barangay
-                      valueCoding: "{{ %barangay }}"
+            extension:
+              - "{% if %addressRegion.exists() %}":
+                  url: urn://example.com/ph-core/fhir/StructureDefinition/region
+                  valueCoding: "{{ %addressRegion }}"
+              - "{% if %province.exists() %}":
+                  url: urn://example.com/ph-core/fhir/StructureDefinition/province
+                  valueCoding: "{{ %province }}"
+              - "{% if %cityMunicipality.exists() %}":
+                  url: urn://example.com/ph-core/fhir/StructureDefinition/city-municipality
+                  valueCoding: "{{ %cityMunicipality }}"
+              - "{% if %barangay.exists() %}":
+                  url: urn://example.com/ph-core/fhir/StructureDefinition/barangay
+                  valueCoding: "{{ %barangay }}"
