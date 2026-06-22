@@ -1,82 +1,71 @@
+resourceType: Questionnaire
+id: encounter-create-connectathon
+name: encounter-create-connectathon
+title: Encounter create PH
+status: active
+url: encounter-create
+subjectType:
+  - Patient
 meta:
   profile:
     - https://emr-core.beda.software/StructureDefinition/fhir-emr-questionnaire
-name: encounter-create-connectathon
+mapping:
+  - reference: Mapping/encounter-create-extract-connectathon
+launchContext:
+  - name:
+      code: Encounter
+    type:
+      - Encounter
 item:
-  - text: EncounterId
+  - linkId: encounterId
+    text: EncounterId
     type: string
-    linkId: encounterId
-    extension:
-      - url: http://hl7.org/fhir/StructureDefinition/questionnaire-hidden
-        valueBoolean: true
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Encounter.id'
-  - text: Encounter identifier
+    hidden: true
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Encounter.id"
+
+  - linkId: encounter-identifier
+    text: Encounter identifier
     type: string
-    linkId: encounter-identifier
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Encounter.identifier.value.first()'
-  - text: Patient
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Encounter.identifier.where(system='https://fhir.doh.gov.ph/phcore/Identifier/encounter-id').value.first()"
+
+  - linkId: patient
+    text: Patient
     type: reference
-    linkId: patient
     required: true
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn
-        extension:
-          - url: path
-            valueString: >-
-              name.given.first() + ' ' + name.family.first()
-          - url: forDisplay
-            valueBoolean: true
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression
-        valueExpression:
-          language: application/x-fhir-query
-          expression: Patient
-      - url: >-
-          http://hl7.org/fhir/StructureDefinition/questionnaire-referenceResource
-        valueCode: Patient
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Encounter.subject'
-  - text: Practitioner
+    referenceResource:
+      - Patient
+    answerExpression:
+      language: application/x-fhir-query
+      expression: Patient
+    choiceColumn:
+      - forDisplay: true
+        path: name.given.first() + ' ' + name.family.first()
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Encounter.subject"
+
+  - linkId: practitioner
+    text: Practitioner
     type: reference
-    linkId: practitioner
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn
-        extension:
-          - url: path
-            valueString: >-
-              name.given.first() + ' ' + name.family
-          - url: forDisplay
-            valueBoolean: true
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression
-        valueExpression:
-          language: application/x-fhir-query
-          expression: Practitioner
-      - url: >-
-          http://hl7.org/fhir/StructureDefinition/questionnaire-referenceResource
-        valueCode: Practitioner
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Encounter.participant.individual.first()'
-  - text: Participant role
+    referenceResource:
+      - Practitioner
+    answerExpression:
+      language: application/x-fhir-query
+      expression: Practitioner
+    choiceColumn:
+      - forDisplay: true
+        path: name.given.first() + ' ' + name.family
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Encounter.participant.individual.first()"
+
+  - linkId: participant-type
+    text: Participant role
     type: choice
-    linkId: participant-type
     answerOption:
       - valueCoding:
           system: http://terminology.hl7.org/CodeSystem/v3-ParticipationType
@@ -114,40 +103,28 @@ item:
           system: http://terminology.hl7.org/CodeSystem/participant-type
           code: emergency
           display: Emergency
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: >-
-            %Questionnaire.repeat(item).where(linkId='participant-type').answerOption.valueCoding.where(code=%Encounter.participant.type.coding.first().code).first()
-  - text: Organization
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Questionnaire.repeat(item).where(linkId='participant-type').answerOption.valueCoding.where(code=%Encounter.participant.type.coding.first().code).first()"
+
+  - linkId: organization
+    text: Organization
     type: reference
-    linkId: organization
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn
-        extension:
-          - url: path
-            valueString: name
-          - url: forDisplay
-            valueBoolean: true
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression
-        valueExpression:
-          language: application/x-fhir-query
-          expression: Organization
-      - url: >-
-          http://hl7.org/fhir/StructureDefinition/questionnaire-referenceResource
-        valueCode: Organization
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Encounter.serviceProvider'
-  - text: Status
+    referenceResource:
+      - Organization
+    answerExpression:
+      language: application/x-fhir-query
+      expression: Organization
+    choiceColumn:
+      - forDisplay: true
+        path: name
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Encounter.serviceProvider"
+
+  - linkId: status
+    text: Status
     type: choice
-    linkId: status
     required: true
     answerOption:
       - valueCoding:
@@ -186,16 +163,13 @@ item:
           system: http://hl7.org/fhir/encounter-status
           code: unknown
           display: Unknown
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: >-
-            %Questionnaire.repeat(item).where(linkId='status').answerOption.valueCoding.where(code=%Encounter.status).first()
-  - text: Class
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Questionnaire.repeat(item).where(linkId='status').answerOption.valueCoding.where(code=%Encounter.status).first()"
+
+  - linkId: class
+    text: Class
     type: choice
-    linkId: class
     required: true
     answerOption:
       - valueCoding:
@@ -242,37 +216,30 @@ item:
           system: http://terminology.hl7.org/CodeSystem/v3-ActCode
           code: VR
           display: virtual
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: >-
-            %Questionnaire.repeat(item).where(linkId='class').answerOption.valueCoding.where(code=%Encounter.class.code).first()
-  - text: Encounter type
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Questionnaire.repeat(item).where(linkId='class').answerOption.valueCoding.where(code=%Encounter.class.code).first()"
+
+  - linkId: encounter-type
+    text: Encounter type
     type: choice
-    linkId: encounter-type
     repeats: true
     answerValueSet: http://hl7.org/fhir/ValueSet/encounter-type
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Encounter.type.coding'
-  - text: Service type
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Encounter.type.coding"
+
+  - linkId: service-type
+    text: Service type
     type: choice
-    linkId: service-type
     answerValueSet: http://hl7.org/fhir/ValueSet/service-type
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Encounter.serviceType.coding.first()'
-  - text: Priority
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Encounter.serviceType.coding.first()"
+
+  - linkId: priority
+    text: Priority
     type: choice
-    linkId: priority
     answerOption:
       - valueCoding:
           system: http://terminology.hl7.org/CodeSystem/v3-ActPriority
@@ -334,57 +301,29 @@ item:
           system: http://terminology.hl7.org/CodeSystem/v3-ActPriority
           code: UD
           display: use as directed
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: >-
-            %Questionnaire.repeat(item).where(linkId='priority').answerOption.valueCoding.where(code=%Encounter.priority.coding.first().code).first()
-  - text: Reason for visit
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Questionnaire.repeat(item).where(linkId='priority').answerOption.valueCoding.where(code=%Encounter.priority.coding.first().code).first()"
+
+  - linkId: reason-code
+    text: Reason for visit
     type: choice
-    linkId: reason-code
     repeats: true
     answerValueSet: http://hl7.org/fhir/ValueSet/encounter-reason
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Encounter.reasonCode.coding'
-  - text: Start
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Encounter.reasonCode.coding"
+
+  - linkId: period-start
+    text: Start
     type: dateTime
-    linkId: period-start
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: iif(%Encounter.period.start.exists(), %Encounter.period.start, now())
-  - text: End
+    initialExpression:
+      language: text/fhirpath
+      expression: iif(%Encounter.period.start.exists(), %Encounter.period.start, now())
+
+  - linkId: period-end
+    text: End
     type: dateTime
-    linkId: period-end
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Encounter.period.end'
-resourceType: Questionnaire
-title: Encounter create PH
-subjectType:
-  - Patient
-extension:
-  - url: https://emr-core.beda.software/StructureDefinition/questionnaire-mapper
-    valueReference:
-      reference: Mapping/encounter-create-extract-connectathon
-  - url: http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-launchContext
-    extension:
-      - url: name
-        valueCoding:
-          code: Encounter
-      - url: type
-        valueCode: Encounter
-status: active
-id: encounter-create-connectathon
-url: encounter-create
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Encounter.period.end"

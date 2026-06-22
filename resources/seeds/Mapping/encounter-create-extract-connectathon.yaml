@@ -1,6 +1,6 @@
 id: encounter-create-extract-connectathon
-type: FHIRPath
 resourceType: Mapping
+type: FHIRPath
 body:
   "{% assign %}":
     - id: "{{ %QuestionnaireResponse.answers('encounterId') }}"
@@ -12,13 +12,13 @@ body:
     - periodStart: "{{ %QuestionnaireResponse.answers('period-start') }}"
     - periodEnd: "{{ %QuestionnaireResponse.answers('period-end') }}"
     - status: "{{ %QuestionnaireResponse.answers('status') }}"
-    - statusCode: "{{ %status.coding.code }}"
+    - statusCode: "{{ %status.code }}"
     - encounterClass: "{{ %QuestionnaireResponse.answers('class') }}"
     - classDisplay: "{{ %encounterClass.display }}"
-    - encounterTypes: "{[ %QuestionnaireResponse.repeat(item).where(linkId='encounter-type').answer.valueCoding ]}"
+    - encounterTypes: "{[ %QuestionnaireResponse.item.where(linkId='encounter-type').answer.valueCoding ]}"
     - serviceType: "{{ %QuestionnaireResponse.answers('service-type') }}"
     - priority: "{{ %QuestionnaireResponse.answers('priority') }}"
-    - reasonCodes: "{[ %QuestionnaireResponse.repeat(item).where(linkId='reason-code').answer.valueCoding ]}"
+    - reasonCodes: "{[ %QuestionnaireResponse.item.where(linkId='reason-code').answer.valueCoding ]}"
     - narrativeDiv: "<div xmlns='http://www.w3.org/1999/xhtml'>PH Core Encounter — status {{ %statusCode }}, class {{ %classDisplay }}.</div>"
     - addEncounter:
         request:
@@ -33,61 +33,49 @@ body:
           meta:
             profile:
               - https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-encounter
-          id:
-            "{% if %id.exists() %}": "{{ %id }}"
+          id: "{{ %id }}"
           status: "{{ %statusCode }}"
           class: "{{ %encounterClass }}"
           text:
             status: generated
             div: "{{ %narrativeDiv }}"
-          "{% merge %}":
+          identifier:
             - "{% if %encounterIdentifier.exists() %}":
-                identifier:
-                  - system: https://fhir.doh.gov.ph/phcore/Identifier/encounter-id
-                    value: "{{ %encounterIdentifier }}"
-            - "{% if %patientRef.exists() %}":
-                subject: "{{ %patientRef }}"
+                system: https://fhir.doh.gov.ph/phcore/Identifier/encounter-id
+                value: "{{ %encounterIdentifier }}"
+          subject: "{{ %patientRef }}"
+          participant:
             - "{% if %practitionerRef.exists() or %participantType.exists() %}":
-                participant:
-                  - "{% merge %}":
-                      - "{% if %practitionerRef.exists() %}":
-                          individual: "{{ %practitionerRef }}"
-                      - "{% if %participantType.exists() %}":
-                          type:
-                            - coding:
-                                - "{{ %participantType }}"
-                              text: "{{ %participantType.display }}"
-            - "{% if %organizationRef.exists() %}":
-                serviceProvider: "{{ %organizationRef }}"
-            - "{% if %encounterTypes.exists() %}":
+                individual: "{{ %practitionerRef }}"
                 type:
-                  - "{% for encounterType in %encounterTypes %}":
-                      coding:
-                        - "{{ %encounterType }}"
-                      text: "{{ %encounterType.display }}"
-            - "{% if %serviceType.exists() %}":
-                serviceType:
-                  coding:
-                    - "{{ %serviceType }}"
-                  text: "{{ %serviceType.display }}"
-            - "{% if %priority.exists() %}":
-                priority:
-                  coding:
-                    - "{{ %priority }}"
-                  text: "{{ %priority.display }}"
-            - "{% if %reasonCodes.exists() %}":
-                reasonCode:
-                  - "{% for reasonCode in %reasonCodes %}":
-                      coding:
-                        - "{{ %reasonCode }}"
-                      text: "{{ %reasonCode.display }}"
-            - "{% if %periodStart.exists() or %periodEnd.exists() %}":
-                period:
-                  "{% merge %}":
-                    - "{% if %periodStart.exists() %}":
-                        start: "{{ %periodStart }}"
-                    - "{% if %periodEnd.exists() %}":
-                        end: "{{ %periodEnd }}"
+                  - coding:
+                      - "{{ %participantType }}"
+                    text: "{{ %participantType.display }}"
+          serviceProvider: "{{ %organizationRef }}"
+          type:
+            - "{% for encounterType in %encounterTypes %}":
+                coding:
+                  - "{{ %encounterType }}"
+                text: "{{ %encounterType.display }}"
+          serviceType:
+            "{% if %serviceType.exists() %}":
+              coding:
+                - "{{ %serviceType }}"
+              text: "{{ %serviceType.display }}"
+          priority:
+            "{% if %priority.exists() %}":
+              coding:
+                - "{{ %priority }}"
+              text: "{{ %priority.display }}"
+          reasonCode:
+            - "{% for reasonCode in %reasonCodes %}":
+                coding:
+                  - "{{ %reasonCode }}"
+                text: "{{ %reasonCode.display }}"
+          period:
+            "{% if %periodStart.exists() or %periodEnd.exists() %}":
+              start: "{{ %periodStart }}"
+              end: "{{ %periodEnd }}"
   resourceType: Bundle
   type: transaction
   entry:
