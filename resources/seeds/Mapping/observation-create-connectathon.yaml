@@ -9,7 +9,7 @@ body:
     - encounterRef: "{{ %QuestionnaireResponse.answers('encounter') }}"
     - performerRef: "{{ %QuestionnaireResponse.answers('performer') }}"
     - status: "{{ %QuestionnaireResponse.answers('status') }}"
-    - statusCode: "{{ %status.coding.code }}"
+    - statusCode: "{{ %status.code }}"
     - effectiveDateTime: "{{ %QuestionnaireResponse.answers('effective-date-time') }}"
     - temperature: "{{ %QuestionnaireResponse.answers('temperature') }}"
     - bloodPressureSystolic: "{{ %QuestionnaireResponse.answers('blood-pressure-systolic') }}"
@@ -59,12 +59,11 @@ body:
             unit: °C
             system: http://unitsofmeasure.org
             code: Cel
-          "{% merge %}":
-            - "{% if %encounterRef.exists() %}":
-                encounter: "{{ %encounterRef }}"
+          encounter: "{{ %encounterRef }}"
+          performer:
             - "{% if %performerRef.exists() %}":
-                performer:
-                  - "{{ %performerRef }}"
+                reference: "{{ %performerRef.reference }}"
+                display: "{{ %performerRef.display }}"
 
     - "{% if %bloodPressureSystolic.exists() and %bloodPressureDiastolic.exists() %}":
         request:
@@ -95,7 +94,7 @@ body:
           effectiveDateTime: "{{ %effectiveDateTime }}"
           text:
             status: generated
-            div: "<div xmlns='http://www.w3.org/1999/xhtml'>PH Core Observation — blood pressure {{ %bloodPressureSystolic.value }}/{{ %bloodPressureDiastolic.value }} mmHg for {{ %patientLabel }}{{ iif(%bloodPressureArm.display.exists(), ' (' + %bloodPressureArm.display + ')', '') }}{{ iif(%bloodPressurePosition.display.exists(), ', ' + %bloodPressurePosition.display, '') }}.</div>"
+            div: "<div xmlns='http://www.w3.org/1999/xhtml'>PH Core Observation — blood pressure {{ %bloodPressureSystolic.value }}/{{ %bloodPressureDiastolic.value }} mmHg for {{ %patientLabel }}.</div>"
           component:
             - code:
                 coding:
@@ -117,21 +116,20 @@ body:
                 unit: mmHg
                 system: http://unitsofmeasure.org
                 code: mm[Hg]
-          "{% merge %}":
-            - "{% if %encounterRef.exists() %}":
-                encounter: "{{ %encounterRef }}"
+          encounter: "{{ %encounterRef }}"
+          performer:
             - "{% if %performerRef.exists() %}":
-                performer:
-                  - "{{ %performerRef }}"
-            - "{% if %bloodPressureArm.exists() %}":
-                bodySite:
-                  coding:
-                    - "{{ %bloodPressureArm }}"
-            - "{% if %bloodPressurePosition.exists() %}":
-                method:
-                  coding:
-                    - "{{ %bloodPressurePosition }}"
-                  text: "{{ %bloodPressurePosition.display }}"
+                reference: "{{ %performerRef.reference }}"
+                display: "{{ %performerRef.display }}"
+          bodySite:
+            "{% if %bloodPressureArm.exists() %}":
+              coding:
+                - "{{ %bloodPressureArm }}"
+          method:
+            "{% if %bloodPressurePosition.exists() %}":
+              coding:
+                - "{{ %bloodPressurePosition }}"
+              text: "{{ %bloodPressurePosition.display }}"
 
     - "{% if %pulseRate.exists() %}":
         request:
@@ -165,12 +163,11 @@ body:
             unit: /min
             system: http://unitsofmeasure.org
             code: /min
-          "{% merge %}":
-            - "{% if %encounterRef.exists() %}":
-                encounter: "{{ %encounterRef }}"
+          encounter: "{{ %encounterRef }}"
+          performer:
             - "{% if %performerRef.exists() %}":
-                performer:
-                  - "{{ %performerRef }}"
+                reference: "{{ %performerRef.reference }}"
+                display: "{{ %performerRef.display }}"
 
     - "{% if %respiratoryRate.exists() %}":
         request:
@@ -204,12 +201,11 @@ body:
             unit: /min
             system: http://unitsofmeasure.org
             code: /min
-          "{% merge %}":
-            - "{% if %encounterRef.exists() %}":
-                encounter: "{{ %encounterRef }}"
+          encounter: "{{ %encounterRef }}"
+          performer:
             - "{% if %performerRef.exists() %}":
-                performer:
-                  - "{{ %performerRef }}"
+                reference: "{{ %performerRef.reference }}"
+                display: "{{ %performerRef.display }}"
 
     - "{% if %oxygenSaturation.exists() %}":
         request:
@@ -243,12 +239,11 @@ body:
             unit: '%'
             system: http://unitsofmeasure.org
             code: '%'
-          "{% merge %}":
-            - "{% if %encounterRef.exists() %}":
-                encounter: "{{ %encounterRef }}"
+          encounter: "{{ %encounterRef }}"
+          performer:
             - "{% if %performerRef.exists() %}":
-                performer:
-                  - "{{ %performerRef }}"
+                reference: "{{ %performerRef.reference }}"
+                display: "{{ %performerRef.display }}"
 
     - "{% if %height.exists() %}":
         request:
@@ -282,12 +277,11 @@ body:
             unit: cm
             code: cm
             system: http://unitsofmeasure.org
-          "{% merge %}":
-            - "{% if %encounterRef.exists() %}":
-                encounter: "{{ %encounterRef }}"
+          encounter: "{{ %encounterRef }}"
+          performer:
             - "{% if %performerRef.exists() %}":
-                performer:
-                  - "{{ %performerRef }}"
+                reference: "{{ %performerRef.reference }}"
+                display: "{{ %performerRef.display }}"
 
     - "{% if %weight.exists() %}":
         request:
@@ -321,12 +315,11 @@ body:
             unit: kg
             system: http://unitsofmeasure.org
             code: kg
-          "{% merge %}":
-            - "{% if %encounterRef.exists() %}":
-                encounter: "{{ %encounterRef }}"
+          encounter: "{{ %encounterRef }}"
+          performer:
             - "{% if %performerRef.exists() %}":
-                performer:
-                  - "{{ %performerRef }}"
+                reference: "{{ %performerRef.reference }}"
+                display: "{{ %performerRef.display }}"
 
     - "{% if %bmi.exists() %}":
         request:
@@ -360,9 +353,8 @@ body:
             unit: kg/m2
             system: http://unitsofmeasure.org
             code: kg/m2
-          "{% merge %}":
-            - "{% if %encounterRef.exists() %}":
-                encounter: "{{ %encounterRef }}"
+          encounter: "{{ %encounterRef }}"
+          performer:
             - "{% if %performerRef.exists() %}":
-                performer:
-                  - "{{ %performerRef }}"
+                reference: "{{ %performerRef.reference }}"
+                display: "{{ %performerRef.display }}"

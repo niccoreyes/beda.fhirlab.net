@@ -1,77 +1,65 @@
+resourceType: Questionnaire
+id: observation-create-connectathon
+name: observation-create-connectathon
+title: Observation create PH
+status: active
+url: observation-create
+subjectType:
+  - Patient
 meta:
   profile:
     - https://emr-core.beda.software/StructureDefinition/fhir-emr-questionnaire
-name: observation-create-connectathon
+mapping:
+  - reference: Mapping/observation-create-connectathon
+launchContext:
+  - name:
+      code: Patient
+    type:
+      - Patient
 item:
-  - text: Patient
+  - linkId: patient
+    text: Patient
     type: reference
-    linkId: patient
     required: true
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn
-        extension:
-          - url: path
-            valueString: >-
-              name.given.first() + ' ' + name.family.first()
-          - url: forDisplay
-            valueBoolean: true
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression
-        valueExpression:
-          language: application/x-fhir-query
-          expression: Patient
-      - url: >-
-          http://hl7.org/fhir/StructureDefinition/questionnaire-referenceResource
-        valueCode: Patient
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Patient'
-  - text: Encounter
+    referenceResource:
+      - Patient
+    answerExpression:
+      language: application/x-fhir-query
+      expression: Patient
+    choiceColumn:
+      - forDisplay: true
+        path: name.given.first() + ' ' + name.family.first()
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Patient"
+
+  - linkId: encounter
+    text: Encounter
     type: reference
-    linkId: encounter
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn
-        extension:
-          - url: path
-            valueString: >-
-              class.display + ' - ' + period.start.toString()
-          - url: forDisplay
-            valueBoolean: true
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression
-        valueExpression:
-          language: application/x-fhir-query
-          expression: Encounter?patient={{%QuestionnaireResponse.repeat(item).where(linkId='patient').answer.valueReference.reference}}
-      - url: >-
-          http://hl7.org/fhir/StructureDefinition/questionnaire-referenceResource
-        valueCode: Encounter
-  - text: Performer
+    referenceResource:
+      - Encounter
+    answerExpression:
+      language: application/x-fhir-query
+      expression: "Encounter?patient={{%QuestionnaireResponse.repeat(item).where(linkId='patient').answer.valueReference.reference}}"
+    choiceColumn:
+      - forDisplay: true
+        path: class.display + ' - ' + period.start.toString()
+
+  - linkId: performer
+    text: Performer
     type: reference
-    linkId: performer
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn
-        extension:
-          - url: path
-            valueString: >-
-              name.given.first() + ' ' + name.family
-          - url: forDisplay
-            valueBoolean: true
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression
-        valueExpression:
-          language: application/x-fhir-query
-          expression: Practitioner
-      - url: >-
-          http://hl7.org/fhir/StructureDefinition/questionnaire-referenceResource
-        valueCode: Practitioner
-  - text: Status
+    referenceResource:
+      - Practitioner
+    answerExpression:
+      language: application/x-fhir-query
+      expression: Practitioner
+    choiceColumn:
+      - forDisplay: true
+        path: name.given.first() + ' ' + name.family
+
+  - linkId: status
+    text: Status
     type: choice
-    linkId: status
     required: true
     answerOption:
       - valueCoding:
@@ -106,118 +94,111 @@ item:
           system: http://hl7.org/fhir/observation-status
           code: unknown
           display: Unknown
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: >-
-            %Questionnaire.repeat(item).where(linkId='status').answerOption.valueCoding.where(code='final').first()
-  - text: Effective date and time
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Questionnaire.repeat(item).where(linkId='status').answerOption.valueCoding.where(code='final').first()"
+
+  - linkId: effective-date-time
+    text: Effective date and time
     type: dateTime
-    linkId: effective-date-time
     required: true
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: now()
-  - text: Height
+    initialExpression:
+      language: text/fhirpath
+      expression: now()
+
+  - linkId: height
+    text: Height
     type: quantity
-    linkId: height
-    extension:
-      - url: http://hl7.org/fhir/StructureDefinition/questionnaire-unit
-        valueCoding:
-          code: cm
-          system: http://unitsofmeasure.org
-          display: cm
-  - text: Weight
+    unitOption:
+      - code: cm
+        system: http://unitsofmeasure.org
+        display: cm
+
+  - linkId: weight
+    text: Weight
     type: quantity
-    linkId: weight
-    extension:
-      - url: http://hl7.org/fhir/StructureDefinition/questionnaire-unit
-        valueCoding:
-          code: kg
-          system: http://unitsofmeasure.org
-          display: kg
-  - text: BMI
+    unitOption:
+      - code: kg
+        system: http://unitsofmeasure.org
+        display: kg
+
+  - linkId: bmi
+    text: BMI
     type: decimal
-    linkId: bmi
     readOnly: true
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-calculatedExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: >-
-            (%QuestionnaireResponse.item.where(linkId='weight').answer.valueQuantity.value
-            /
-            ((%QuestionnaireResponse.item.where(linkId='height').answer.valueQuantity.value
-            / 100) *
-            (%QuestionnaireResponse.item.where(linkId='height').answer.valueQuantity.value
-            / 100))).round(2)
-  - text: Temperature
+    unit:
+      code: kg/m2
+      system: http://unitsofmeasure.org
+      display: kg/m2
+    calculatedExpression:
+      language: text/fhirpath
+      expression: >-
+        (%QuestionnaireResponse.item.where(linkId='weight').answer.valueQuantity.value
+        /
+        ((%QuestionnaireResponse.item.where(linkId='height').answer.valueQuantity.value
+        / 100) *
+        (%QuestionnaireResponse.item.where(linkId='height').answer.valueQuantity.value
+        / 100))).round(2)
+
+  - linkId: temperature
+    text: Temperature
     type: quantity
-    linkId: temperature
-    extension:
-      - url: http://hl7.org/fhir/StructureDefinition/questionnaire-unit
-        valueCoding:
-          code: Cel
-          system: http://unitsofmeasure.org
-          display: °C
-  - text: Oxygen saturation
+    unitOption:
+      - code: Cel
+        system: http://unitsofmeasure.org
+        display: °C
+
+  - linkId: oxygen-saturation
+    text: Oxygen saturation
     type: quantity
-    linkId: oxygen-saturation
-    extension:
-      - url: http://hl7.org/fhir/StructureDefinition/questionnaire-unit
-        valueCoding:
-          code: '%'
-          system: http://unitsofmeasure.org
-          display: '%'
-  - text: Pulse rate
+    unitOption:
+      - code: '%'
+        system: http://unitsofmeasure.org
+        display: '%'
+
+  - linkId: pulse-rate
+    text: Pulse rate
     type: quantity
-    linkId: pulse-rate
-    extension:
-      - url: http://hl7.org/fhir/StructureDefinition/questionnaire-unit
-        valueCoding:
-          code: /min
-          system: http://unitsofmeasure.org
-          display: /min
-  - text: Respiratory Rate
+    unitOption:
+      - code: /min
+        system: http://unitsofmeasure.org
+        display: /min
+
+  - linkId: respiratory-rate
+    text: Respiratory Rate
     type: quantity
-    linkId: respiratory-rate
-    extension:
-      - url: http://hl7.org/fhir/StructureDefinition/questionnaire-unit
-        valueCoding:
-          code: /min
-          system: http://unitsofmeasure.org
-          display: /min
-  - item:
-      - item:
-          - text: BP systolic
-            type: quantity
-            linkId: blood-pressure-systolic
-            extension:
-              - url: http://hl7.org/fhir/StructureDefinition/questionnaire-unit
-                valueCoding:
-                  code: mm[Hg]
-                  system: http://unitsofmeasure.org
-                  display: mmHg
-          - text: BP diastolic
-            type: quantity
-            linkId: blood-pressure-diastolic
-            extension:
-              - url: http://hl7.org/fhir/StructureDefinition/questionnaire-unit
-                valueCoding:
-                  code: mm[Hg]
-                  system: http://unitsofmeasure.org
-                  display: mmHg
+    unitOption:
+      - code: /min
+        system: http://unitsofmeasure.org
+        display: /min
+
+  - linkId: blood-pressure
+    text: Blood Pressure
+    type: group
+    item:
+      - linkId: blood-pressure-systolic-diastolic
         type: group
-        linkId: blood-pressure-systolic-diastolic
-      - text: Position
+        item:
+          - linkId: blood-pressure-systolic
+            text: BP systolic
+            type: quantity
+            unitOption:
+              - code: mm[Hg]
+                system: http://unitsofmeasure.org
+                display: mmHg
+          - linkId: blood-pressure-diastolic
+            text: BP diastolic
+            type: quantity
+            unitOption:
+              - code: mm[Hg]
+                system: http://unitsofmeasure.org
+                display: mmHg
+      - linkId: blood-pressure-position
+        text: Position
         type: choice
-        linkId: blood-pressure-position
+        itemControl:
+          coding:
+            - code: inline-choice
         answerOption:
           - valueCoding:
               system: http://snomed.info/sct
@@ -231,14 +212,12 @@ item:
               system: http://snomed.info/sct
               code: '102541000'
               display: Lying position
-        extension:
-          - url: http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl
-            valueCodeableConcept:
-              coding:
-                - code: inline-choice
-      - text: Arm
+      - linkId: blood-pressure-arm
+        text: Arm
         type: choice
-        linkId: blood-pressure-arm
+        itemControl:
+          coding:
+            - code: inline-choice
         answerOption:
           - valueCoding:
               system: http://snomed.info/sct
@@ -248,29 +227,3 @@ item:
               system: http://snomed.info/sct
               code: '368209003'
               display: Right arm
-        extension:
-          - url: http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl
-            valueCodeableConcept:
-              coding:
-                - code: inline-choice
-    text: Blood Pressure
-    type: group
-    linkId: blood-pressure
-resourceType: Questionnaire
-title: Observation create PH
-subjectType:
-  - Patient
-extension:
-  - url: https://emr-core.beda.software/StructureDefinition/questionnaire-mapper
-    valueReference:
-      reference: Mapping/observation-create-connectathon
-  - url: http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-launchContext
-    extension:
-      - url: name
-        valueCoding:
-          code: Patient
-      - url: type
-        valueCode: Patient
-status: active
-id: observation-create-connectathon
-url: observation-create
