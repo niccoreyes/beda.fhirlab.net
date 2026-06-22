@@ -1,38 +1,20 @@
 import { PlusOutlined } from '@ant-design/icons';
 import { t, Trans } from '@lingui/macro';
-import { Procedure, Reference } from 'fhir/r4b';
+import { Procedure } from 'fhir/r4b';
 
 import { questionnaireAction, ResourceListPage } from '@beda.software/emr/components';
 import { SearchBarColumnType } from '@beda.software/emr/dist/components/SearchBar/types';
 import { compileAsFirst, formatHumanDateTime } from '@beda.software/emr/utils';
 
-function getSubjectLabel(subject?: Reference): string | undefined {
-    if (!subject) {
-        return undefined;
-    }
-    if (subject.display) {
-        return subject.display;
-    }
-    if (subject.reference) {
-        return subject.reference;
-    }
-    const aidboxSubject = subject as Reference & { id?: string; resourceType?: string };
-    if (aidboxSubject.id && aidboxSubject.resourceType) {
-        return `${aidboxSubject.resourceType}/${aidboxSubject.id}`;
-    }
-    return undefined;
-}
-
-function getPerformedDateTime(resource: Procedure): string | undefined {
-    return (
-        resource.performedDateTime ??
-        (resource as Procedure & { performed?: { dateTime?: string; Period?: { start?: string } } }).performed?.dateTime ??
-        resource.performedPeriod?.start ??
-        (resource as Procedure & { performed?: { Period?: { start?: string } } }).performed?.Period?.start
-    );
-}
-
-export const getProcedureCode = compileAsFirst<Procedure, string>('Procedure.code.coding.first().display');
+export const getProcedureCode = compileAsFirst<Procedure, string>(
+    'Procedure.code.text | Procedure.code.coding.first().display',
+);
+export const getSubjectLabel = compileAsFirst<Procedure, string>(
+    'Procedure.subject.display | Procedure.subject.reference',
+);
+export const getPerformedDateTime = compileAsFirst<Procedure, string>(
+    'Procedure.performedDateTime | Procedure.performedPeriod.start',
+);
 
 export function ProceduresUberList() {
     return (
@@ -58,14 +40,12 @@ export function ProceduresUberList() {
                 {
                     title: 'Code',
                     key: 'code',
-                    render: (_text: any, { resource }) => {
-                        return resource.code?.text ?? getProcedureCode(resource) ?? resource.code?.coding?.[0]?.display;
-                    },
+                    render: (_text: any, { resource }) => getProcedureCode(resource),
                 },
                 {
                     title: 'Patient',
                     key: 'patient',
-                    render: (_text: any, { resource }) => getSubjectLabel(resource.subject),
+                    render: (_text: any, { resource }) => getSubjectLabel(resource),
                 },
             ]}
             getFilters={() => [
@@ -107,9 +87,7 @@ export function ProceduresUberList() {
                     type: SearchBarColumnType.REFERENCE,
                     placeholder: 'Find by encounter',
                     expression: 'Encounter',
-                    path: `class.display +' - '+
-period.start.toString().split('.')[0].split('T')[0] + ' ' +
-period.start.toString().split('.')[0].split('T')[1]`,
+                    path: "class.display + ' - ' + period.start",
                     placement: ['search-bar', 'table'],
                 },
             ]}

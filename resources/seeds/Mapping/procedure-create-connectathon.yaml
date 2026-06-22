@@ -7,16 +7,15 @@ body:
     - patientRef: "{{ %QuestionnaireResponse.answers('patient') }}"
     - encounterRef: "{{ %QuestionnaireResponse.answers('encounter') }}"
     - status: "{{ %QuestionnaireResponse.answers('status') }}"
-    - procedureStatus: "{{ %Procedure.status }}"
-    - statusCode: "{{ iif(%status.code.exists(), %status.code, iif(%status.exists(), %status, iif(%procedureStatus.exists(), %procedureStatus, 'completed'))) }}"
+    - statusCode: "{{ %status.coding.code }}"
     - category: "{{ %QuestionnaireResponse.answers('category') }}"
     - code: "{{ %QuestionnaireResponse.answers('code') }}"
     - performedDateTime: "{{ %QuestionnaireResponse.answers('performed-date-time') }}"
     - bodySite: "{{ %QuestionnaireResponse.answers('body-site') }}"
     - reasonCodes: "{[ %QuestionnaireResponse.repeat(item).where(linkId='reason-code').answer.valueCoding ]}"
     - outcome: "{{ %QuestionnaireResponse.answers('outcome') }}"
-    - codeDisplay: "{{ iif(%code.display.exists(), %code.display, %code.text) }}"
-    - narrativeDiv: "<div xmlns='http://www.w3.org/1999/xhtml'>PH Core Procedure{{ iif(%patientRef.display.exists(), ' for ' + %patientRef.display, '') }}{{ iif(%codeDisplay.exists(), ' — ' + %codeDisplay, '') }} — status {{ %statusCode }}.</div>"
+    - codeDisplay: "{{ %code.display | %code.text }}"
+    - narrativeDiv: "<div xmlns='http://www.w3.org/1999/xhtml'>PH Core Procedure — {{ %codeDisplay }} — status {{ %statusCode }}.</div>"
     - addProcedure:
         request:
           "{% if %id.exists() %}":
