@@ -45,33 +45,34 @@ body:
           doseQuantity: "{{ %doseQuantity }}"
           encounter: "{{ %encounterRef }}"
           occurrenceDateTime: "{{ %occurrenceDate }}"
-          expirationDate:
-            "{% if %expirationDate.exists() %}": "{{ %expirationDate }}"
-          fundingSource:
-            "{% if %fundingSource.exists() %}":
-              coding:
-                - "{{ %fundingSource }}"
-          isSubpotent:
-            "{% if %isSubpotent.exists() %}":
-              "{% if %isSubpotent.code = 'yes' %}": true
-              "{% else %}": false
-          lotNumber:
-            "{% if %lotNumber.exists() %}": "{{ %lotNumber }}"
-          primarySource:
-            "{% if %primarySource.exists() %}":
-              "{% if %primarySource.code = 'yes' %}": true
-              "{% else %}": false
-          route:
-            "{% if %route.exists() %}":
-              coding:
-                - "{{ %route }}"
-          site:
-            "{% if %site.exists() %}":
-              coding:
-                - "{{ %site }}"
-          note:
-            "{% if %note.exists() %}":
-              - text: "{{ %note }}"
+          "{% merge %}":
+            - "{% if %expirationDate.exists() %}":
+                expirationDate: "{{ %expirationDate }}"
+            - "{% if %fundingSource.exists() %}":
+                fundingSource:
+                  coding:
+                    - "{{ %fundingSource }}"
+            - "{% if %isSubpotent.exists() %}":
+                isSubpotent:
+                  "{% if %isSubpotent.code = 'yes' %}": true
+                  "{% else %}": false
+            - "{% if %lotNumber.exists() %}":
+                lotNumber: "{{ %lotNumber }}"
+            - "{% if %primarySource.exists() %}":
+                primarySource:
+                  "{% if %primarySource.code = 'yes' %}": true
+                  "{% else %}": false
+            - "{% if %route.exists() %}":
+                route:
+                  coding:
+                    - "{{ %route }}"
+            - "{% if %site.exists() %}":
+                site:
+                  coding:
+                    - "{{ %site }}"
+            - "{% if %note.exists() %}":
+                note:
+                  - text: "{{ %note }}"
   resourceType: Bundle
   type: transaction
   entry:
