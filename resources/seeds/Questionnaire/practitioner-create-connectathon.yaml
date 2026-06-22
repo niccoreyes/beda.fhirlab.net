@@ -279,4 +279,4 @@ item:
         initialExpression:
           language: text/fhirpath
           expression: |-
-            %Questionnaire.repeat(item).where(linkId='address-country').answerOption.valueCoding.where(code=(%context.country | 'PH')).first()
+            %Questionnaire.repeat(item).where(linkId='address-country').answerOption.valueCoding.where(code=iif(%context.country.exists(), %context.country, 'PH')).first()
