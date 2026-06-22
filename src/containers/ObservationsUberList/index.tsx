@@ -1,6 +1,6 @@
 import { PlusOutlined } from '@ant-design/icons';
 import { t, Trans } from '@lingui/macro';
-import { Observation, ObservationComponent, Quantity, Reference } from 'fhir/r4b';
+import { Observation, ObservationComponent, Quantity } from 'fhir/r4b';
 
 import { questionnaireAction, ResourceListPage } from '@beda.software/emr/components';
 import { compileAsFirst, formatHumanDateTime } from '@beda.software/emr/utils';
@@ -17,26 +17,12 @@ function getQuantity(holder?: AidboxQuantityHolder): Quantity | undefined {
     return holder.valueQuantity ?? holder.value?.Quantity;
 }
 
-export function getEffectiveDateTime(resource: Observation): string | undefined {
-    return resource.effectiveDateTime ?? (resource as Observation & { effective?: { dateTime?: string } }).effective?.dateTime;
-}
-
-function getSubjectLabel(subject?: Reference): string | undefined {
-    if (!subject) {
-        return undefined;
-    }
-    if (subject.display) {
-        return subject.display;
-    }
-    if (subject.reference) {
-        return subject.reference;
-    }
-    const aidboxSubject = subject as Reference & { id?: string; resourceType?: string };
-    if (aidboxSubject.id && aidboxSubject.resourceType) {
-        return `${aidboxSubject.resourceType}/${aidboxSubject.id}`;
-    }
-    return undefined;
-}
+export const getEffectiveDateTime = compileAsFirst<Observation, string>(
+    'Observation.effectiveDateTime | Observation.effective.dateTime',
+);
+export const getSubjectLabel = compileAsFirst<Observation, string>(
+    'Observation.subject.display | Observation.subject.reference | (Observation.subject.resourceType & \'/\' & Observation.subject.id)',
+);
 
 export const getObservationCode = compileAsFirst<Observation, string>('Observation.code.coding.first().display');
 
@@ -101,7 +87,7 @@ export function ObservationsUberList() {
                     title: 'Patient',
                     dataIndex: 'patient',
                     key: 'patient',
-                    render: (_text: any, { resource }) => getSubjectLabel(resource.subject),
+                    render: (_text: any, { resource }) => getSubjectLabel(resource),
                 },
                 {
                     title: 'Code',
