@@ -3,142 +3,43 @@ resourceType: Mapping
 type: FHIRPath
 body:
   "{% assign %}":
-    - id: "{{ %QuestionnaireResponse.answers('organizationId') }}"
     - orgName: "{{ %QuestionnaireResponse.answers('organization-name') }}"
-    - nhfrCode: "{{ %QuestionnaireResponse.answers('nhfr-code') }}"
-    - hcpnCode: "{{ %QuestionnaireResponse.answers('hcpn-code') }}"
-    - pan: "{{ %QuestionnaireResponse.answers('pan') }}"
-    - pen: "{{ %QuestionnaireResponse.answers('pen') }}"
-    - active: "{{ %QuestionnaireResponse.answers('active') }}"
-    - phone: "{{ %QuestionnaireResponse.answers('phone') }}"
-    - email: "{{ %QuestionnaireResponse.answers('email') }}"
-    - organizationTypes: "{[ %QuestionnaireResponse.item.where(linkId='organization-type').answer.valueCoding ]}"
-    - addressGroupItems: "{[ %QuestionnaireResponse.item.where(linkId='address-group') ]}"
-    - contactGroupItems: "{[ %QuestionnaireResponse.item.where(linkId='contact-group') ]}"
-    - addOrganization:
-        request:
-          "{% if %id.exists() %}":
-            url: /Organization/{{ %id }}
-            method: PUT
-          "{% else %}":
-            url: /Organization
-            method: POST
-        resource:
-          resourceType: Organization
-          meta:
-            profile:
-              - https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-organization
-          id: "{{ %id }}"
-          name: "{{ %orgName }}"
-          active: "{{ %active }}"
-          identifier:
-            - "{% if %nhfrCode.exists() %}":
-                system: https://fhir.doh.gov.ph/phcore/Identifier/doh-nhfr-code
-                value: "{{ %nhfrCode }}"
-            - "{% if %hcpnCode.exists() %}":
-                system: https://fhir.doh.gov.ph/phcore/Identifier/hcpn-code
-                value: "{{ %hcpnCode }}"
-            - "{% if %pan.exists() %}":
-                system: http://nhdr.gov.ph/fhir/Identifier/philhealthaccreditationnumber
-                value: "{{ %pan }}"
-            - "{% if %pen.exists() %}":
-                system: http://nhdr.gov.ph/fhir/Identifier/philhealthemployernumber
-                value: "{{ %pen }}"
-          type:
-            - "{% for organizationType in %organizationTypes %}":
-                coding:
-                  - "{{ %organizationType }}"
-                text: "{{ %organizationType.display }}"
-          telecom:
-            - system: phone
-              value: "{{ %phone }}"
-              use: work
-            - system: email
-              value: "{{ %email }}"
-              use: work
-          address:
-            - "{% for addressItem in %addressGroupItems %}":
-                "{% assign %}":
-                  - addressUse: "{{ %addressItem.item.where(linkId='address-use').answer.valueCoding.first() }}"
-                  - addressLine: "{{ %addressItem.item.where(linkId='address-line').answer.valueString.first() }}"
-                  - addressRegion: "{{ %addressItem.item.where(linkId='address-region').answer.valueCoding.first() }}"
-                  - addressProvince: "{{ %addressItem.item.where(linkId='address-province').answer.valueCoding.first() }}"
-                  - addressCityMunicipality: "{{ %addressItem.item.where(linkId='address-city-municipality').answer.valueCoding.first() }}"
-                  - addressBarangay: "{{ %addressItem.item.where(linkId='address-barangay').answer.valueCoding.first() }}"
-                  - addressCity: "{{ %addressItem.item.where(linkId='address-city').answer.valueString.first() }}"
-                  - addressDistrict: "{{ %addressItem.item.where(linkId='address-district').answer.valueString.first() }}"
-                  - addressPostalCode: "{{ %addressItem.item.where(linkId='address-postal-code').answer.valueString.first() }}"
-                  - addressCountry: "{{ %addressItem.item.where(linkId='address-country').answer.valueCoding.first() }}"
-                use: "{{ %addressUse.code }}"
-                line:
-                  - "{{ %addressLine }}"
-                extension:
-                  - "{% if %addressRegion.exists() %}":
-                      url: https://fhir.doh.gov.ph/phcore/StructureDefinition/region
-                      valueCoding: "{{ %addressRegion }}"
-                  - "{% if %addressProvince.exists() %}":
-                      url: https://fhir.doh.gov.ph/phcore/StructureDefinition/province
-                      valueCoding: "{{ %addressProvince }}"
-                  - "{% if %addressCityMunicipality.exists() %}":
-                      url: https://fhir.doh.gov.ph/phcore/StructureDefinition/city-municipality
-                      valueCoding: "{{ %addressCityMunicipality }}"
-                  - "{% if %addressBarangay.exists() %}":
-                      url: https://fhir.doh.gov.ph/phcore/StructureDefinition/barangay
-                      valueCoding: "{{ %addressBarangay }}"
-                city: "{{ %addressCity }}"
-                district: "{{ %addressDistrict }}"
-                postalCode: "{{ %addressPostalCode }}"
-                country: "{{ %addressCountry.code }}"
-          contact:
-            - "{% for contactItem in %contactGroupItems %}":
-                "{% assign %}":
-                  - contactPurpose: "{{ %contactItem.item.where(linkId='contact-purpose').answer.valueCoding.first() }}"
-                  - contactName: "{{ %contactItem.item.where(linkId='contact-name').answer.valueString.first() }}"
-                  - contactPhone: "{{ %contactItem.item.where(linkId='contact-phone').answer.valueString.first() }}"
-                  - contactAddressGroup: "{{ %contactItem.item.where(linkId='contact-address-group').first() }}"
-                  - contactAddressUse: "{{ %contactAddressGroup.item.where(linkId='contact-address-use').answer.valueCoding.first() }}"
-                  - contactAddressLine: "{{ %contactAddressGroup.item.where(linkId='contact-address-line').answer.valueString.first() }}"
-                  - contactAddressRegion: "{{ %contactAddressGroup.item.where(linkId='contact-address-region').answer.valueCoding.first() }}"
-                  - contactAddressProvince: "{{ %contactAddressGroup.item.where(linkId='contact-address-province').answer.valueCoding.first() }}"
-                  - contactAddressCityMunicipality: "{{ %contactAddressGroup.item.where(linkId='contact-address-city-municipality').answer.valueCoding.first() }}"
-                  - contactAddressBarangay: "{{ %contactAddressGroup.item.where(linkId='contact-address-barangay').answer.valueCoding.first() }}"
-                  - contactAddressCity: "{{ %contactAddressGroup.item.where(linkId='contact-address-city').answer.valueString.first() }}"
-                  - contactAddressDistrict: "{{ %contactAddressGroup.item.where(linkId='contact-address-district').answer.valueString.first() }}"
-                  - contactAddressPostalCode: "{{ %contactAddressGroup.item.where(linkId='contact-address-postal-code').answer.valueString.first() }}"
-                  - contactAddressCountry: "{{ %contactAddressGroup.item.where(linkId='contact-address-country').answer.valueCoding.first() }}"
-                purpose:
-                  "{% if %contactPurpose.exists() %}":
-                    coding:
-                      - "{{ %contactPurpose }}"
-                    text: "{{ %contactPurpose.display }}"
-                name:
-                  text: "{{ %contactName }}"
-                telecom:
-                  - system: phone
-                    value: "{{ %contactPhone }}"
-                    use: work
-                address:
-                  use: "{{ %contactAddressUse.code }}"
-                  line:
-                    - "{{ %contactAddressLine }}"
-                  extension:
-                    - "{% if %contactAddressRegion.exists() %}":
-                        url: https://fhir.doh.gov.ph/phcore/StructureDefinition/region
-                        valueCoding: "{{ %contactAddressRegion }}"
-                    - "{% if %contactAddressProvince.exists() %}":
-                        url: https://fhir.doh.gov.ph/phcore/StructureDefinition/province
-                        valueCoding: "{{ %contactAddressProvince }}"
-                    - "{% if %contactAddressCityMunicipality.exists() %}":
-                        url: https://fhir.doh.gov.ph/phcore/StructureDefinition/city-municipality
-                        valueCoding: "{{ %contactAddressCityMunicipality }}"
-                    - "{% if %contactAddressBarangay.exists() %}":
-                        url: https://fhir.doh.gov.ph/phcore/StructureDefinition/barangay
-                        valueCoding: "{{ %contactAddressBarangay }}"
-                  city: "{{ %contactAddressCity }}"
-                  district: "{{ %contactAddressDistrict }}"
-                  postalCode: "{{ %contactAddressPostalCode }}"
-                  country: "{{ %contactAddressCountry.code }}"
+    - dohFhudCode: "{{ %QuestionnaireResponse.answers('doh-fhud-code') }}"
+    - addAddress: "{{ %QuestionnaireResponse.answers('add-address') }}"
+    - addressUse: "{{ %QuestionnaireResponse.answers('address-use') }}"
+    - addressRegion: "{{ %QuestionnaireResponse.answers('address-region') }}"
+    - province: "{{ %QuestionnaireResponse.answers('address-province') }}"
+    - cityMunicipality: "{{ %QuestionnaireResponse.answers('address-city-municipality') }}"
+    - barangay: "{{ %QuestionnaireResponse.answers('address-barangay') }}"
+
   resourceType: Bundle
   type: transaction
   entry:
-    - "{{ %addOrganization }}"
+    request:
+      method: POST
+      url: /Organization
+    resource:
+      resourceType: Organization
+      meta:
+        profile:
+        - urn://example.com/ph-core/fhir/StructureDefinition/ph-core-organization
+      name: "{{ %orgName }}"
+      identifier:
+        - system: urn://example.com/ph-core/fhir/NamingSystem/doh-fhud-code-ns
+          value: "{{ %dohFhudCode }}"
+      "{% if %addAddress %}":
+        address:
+          - use: "{{ %addressUse.code }}"
+            extension:
+              - "{% if %addressRegion.exists() %}":
+                  url: urn://example.com/ph-core/fhir/StructureDefinition/region
+                  valueCoding: "{{ %addressRegion }}"
+              - "{% if %province.exists() %}":
+                  url: urn://example.com/ph-core/fhir/StructureDefinition/province
+                  valueCoding: "{{ %province }}"
+              - "{% if %cityMunicipality.exists() %}":
+                  url: urn://example.com/ph-core/fhir/StructureDefinition/city-municipality
+                  valueCoding: "{{ %cityMunicipality }}"
+              - "{% if %barangay.exists() %}":
+                  url: urn://example.com/ph-core/fhir/StructureDefinition/barangay
+                  valueCoding: "{{ %barangay }}"
