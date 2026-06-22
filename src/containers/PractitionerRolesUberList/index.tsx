@@ -18,6 +18,13 @@ function practitionerFromBundle(bundle: Bundle, practitionerId?: string) {
         );
 }
 
+function formatSpecialties(resource: PractitionerRole) {
+    return resource.specialty
+        ?.map((item) => item.text ?? item.coding?.[0]?.display)
+        .filter(Boolean)
+        .join(', ');
+}
+
 function practitionerLaunchContext(resource: PractitionerRole, bundle?: Bundle) {
     const practitionerId = resource.practitioner?.reference?.replace('Practitioner/', '');
     const practitioner =
@@ -67,9 +74,8 @@ export function PractitionerRolesUberList() {
                     title: <Trans>Specialty</Trans>,
                     dataIndex: 'specialty',
                     key: 'specialty',
-                    render: (_text, { resource }) =>
-                        resource.specialty?.[0]?.text ?? resource.specialty?.[0]?.coding?.[0]?.display,
-                    width: 150,
+                    render: (_text, { resource }) => formatSpecialties(resource),
+                    width: 220,
                 },
             ]}
             getFilters={() => [
