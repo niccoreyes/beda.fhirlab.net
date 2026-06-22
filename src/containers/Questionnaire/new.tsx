@@ -1,31 +1,31 @@
-import { S } from '@beda.software/emr/dist/containers/AidboxFormsBuilder/styles';
-import { axiosInstance, saveFHIRResource } from '@beda.software/emr/services';
 import { Parameters, Questionnaire } from 'fhir/r4b';
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { isSuccess } from '@beda.software/remote-data';
-import config from '@beda.software/emr-config';
 
-const profile = "https://emr-core.beda.software/StructureDefinition/fhir-emr-questionnaire";
+import { S } from '@beda.software/emr/dist/containers/AidboxFormsBuilder/styles';
+import { axiosInstance, saveFHIRResource } from '@beda.software/emr/services';
+import config from '@beda.software/emr-config';
+import { isSuccess } from '@beda.software/remote-data';
+
+const profile = 'https://emr-core.beda.software/StructureDefinition/fhir-emr-questionnaire';
 
 export function NewQuestionnaire() {
     const params = useParams();
     const [id, setId] = useState<string | undefined>(params.id);
     const builder = useRef<any>(null);
+
     useEffect(() => {
         if (builder.current) {
             builder.current.addEventListener('save', async (event: any) => {
                 const q: Questionnaire = event.detail;
                 if (typeof q.meta === 'undefined') {
-                    q.meta = {}
+                    q.meta = {};
                 }
                 q.meta.profile = [profile];
-                q.subjectType = [
-                    "Patient"
-                ];
+                q.subjectType = ['Patient'];
                 const response = await saveFHIRResource<Questionnaire>(q);
                 if (isSuccess(response)) {
-                    setId(response.data.id)
+                    setId(response.data.id);
                 }
             });
             const authorization = axiosInstance.defaults.headers.Authorization;
@@ -34,24 +34,23 @@ export function NewQuestionnaire() {
                     ...init.headers,
                     ...(authorization ? { Authorization: authorization.toString() } : {}),
                 };
-                if ((init as any).tag === 'save-questionnaire' && init.body){
-                    const body:Parameters = JSON.parse(init.body as string);
-                    const q:Questionnaire|undefined = body.parameter!.find(({name}) => name === 'questionnaire')?.resource as any;
-                    if(q){
+                if ((init as any).tag === 'save-questionnaire' && init.body) {
+                    const body: Parameters = JSON.parse(init.body as string);
+                    const q: Questionnaire | undefined = body.parameter!.find(({ name }) => name === 'questionnaire')
+                        ?.resource as any;
+                    if (q) {
                         if (typeof q.meta === 'undefined') {
-                            q.meta = {}
+                            q.meta = {};
                         }
                         q.meta.profile = [profile];
-                        q.subjectType = [
-                            "Patient"
-                        ];
+                        q.subjectType = ['Patient'];
                         init.body = JSON.stringify(body);
                     }
                 }
                 return fetch(config.baseURL + url, init);
             };
         }
-    }, [builder])
+    }, [builder]);
 
     return (
         <S.Container>
@@ -71,5 +70,5 @@ export function NewQuestionnaire() {
                 />
             </S.Content>
         </S.Container>
-    )
+    );
 }
