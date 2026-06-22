@@ -4,7 +4,11 @@ import { Practitioner } from 'fhir/r4b';
 
 import { questionnaireAction, ResourceListPage } from '@beda.software/emr/components';
 import { SearchBarColumnType } from '@beda.software/emr/dist/components/SearchBar/types';
-import { renderHumanName, formatHumanDate } from '@beda.software/emr/utils';
+import { renderHumanName, formatHumanDate, compileAsFirst } from '@beda.software/emr/utils';
+
+const getCommunicationLanguages = compileAsFirst<Practitioner, string>(
+    "Practitioner.communication.select(text | coding.first().display | coding.first().code).join(', ')",
+);
 
 export function PractitionersUberList() {
     return (
@@ -31,14 +35,7 @@ export function PractitionersUberList() {
                     title: <Trans>Language</Trans>,
                     dataIndex: 'communication',
                     key: 'communication',
-                    render: (_text, { resource }) =>
-                        resource.communication
-                            ?.map(
-                                (item) =>
-                                    item.text ?? item.coding?.[0]?.display ?? item.coding?.[0]?.code,
-                            )
-                            .filter(Boolean)
-                            .join(', ') || null,
+                    render: (_text, { resource }) => getCommunicationLanguages(resource) ?? null,
                     width: '15%',
                 },
             ]}

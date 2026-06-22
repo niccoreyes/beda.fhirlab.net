@@ -8,7 +8,6 @@ body:
     - middleName: "{{ %QuestionnaireResponse.answers('middle-name') }}"
     - lastName: "{{ %QuestionnaireResponse.answers('last-name') }}"
     - gender: "{{ %QuestionnaireResponse.answers('gender') }}"
-    - practitionerGender: "{{ %Practitioner.gender }}"
     - birthDate: "{{ %QuestionnaireResponse.answers('birth-date') }}"
     - phone: "{{ %QuestionnaireResponse.answers('phone') }}"
     - email: "{{ %QuestionnaireResponse.answers('email') }}"
@@ -41,8 +40,8 @@ body:
                   - "{{ %firstName }}"
               family: "{{ %lastName }}"
           "{% merge %}":
-            - "{% if %gender.exists() or %practitionerGender.exists() %}":
-                gender: "{{ iif(%gender.code.exists(), %gender.code, iif(%gender.exists(), %gender, %practitionerGender)) }}"
+            - "{% if %gender.exists() %}":
+                gender: "{{ %gender.coding.code }}"
             - "{% if %birthDate.exists() %}":
                 birthDate: "{{ %birthDate }}"
             - "{% if %phone.exists() or %email.exists() %}":
@@ -103,7 +102,7 @@ body:
                           - "{% if %addressPostalCode.exists() %}":
                               postalCode: "{{ %addressPostalCode }}"
                           - "{% if %addressCountry.exists() %}":
-                              country: "{{ iif(%addressCountry.code.exists(), %addressCountry.code, %addressCountry) }}"
+                              country: "{{ %addressCountry.code }}"
   resourceType: Bundle
   type: transaction
   entry:
