@@ -9,7 +9,7 @@ body:
     - encounterRef: "{{ %QuestionnaireResponse.answers('encounter') }}"
     - performerRef: "{{ %QuestionnaireResponse.answers('performer') }}"
     - status: "{{ %QuestionnaireResponse.answers('status') }}"
-    - statusCode: "{{ iif(%status.code.exists(), %status.code, iif(%status.exists(), %status, 'final')) }}"
+    - statusCode: "{{ %status.coding.code }}"
     - effectiveDateTime: "{{ %QuestionnaireResponse.answers('effective-date-time') }}"
     - temperature: "{{ %QuestionnaireResponse.answers('temperature') }}"
     - bloodPressureSystolic: "{{ %QuestionnaireResponse.answers('blood-pressure-systolic') }}"
@@ -22,7 +22,7 @@ body:
     - height: "{{ %QuestionnaireResponse.answers('height') }}"
     - weight: "{{ %QuestionnaireResponse.answers('weight') }}"
     - bmi: "{{ %QuestionnaireResponse.answers('bmi') }}"
-    - patientLabel: "{{ iif(%patientName.exists(), %patientName, 'Patient/' + %patientId) }}"
+    - patientLabel: "{{ %patientName | ('Patient/' + %patientId) }}"
 
   resourceType: Bundle
   type: transaction
