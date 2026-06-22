@@ -6,11 +6,10 @@ body:
     - id: "{{ %QuestionnaireResponse.answers('immunizationId') }}"
     - patientRef: "{{ %QuestionnaireResponse.answers('patient') }}"
     - status: "{{ %QuestionnaireResponse.answers('status') }}"
-    - immunizationStatus: "{{ %Immunization.status }}"
-    - statusCode: "{{ iif(%status.code.exists(), %status.code, iif(%status.exists(), %status, iif(%immunizationStatus.exists(), %immunizationStatus, 'completed'))) }}"
+    - statusCode: "{{ %status.coding.code }}"
     - statusReason: "{{ %QuestionnaireResponse.answers('status-reason') }}"
     - vaccineCode: "{{ %QuestionnaireResponse.answers('vaccine-code') }}"
-    - vaccineDisplay: "{{ iif(%vaccineCode.display.exists(), %vaccineCode.display, %vaccineCode.text) }}"
+    - vaccineDisplay: "{{ %vaccineCode.display | %vaccineCode.text }}"
     - occurrenceDateTime: "{{ %QuestionnaireResponse.answers('occurrence-date-time') }}"
     - encounterRef: "{{ %QuestionnaireResponse.answers('encounter') }}"
     - performer: "{{ %QuestionnaireResponse.answers('performer') }}"
@@ -30,7 +29,7 @@ body:
     - doseNumber: "{{ %QuestionnaireResponse.answers('dose-number') }}"
     - targetDisease: "{{ %QuestionnaireResponse.answers('target-disease') }}"
     - note: "{{ %QuestionnaireResponse.answers('note') }}"
-    - narrativeDiv: "<div xmlns='http://www.w3.org/1999/xhtml'>PH Core Immunization{{ iif(%patientRef.display.exists(), ' for ' + %patientRef.display, '') }}{{ iif(%vaccineDisplay.exists(), ' — ' + %vaccineDisplay, '') }} — status {{ %statusCode }}.</div>"
+    - narrativeDiv: "<div xmlns='http://www.w3.org/1999/xhtml'>PH Core Immunization — {{ %vaccineDisplay }} — status {{ %statusCode }}.</div>"
     - addImmunization:
         request:
           "{% if %id.exists() %}":
