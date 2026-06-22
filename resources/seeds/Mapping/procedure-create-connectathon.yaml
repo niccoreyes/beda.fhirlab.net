@@ -23,10 +23,11 @@ body:
           - http://hl7.org/fhir/uv/ips/StructureDefinition/Procedure-uv-ips
         status: "{{ %status.code }}"
         subject: "{{ %patient }}"
-        code:
-          "{% if %code.exists() %}":
-            coding:
-              - "{{ %code }}"
-        encounter:
-          "{% if %encounter.exists() %}":
-            reference: "Encounter/{{ %encounterId }}"
+        "{% merge %}":
+          - "{% if %code.exists() %}":
+              code:
+                coding:
+                  - "{{ %code }}"
+          - "{% if %encounter.exists() %}":
+              encounter:
+                reference: "Encounter/{{ %encounterId }}"
