@@ -11,10 +11,10 @@ body:
     - identifierValue: "{{ %QuestionnaireResponse.answers('identifier-value') }}"
     - phone: "{{ %QuestionnaireResponse.answers('phone') }}"
     - email: "{{ %QuestionnaireResponse.answers('email') }}"
-    - codeDisplay: "{{ iif(%code.display.exists(), %code.display, %code.text) }}"
-    - practitionerDisplay: "{{ iif(%practitionerRef.display.exists(), %practitionerRef.display, %practitionerRef.reference) }}"
-    - organizationDisplay: "{{ iif(%organizationRef.display.exists(), %organizationRef.display, %organizationRef.reference) }}"
-    - narrativeDiv: "<div xmlns='http://www.w3.org/1999/xhtml'>PH Core PractitionerRole{{ iif(%practitionerDisplay.exists(), ' for ' + %practitionerDisplay, '') }}{{ iif(%organizationDisplay.exists(), ' at ' + %organizationDisplay, '') }}{{ iif(%codeDisplay.exists(), ' — ' + %codeDisplay, '') }}.</div>"
+    - codeDisplay: "{{ %code.display | %code.text }}"
+    - practitionerDisplay: "{{ %practitionerRef.display | %practitionerRef.reference }}"
+    - organizationDisplay: "{{ %organizationRef.display | %organizationRef.reference }}"
+    - narrativeDiv: "<div xmlns='http://www.w3.org/1999/xhtml'>PH Core PractitionerRole — {{ %practitionerDisplay }} at {{ %organizationDisplay }} — {{ %codeDisplay }}.</div>"
     - addPractitionerRole:
         request:
           "{% if %id.exists() %}":
