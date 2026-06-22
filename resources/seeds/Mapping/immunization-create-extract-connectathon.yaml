@@ -1,132 +1,77 @@
 id: immunization-create-extract-connectathon
-resourceType: Mapping
 type: FHIRPath
+resourceType: Mapping
 body:
   "{% assign %}":
-    - id: "{{ %QuestionnaireResponse.answers('immunizationId') }}"
     - patientRef: "{{ %QuestionnaireResponse.answers('patient') }}"
     - status: "{{ %QuestionnaireResponse.answers('status') }}"
-    - statusCode: "{{ %status.code }}"
-    - statusReason: "{{ %QuestionnaireResponse.answers('status-reason') }}"
-    - vaccineCode: "{{ %QuestionnaireResponse.answers('vaccine-code') }}"
-    - vaccineDisplay: "{{ %vaccineCode.display | %vaccineCode.text }}"
-    - occurrenceDateTime: "{{ %QuestionnaireResponse.answers('occurrence-date-time') }}"
-    - encounterRef: "{{ %QuestionnaireResponse.answers('encounter') }}"
     - performer: "{{ %QuestionnaireResponse.answers('performer') }}"
     - performerFunction: "{{ %QuestionnaireResponse.answers('performer-function') }}"
-    - primarySource: "{{ %QuestionnaireResponse.answers('primary-source') }}"
-    - reportOrigin: "{{ %QuestionnaireResponse.answers('report-origin') }}"
-    - locationRef: "{{ %QuestionnaireResponse.answers('location') }}"
+    - vaccineCode: "{{ %QuestionnaireResponse.answers('vaccine-code') }}"
+    - doseQuantity: "{{ %QuestionnaireResponse.answers('dose-quantity') }}"
+    - encounterRef: "{{ %QuestionnaireResponse.answers('encounter') }}"
+    - expirationDate: "{{ %QuestionnaireResponse.answers('expiration-date') }}"
+    - fundingSource: "{{ %QuestionnaireResponse.answers('funding-source') }}"
+    - isSubpotent: "{{ %QuestionnaireResponse.answers('is-subpotent') }}"
     - lotNumber: "{{ %QuestionnaireResponse.answers('lot-number') }}"
-    - batchNumber: "{{ %QuestionnaireResponse.answers('batch-number') }}"
-    - administeredProductRef: "{{ %QuestionnaireResponse.answers('administered-product') }}"
+    - occurrenceDate: "{{ %QuestionnaireResponse.answers('occurrence-date') }}"
+    - primarySource: "{{ %QuestionnaireResponse.answers('primary-source') }}"
     - route: "{{ %QuestionnaireResponse.answers('route') }}"
     - site: "{{ %QuestionnaireResponse.answers('site') }}"
-    - fundingSource: "{{ %QuestionnaireResponse.answers('funding-source') }}"
-    - reasonCodes: "{[ %QuestionnaireResponse.item.where(linkId='reason-code').answer.valueCoding ]}"
-    - subpotentReason: "{{ %QuestionnaireResponse.answers('subpotent-reason') }}"
-    - programEligibility: "{{ %QuestionnaireResponse.answers('program-eligibility') }}"
-    - doseNumber: "{{ %QuestionnaireResponse.answers('dose-number') }}"
-    - targetDisease: "{{ %QuestionnaireResponse.answers('target-disease') }}"
     - note: "{{ %QuestionnaireResponse.answers('note') }}"
-    - narrativeDiv: "<div xmlns='http://www.w3.org/1999/xhtml'>PH Core Immunization — {{ %vaccineDisplay }} — status {{ %statusCode }}.</div>"
     - addImmunization:
         request:
-          "{% if %id.exists() %}":
-            url: /Immunization/{{ %id }}
-            method: PUT
-          "{% else %}":
-            url: /Immunization
-            method: POST
+          url: /Immunization
+          method: POST
         resource:
-          resourceType: Immunization
           meta:
             profile:
-              - https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-immunization
-          id: "{{ %id }}"
+              - urn://example.com/ph-core/fhir/StructureDefinition/ph-core-immunization
+              - http://hl7.org/fhir/uv/ips/StructureDefinition/Immunization-uv-ips
+          resourceType: Immunization
           patient: "{{ %patientRef }}"
-          status: "{{ %statusCode }}"
+          status: "{{ %status.code }}"
+          "{% if %performer.exists() %}":
+            performer:
+              - actor: "{{ %performer }}"
+                "{% if %performerFunction.exists() %}":
+                  function:
+                    coding:
+                      - "{{ %performerFunction }}"
           vaccineCode:
             coding:
               - "{{ %vaccineCode }}"
-            text: "{{ %vaccineDisplay }}"
-          occurrenceDateTime: "{{ %occurrenceDateTime }}"
-          text:
-            status: generated
-            div: "{{ %narrativeDiv }}"
-          statusReason:
-            "{% if %statusReason.exists() %}":
-              coding:
-                - "{{ %statusReason }}"
-              text: "{{ %statusReason.display }}"
+            text: "{{ %vaccineCode.display }}"
+          doseQuantity: "{{ %doseQuantity }}"
           encounter: "{{ %encounterRef }}"
-          performer:
-            - "{% if %performer.exists() or %performerFunction.exists() %}":
-                actor: "{{ %performer }}"
-                function:
-                  "{% if %performerFunction.exists() %}":
-                    coding:
-                      - "{{ %performerFunction }}"
-                    text: "{{ %performerFunction.display }}"
-          primarySource:
-            "{% if %primarySource.exists() %}":
-              "{% if %primarySource.code = 'yes' %}": true
-              "{% else %}": false
-          reportOrigin:
-            "{% if %reportOrigin.exists() %}":
-              coding:
-                - "{{ %reportOrigin }}"
-              text: "{{ %reportOrigin.display }}"
-          location: "{{ %locationRef }}"
-          lotNumber: "{{ %lotNumber }}"
-          route:
-            "{% if %route.exists() %}":
-              coding:
-                - "{{ %route }}"
-              text: "{{ %route.display }}"
-          site:
-            "{% if %site.exists() %}":
-              coding:
-                - "{{ %site }}"
-              text: "{{ %site.display }}"
+          occurrenceDateTime: "{{ %occurrenceDate }}"
+          expirationDate:
+            "{% if %expirationDate.exists() %}": "{{ %expirationDate }}"
           fundingSource:
             "{% if %fundingSource.exists() %}":
               coding:
                 - "{{ %fundingSource }}"
-              text: "{{ %fundingSource.display }}"
-          reasonCode:
-            - "{% for reasonCode in %reasonCodes %}":
-                coding:
-                  - "{{ %reasonCode }}"
-                text: "{{ %reasonCode.display }}"
-          subpotentReason:
-            - "{% if %subpotentReason.exists() %}":
-                coding:
-                  - "{{ %subpotentReason }}"
-                text: "{{ %subpotentReason.display }}"
-          programEligibility:
-            - "{% if %programEligibility.exists() %}":
-                coding:
-                  - "{{ %programEligibility }}"
-                text: "{{ %programEligibility.display }}"
-          protocolApplied:
-            - "{% if %doseNumber.exists() or %targetDisease.exists() %}":
-                doseNumberPositiveInt: "{{ %doseNumber }}"
-                targetDisease:
-                  - "{% if %targetDisease.exists() %}":
-                      coding:
-                        - "{{ %targetDisease }}"
-                      text: "{{ %targetDisease.display }}"
+          isSubpotent:
+            "{% if %isSubpotent.exists() %}":
+              "{% if %isSubpotent.code = 'yes' %}": true
+              "{% else %}": false
+          lotNumber:
+            "{% if %lotNumber.exists() %}": "{{ %lotNumber }}"
+          primarySource:
+            "{% if %primarySource.exists() %}":
+              "{% if %primarySource.code = 'yes' %}": true
+              "{% else %}": false
+          route:
+            "{% if %route.exists() %}":
+              coding:
+                - "{{ %route }}"
+          site:
+            "{% if %site.exists() %}":
+              coding:
+                - "{{ %site }}"
           note:
-            - "{% if %note.exists() %}":
-                text: "{{ %note }}"
-          extension:
-            - "{% if %batchNumber.exists() %}":
-                url: https://fhir.doh.gov.ph/phcore/StructureDefinition/batch-number
-                valueString: "{{ %batchNumber }}"
-            - "{% if %administeredProductRef.exists() %}":
-                url: https://fhir.doh.gov.ph/phcore/StructureDefinition/administered-product
-                valueReference: "{{ %administeredProductRef }}"
+            "{% if %note.exists() %}":
+              - text: "{{ %note }}"
   resourceType: Bundle
   type: transaction
   entry:
