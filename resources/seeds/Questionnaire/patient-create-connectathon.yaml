@@ -6,43 +6,30 @@ item:
   - text: PatientId
     type: string
     linkId: patientId
-    extension:
-      - url: http://hl7.org/fhir/StructureDefinition/questionnaire-hidden
-        valueBoolean: true
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Patient.id'
+    hidden: true
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Patient.id"
   - text: First name
     type: string
     linkId: first-name
     required: true
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Patient.name.given.first()'
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Patient.name.given.first()"
   - text: Middle name
     type: string
     linkId: middle-name
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Patient.name.given[1]'
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Patient.name.given[1]"
   - text: Last name
     type: string
     linkId: last-name
     required: true
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Patient.name.family'
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Patient.name.family"
   - text: Gender
     type: choice
     linkId: gender
@@ -64,81 +51,58 @@ item:
           system: http://hl7.org/fhir/administrative-gender
           code: unknown
           display: Unknown
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: >-
-            %Questionnaire.repeat(item).where(linkId='gender').answerOption.valueCoding.where(code=%Patient.gender).first()
+    initialExpression:
+      language: text/fhirpath
+      expression: >-
+        %Questionnaire.repeat(item).where(linkId='gender').answerOption.valueCoding.where(code=%Patient.gender).first()
   - text: Date of Birth
     type: date
     linkId: birth-date
     required: true
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Patient.birthDate'
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Patient.birthDate"
   - text: Phone
     type: string
     linkId: phone
-    extension:
-      - url: http://hl7.org/fhir/StructureDefinition/regex
-        valueString: ^\+63(?:[\s.-]?9\d{2}[\s.-]?\d{3}[\s.-]?\d{4}|9\d{9})$
-      - url: http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl
-        valueCodeableConcept:
-          coding:
-            - code: phoneWidget
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: >-
-            iif(
-              %Patient.telecom.where(system='phone').value.exists(),
-              %Patient.telecom.where(system='phone').value.first(),
-              '+63'
-            )
+    regex: ^\+63(?:[\s.-]?9\d{2}[\s.-]?\d{3}[\s.-]?\d{4}|9\d{9})$
+    itemControl:
+      coding:
+        - code: phoneWidget
+    initialExpression:
+      language: text/fhirpath
+      expression: >-
+        iif(
+          %Patient.telecom.where(system='phone').value.exists(),
+          %Patient.telecom.where(system='phone').value.first(),
+          '+63'
+        )
   - text: Email
     type: string
     linkId: email
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: "%Patient.telecom.where(system='email').value.first()"
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Patient.telecom.where(system='email').value.first()"
   - item:
       - text: Nationality
         type: choice
         linkId: nationality
         answerValueSet: http://hl7.org/fhir/ValueSet/iso3166-1-2
-        extension:
-          - url: >-
-              http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-            valueExpression:
-              language: text/fhirpath
-              expression: "%context.extension.where(url='code').valueCodeableConcept.coding.first()"
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.extension.where(url='code').valueCodeableConcept.coding.first()"
       - text: Start Date
         type: date
         linkId: nationality-start
-        extension:
-          - url: >-
-              http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-            valueExpression:
-              language: text/fhirpath
-              expression: "%context.extension.where(url='period').valuePeriod.start"
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.extension.where(url='period').valuePeriod.start"
       - text: End Date
         type: date
         linkId: nationality-end
-        extension:
-          - url: >-
-              http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-            valueExpression:
-              language: text/fhirpath
-              expression: "%context.extension.where(url='period').valuePeriod.end"
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.extension.where(url='period').valuePeriod.end"
     type: group
     linkId: nationality-group
     repeats: true
@@ -150,34 +114,28 @@ item:
     type: choice
     linkId: religion
     answerValueSet: http://terminology.hl7.org/ValueSet/v3-ReligiousAffiliation
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Patient.extension.where(url=''http://hl7.org/fhir/StructureDefinition/patient-religion'').valueCodeableConcept.coding.first()'
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Patient.extension.where(url='http://hl7.org/fhir/StructureDefinition/patient-religion').valueCodeableConcept.coding.first()"
   - text: Are you Indigenous?
     type: choice
     linkId: indigenous
     required: true
+    itemControl:
+      coding:
+        - code: inline-choice
     extension:
-      - url: http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl
-        valueCodeableConcept:
-          coding:
-            - code: inline-choice
       - url: >-
           https://emr-core.beda.software/StructureDefinition/inline-choice-direction
         valueString: horizontal
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: >-
-            iif(
-              %Patient.extension('https://fhir.doh.gov.ph/phcore/StructureDefinition/indigenous-people').valueBoolean,
-              %Questionnaire.repeat(item).where(linkId='indigenous').answerOption.valueCoding.where(code='yes').first(),
-              %Questionnaire.repeat(item).where(linkId='indigenous').answerOption.valueCoding.where(code='no').first()
-            )
+    initialExpression:
+      language: text/fhirpath
+      expression: >-
+        iif(
+          %Patient.extension('https://fhir.doh.gov.ph/phcore/StructureDefinition/indigenous-people').valueBoolean,
+          %Questionnaire.repeat(item).where(linkId='indigenous').answerOption.valueCoding.where(code='yes').first(),
+          %Questionnaire.repeat(item).where(linkId='indigenous').answerOption.valueCoding.where(code='no').first()
+        )
     answerOption:
       - valueCoding:
           code: "yes"
@@ -190,12 +148,9 @@ item:
         type: choice
         linkId: indigenous-group
         answerValueSet: https://fhir.doh.gov.ph/phcore/ValueSet/indigenous-groups-vs
-        extension:
-          - url: >-
-              http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-            valueExpression:
-              language: text/fhirpath
-              expression: "%context.valueCodeableConcept.coding.first()"
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.valueCodeableConcept.coding.first()"
     text: Indigenous Groups
     type: group
     linkId: indigenous-group-group
@@ -213,22 +168,16 @@ item:
     type: choice
     linkId: race
     answerValueSet: http://terminology.hl7.org/ValueSet/v3-Race
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: "%Patient.extension('https://fhir.doh.gov.ph/phcore/StructureDefinition/race').valueCodeableConcept.coding.first()"
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Patient.extension('https://fhir.doh.gov.ph/phcore/StructureDefinition/race').valueCodeableConcept.coding.first()"
   - text: Marital Status
     type: choice
     linkId: marital-status
     answerValueSet: http://hl7.org/fhir/ValueSet/marital-status
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Patient.maritalStatus.coding.first()'
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Patient.maritalStatus.coding.first()"
   - text: Educational Attainment
     type: choice
     linkId: educational-attainment
@@ -239,12 +188,9 @@ item:
           system: https://psa.gov.ph/classification/psced/level
           code: C201303
           display: College Graduate
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: "%Patient.extension('https://fhir.doh.gov.ph/phcore/StructureDefinition/educational-attainment').valueCodeableConcept.coding.first()"
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Patient.extension('https://fhir.doh.gov.ph/phcore/StructureDefinition/educational-attainment').valueCodeableConcept.coding.first()"
   - item:
       - text: Occupation
         type: choice
@@ -256,21 +202,15 @@ item:
               system: https://psa.gov.ph/classification/psoc/unit
               code: "211101"
               display: Medical Doctor
-        extension:
-          - url: >-
-              http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-            valueExpression:
-              language: text/fhirpath
-              expression: "%context.extension.where(url='occupationClassification').valueCodeableConcept.coding.first()"
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.extension.where(url='occupationClassification').valueCodeableConcept.coding.first()"
       - text: Occupation Start Date
         type: date
         linkId: occupation-length-start
-        extension:
-          - url: >-
-              http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-            valueExpression:
-              language: text/fhirpath
-              expression: "%context.extension.where(url='occupationLength').valuePeriod.start"
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.extension.where(url='occupationLength').valuePeriod.start"
     text: Occupation
     type: group
     linkId: occupation-group
@@ -282,31 +222,22 @@ item:
   - text: Philhealth ID
     type: string
     linkId: philhealth-id
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: "%Patient.identifier.where(system='http://philhealth.gov.ph/fhir/Identifier/philhealth-id').value"
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Patient.identifier.where(system='http://philhealth.gov.ph/fhir/Identifier/philhealth-id').value"
   - text: PhilSys ID
     type: string
     linkId: philsys-id
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: "%Patient.identifier.where(system='http://philsys.gov.ph/fhir/Identifier/philsys-id').value"
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Patient.identifier.where(system='http://philsys.gov.ph/fhir/Identifier/philsys-id').value"
   - text: Preferred Language
     type: choice
     linkId: communication-language
     answerValueSet: http://hl7.org/fhir/ValueSet/languages
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Patient.communication.language.coding.first()'
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Patient.communication.language.coding.first()"
   - item:
       - text: Address use
         type: choice
@@ -332,22 +263,16 @@ item:
               system: http://hl7.org/fhir/address-use
               code: billing
               display: Billing
-        extension:
-          - url: >-
-              http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-            valueExpression:
-              language: text/fhirpath
-              expression: >-
-                %Questionnaire.repeat(item).where(linkId='address-use').answerOption.valueCoding.where(code=%context.use).first()
+        initialExpression:
+          language: text/fhirpath
+          expression: >-
+            %Questionnaire.repeat(item).where(linkId='address-use').answerOption.valueCoding.where(code=%context.use).first()
       - text: Address Line
         type: string
         linkId: address-line
-        extension:
-          - url: >-
-              http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-            valueExpression:
-              language: text/fhirpath
-              expression: '%context.line.first()'
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.line.first()"
       - text: Region
         type: choice
         linkId: address-region
@@ -358,12 +283,9 @@ item:
               system: https://psa.gov.ph/classification/psgc
               code: "0102800000"
               display: Ilocos Norte
-        extension:
-          - url: >-
-              http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-            valueExpression:
-              language: text/fhirpath
-              expression: "%context.extension('https://fhir.doh.gov.ph/phcore/StructureDefinition/region').valueCoding"
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.extension('https://fhir.doh.gov.ph/phcore/StructureDefinition/region').valueCoding"
       - text: Province
         type: choice
         linkId: address-province
@@ -374,12 +296,9 @@ item:
               system: https://psa.gov.ph/classification/psgc
               code: "1705100000"
               display: Occidental Mindoro
-        extension:
-          - url: >-
-              http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-            valueExpression:
-              language: text/fhirpath
-              expression: "%context.extension('https://fhir.doh.gov.ph/phcore/StructureDefinition/province').valueCoding"
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.extension('https://fhir.doh.gov.ph/phcore/StructureDefinition/province').valueCoding"
       - text: City Municipality
         type: choice
         linkId: address-city-municipality
@@ -390,12 +309,9 @@ item:
               system: https://psa.gov.ph/classification/psgc
               code: "1380100000"
               display: City of Caloocan
-        extension:
-          - url: >-
-              http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-            valueExpression:
-              language: text/fhirpath
-              expression: "%context.extension('https://fhir.doh.gov.ph/phcore/StructureDefinition/city-municipality').valueCoding"
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.extension('https://fhir.doh.gov.ph/phcore/StructureDefinition/city-municipality').valueCoding"
       - text: Barangay
         type: choice
         linkId: address-barangay
@@ -406,39 +322,27 @@ item:
               system: https://psa.gov.ph/classification/psgc
               code: "1380100001"
               display: Barangay 1
-        extension:
-          - url: >-
-              http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-            valueExpression:
-              language: text/fhirpath
-              expression: "%context.extension('https://fhir.doh.gov.ph/phcore/StructureDefinition/barangay').valueCoding"
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.extension('https://fhir.doh.gov.ph/phcore/StructureDefinition/barangay').valueCoding"
       - text: City
         type: string
         linkId: address-city
-        extension:
-          - url: >-
-              http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-            valueExpression:
-              language: text/fhirpath
-              expression: '%context.city'
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.city"
       - text: District
         type: string
         linkId: address-district
-        extension:
-          - url: >-
-              http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-            valueExpression:
-              language: text/fhirpath
-              expression: '%context.district'
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.district"
       - text: Postal Code
         type: string
         linkId: address-postal-code
-        extension:
-          - url: >-
-              http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-            valueExpression:
-              language: text/fhirpath
-              expression: '%context.postalCode'
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.postalCode"
       - text: Country
         type: choice
         linkId: address-country
@@ -447,56 +351,44 @@ item:
           - valueCoding:
               system: urn:iso:std:iso:3166
               code: PH
-        extension:
-          - url: >-
-              http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-            valueExpression:
-              language: text/fhirpath
-              expression: iif(%context.country.exists(), %context.country, 'PH')
+        initialExpression:
+          language: text/fhirpath
+          expression: iif(%context.country.exists(), %context.country, 'PH')
     text: Address
     type: group
     linkId: address-group
     repeats: true
     itemPopulationContext:
       language: text/fhirpath
-      expression: '%Patient.address'
+      expression: "%Patient.address"
       name: address
   - item:
       - text: Relationship
         type: choice
         linkId: contact-relationship
         answerValueSet: http://hl7.org/fhir/ValueSet/relatedperson-relationshiptype
-        extension:
-          - url: >-
-              http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-            valueExpression:
-              language: text/fhirpath
-              expression: '%context.relationship.coding.first()'
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.relationship.coding.first()"
       - text: Contact First Name
         type: string
         linkId: contact-first-name
-        extension:
-          - url: >-
-              http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-            valueExpression:
-              language: text/fhirpath
-              expression: '%context.name.given.first()'
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.name.given.first()"
       - text: Contact Last Name
         type: string
         linkId: contact-last-name
-        extension:
-          - url: >-
-              http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-            valueExpression:
-              language: text/fhirpath
-              expression: '%context.name.family'
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.name.family"
     text: Emergency Contact
     type: group
     linkId: contact-group
     repeats: true
     itemPopulationContext:
       language: text/fhirpath
-      expression: '%Patient.contact'
+      expression: "%Patient.contact"
       name: contact
 resourceType: Questionnaire
 title: Patient create PH

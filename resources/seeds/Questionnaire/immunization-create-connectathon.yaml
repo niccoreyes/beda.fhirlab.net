@@ -134,12 +134,9 @@ item:
     type: date
     linkId: occurrence-date
     required: true
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: now()
+    initialExpression:
+      language: text/fhirpath
+      expression: now()
   - text: Primary Source
     type: choice
     linkId: primary-source
