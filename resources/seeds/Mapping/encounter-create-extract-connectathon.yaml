@@ -1,82 +1,34 @@
 id: encounter-create-extract-connectathon
-resourceType: Mapping
 type: FHIRPath
+resourceType: Mapping
 body:
   "{% assign %}":
-    - id: "{{ %QuestionnaireResponse.answers('encounterId') }}"
-    - encounterIdentifier: "{{ %QuestionnaireResponse.answers('encounter-identifier') }}"
     - patientRef: "{{ %QuestionnaireResponse.answers('patient') }}"
     - practitionerRef: "{{ %QuestionnaireResponse.answers('practitioner') }}"
-    - participantType: "{{ %QuestionnaireResponse.answers('participant-type') }}"
     - organizationRef: "{{ %QuestionnaireResponse.answers('organization') }}"
-    - periodStart: "{{ %QuestionnaireResponse.answers('period-start') }}"
-    - periodEnd: "{{ %QuestionnaireResponse.answers('period-end') }}"
+    - date: "{{ %QuestionnaireResponse.answers('date') }}"
     - status: "{{ %QuestionnaireResponse.answers('status') }}"
-    - statusCode: "{{ %status.code }}"
-    - encounterClass: "{{ %QuestionnaireResponse.answers('class') }}"
-    - classDisplay: "{{ %encounterClass.display }}"
-    - encounterTypes: "{[ %QuestionnaireResponse.item.where(linkId='encounter-type').answer.valueCoding ]}"
-    - serviceType: "{{ %QuestionnaireResponse.answers('service-type') }}"
-    - priority: "{{ %QuestionnaireResponse.answers('priority') }}"
-    - reasonCodes: "{[ %QuestionnaireResponse.item.where(linkId='reason-code').answer.valueCoding ]}"
-    - narrativeDiv: "<div xmlns='http://www.w3.org/1999/xhtml'>PH Core Encounter — status {{ %statusCode }}, class {{ %classDisplay }}.</div>"
-    - addEncounter:
-        request:
-          "{% if %id.exists() %}":
-            url: /Encounter/{{ %id }}
-            method: PUT
-          "{% else %}":
-            url: /Encounter
-            method: POST
-        resource:
-          resourceType: Encounter
-          meta:
-            profile:
-              - https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-encounter
-          id: "{{ %id }}"
-          status: "{{ %statusCode }}"
-          class: "{{ %encounterClass }}"
-          text:
-            status: generated
-            div: "{{ %narrativeDiv }}"
-          identifier:
-            - "{% if %encounterIdentifier.exists() %}":
-                system: https://fhir.doh.gov.ph/phcore/Identifier/encounter-id
-                value: "{{ %encounterIdentifier }}"
-          subject: "{{ %patientRef }}"
-          participant:
-            - "{% if %practitionerRef.exists() or %participantType.exists() %}":
-                individual: "{{ %practitionerRef }}"
-                type:
-                  - coding:
-                      - "{{ %participantType }}"
-                    text: "{{ %participantType.display }}"
-          serviceProvider: "{{ %organizationRef }}"
-          type:
-            - "{% for encounterType in %encounterTypes %}":
-                coding:
-                  - "{{ %encounterType }}"
-                text: "{{ %encounterType.display }}"
-          serviceType:
-            "{% if %serviceType.exists() %}":
-              coding:
-                - "{{ %serviceType }}"
-              text: "{{ %serviceType.display }}"
-          priority:
-            "{% if %priority.exists() %}":
-              coding:
-                - "{{ %priority }}"
-              text: "{{ %priority.display }}"
-          reasonCode:
-            - "{% for reasonCode in %reasonCodes %}":
-                coding:
-                  - "{{ %reasonCode }}"
-                text: "{{ %reasonCode.display }}"
-          period:
-            "{% if %periodStart.exists() or %periodEnd.exists() %}":
-              start: "{{ %periodStart }}"
-              end: "{{ %periodEnd }}"
+    - class: "{{ %QuestionnaireResponse.answers('class') }}"
+
   resourceType: Bundle
   type: transaction
   entry:
-    - "{{ %addEncounter }}"
+    - request:
+        url: /Encounter
+        method: POST
+      resource:
+        meta:
+          profile:
+            - "urn://example.com/ph-core/fhir/StructureDefinition/ph-core-encounter"
+        resourceType: Encounter
+        status: "{{ %status.code }}"
+        class: "{{ %class }}"
+        subject:
+          "{% if %patientRef.exists() %}": "{{ %patientRef }}"
+        participant:
+          "{% if %practitionerRef.exists() %}":
+            - individual: "{{ %practitionerRef }}"
+        serviceProvider:
+          "{% if %organizationRef.exists() %}": "{{ %organizationRef }}"
+        period:
+          start: "{{ %date }}"
