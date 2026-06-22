@@ -1,0 +1,10 @@
+resourceType: ValueSet
+id: choice-list-orientation
+url: http://terminology.hl7.org/ValueSet/choice-list-orientation
+version: "1.0.0"
+name: ChoiceListOrientation
+title: Choice List Orientation
+status: active
+compose:
+  include:
+    - system: http://terminology.hl7.org/CodeSystem/choice-list-orientation
