@@ -1,73 +1,64 @@
+resourceType: Questionnaire
+id: procedure-create-connectathon
+name: procedure-create-connectathon
+title: Procedure create PH
+status: active
+url: procedure-create
+subjectType:
+  - Patient
 meta:
   profile:
     - https://emr-core.beda.software/StructureDefinition/fhir-emr-questionnaire
-name: procedure-create-connectathon
+mapping:
+  - reference: Mapping/procedure-create-connectathon
+launchContext:
+  - name:
+      code: Procedure
+    type:
+      - Procedure
 item:
-  - text: ProcedureId
+  - linkId: procedureId
+    text: ProcedureId
     type: string
-    linkId: procedureId
-    extension:
-      - url: http://hl7.org/fhir/StructureDefinition/questionnaire-hidden
-        valueBoolean: true
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Procedure.id'
-  - text: Patient
+    hidden: true
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Procedure.id"
+
+  - linkId: patient
+    text: Patient
     type: reference
-    linkId: patient
     required: true
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn
-        extension:
-          - url: path
-            valueString: >-
-              name.given.first() + ' ' + name.family.first()
-          - url: forDisplay
-            valueBoolean: true
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression
-        valueExpression:
-          language: application/x-fhir-query
-          expression: Patient
-      - url: >-
-          http://hl7.org/fhir/StructureDefinition/questionnaire-referenceResource
-        valueCode: Patient
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Procedure.subject'
-  - text: Encounter
+    referenceResource:
+      - Patient
+    answerExpression:
+      language: application/x-fhir-query
+      expression: Patient
+    choiceColumn:
+      - forDisplay: true
+        path: name.given.first() + ' ' + name.family.first()
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Procedure.subject"
+
+  - linkId: encounter
+    text: Encounter
     type: reference
-    linkId: encounter
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn
-        extension:
-          - url: path
-            valueString: >-
-              class.display + ' - ' + period.start.toString().split('.')[0].split('T')[0] + ' ' + period.start.toString().split('.')[0].split('T')[1]
-          - url: forDisplay
-            valueBoolean: true
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression
-        valueExpression:
-          language: application/x-fhir-query
-          expression: Encounter?patient={{%QuestionnaireResponse.repeat(item).where(linkId='patient').answer.valueReference.reference}}
-      - url: >-
-          http://hl7.org/fhir/StructureDefinition/questionnaire-referenceResource
-        valueCode: Encounter
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Procedure.encounter'
-  - text: Status
+    referenceResource:
+      - Encounter
+    answerExpression:
+      language: application/x-fhir-query
+      expression: "Encounter?patient={{%QuestionnaireResponse.repeat(item).where(linkId='patient').answer.valueReference.reference}}"
+    choiceColumn:
+      - forDisplay: true
+        path: class.display + ' - ' + period.start.toString().split('.')[0].split('T')[0] + ' ' + period.start.toString().split('.')[0].split('T')[1]
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Procedure.encounter"
+
+  - linkId: status
+    text: Status
     type: choice
-    linkId: status
     required: true
     answerOption:
       - valueCoding:
@@ -102,89 +93,54 @@ item:
           system: http://hl7.org/fhir/event-status
           code: unknown
           display: Unknown
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: >-
-            iif(%Procedure.status.exists(), %Questionnaire.repeat(item).where(linkId='status').answerOption.valueCoding.where(code=%Procedure.status).first(), %Questionnaire.repeat(item).where(linkId='status').answerOption.valueCoding.where(code='completed').first())
-  - text: Category
+    initialExpression:
+      language: text/fhirpath
+      expression: "iif(%Procedure.status.exists(), %Questionnaire.repeat(item).where(linkId='status').answerOption.valueCoding.where(code=%Procedure.status).first(), %Questionnaire.repeat(item).where(linkId='status').answerOption.valueCoding.where(code='completed').first())"
+
+  - linkId: category
+    text: Category
     type: choice
-    linkId: category
     answerValueSet: http://hl7.org/fhir/ValueSet/procedure-category
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Procedure.category.coding.first()'
-  - text: Procedure Code
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Procedure.category.coding.first()"
+
+  - linkId: code
+    text: Procedure Code
     type: choice
-    linkId: code
     answerValueSet: http://hl7.org/fhir/ValueSet/procedure-code
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Procedure.code.coding.first()'
-  - text: Performed date and time
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Procedure.code.coding.first()"
+
+  - linkId: performed-date-time
+    text: Performed date and time
     type: dateTime
-    linkId: performed-date-time
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: >-
-            iif(%Procedure.performedDateTime.exists(), %Procedure.performedDateTime, %Procedure.performedPeriod.start)
-  - text: Body site
+    initialExpression:
+      language: text/fhirpath
+      expression: "iif(%Procedure.performedDateTime.exists(), %Procedure.performedDateTime, %Procedure.performedPeriod.start)"
+
+  - linkId: body-site
+    text: Body site
     type: choice
-    linkId: body-site
     answerValueSet: http://hl7.org/fhir/ValueSet/body-site
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Procedure.bodySite.coding.first()'
-  - text: Reason
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Procedure.bodySite.coding.first()"
+
+  - linkId: reason-code
+    text: Reason
     type: choice
-    linkId: reason-code
     repeats: true
     answerValueSet: http://hl7.org/fhir/ValueSet/procedure-reason
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Procedure.reasonCode.coding'
-  - text: Outcome
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Procedure.reasonCode.coding"
+
+  - linkId: outcome
+    text: Outcome
     type: choice
-    linkId: outcome
     answerValueSet: http://hl7.org/fhir/ValueSet/procedure-outcome
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Procedure.outcome.coding.first()'
-resourceType: Questionnaire
-title: Procedure create PH
-subjectType:
-  - Patient
-extension:
-  - url: https://emr-core.beda.software/StructureDefinition/questionnaire-mapper
-    valueReference:
-      reference: Mapping/procedure-create-connectathon
-  - url: http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-launchContext
-    extension:
-      - url: name
-        valueCoding:
-          code: Procedure
-      - url: type
-        valueCode: Procedure
-status: active
-id: procedure-create-connectathon
-url: procedure-create
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Procedure.outcome.coding.first()"
