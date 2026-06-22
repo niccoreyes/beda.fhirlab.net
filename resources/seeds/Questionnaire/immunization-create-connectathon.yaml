@@ -1,48 +1,49 @@
+resourceType: Questionnaire
+id: immunization-create-connectathon
+name: immunization-create-connectathon
+title: Immunization create PH
+status: active
+url: immunization-create
+subjectType:
+  - Patient
 meta:
   profile:
     - https://emr-core.beda.software/StructureDefinition/fhir-emr-questionnaire
-name: immunization-create-connectathon
+mapping:
+  - reference: Mapping/immunization-create-extract-connectathon
+launchContext:
+  - name:
+      code: Immunization
+    type:
+      - Immunization
 item:
-  - text: ImmunizationId
+  - linkId: immunizationId
+    text: ImmunizationId
     type: string
-    linkId: immunizationId
-    extension:
-      - url: http://hl7.org/fhir/StructureDefinition/questionnaire-hidden
-        valueBoolean: true
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Immunization.id'
-  - text: Patient
+    hidden: true
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Immunization.id"
+
+  - linkId: patient
+    text: Patient
     type: reference
-    linkId: patient
     required: true
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn
-        extension:
-          - url: path
-            valueString: >-
-              name.given.first() + ' ' + name.family.first()
-          - url: forDisplay
-            valueBoolean: true
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression
-        valueExpression:
-          language: application/x-fhir-query
-          expression: Patient
-      - url: >-
-          http://hl7.org/fhir/StructureDefinition/questionnaire-referenceResource
-        valueCode: Patient
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Immunization.patient'
-  - text: Status
+    referenceResource:
+      - Patient
+    answerExpression:
+      language: application/x-fhir-query
+      expression: Patient
+    choiceColumn:
+      - forDisplay: true
+        path: name.given.first() + ' ' + name.family.first()
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Immunization.patient"
+
+  - linkId: status
+    text: Status
     type: choice
-    linkId: status
     required: true
     answerOption:
       - valueCoding:
@@ -57,310 +58,212 @@ item:
           system: http://hl7.org/fhir/event-status
           code: not-done
           display: Not Done
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: >-
-            iif(%Immunization.status.exists(), %Questionnaire.repeat(item).where(linkId='status').answerOption.valueCoding.where(code=%Immunization.status).first(), %Questionnaire.repeat(item).where(linkId='status').answerOption.valueCoding.where(code='completed').first())
-  - text: Status reason
+    initialExpression:
+      language: text/fhirpath
+      expression: "iif(%Immunization.status.exists(), %Questionnaire.repeat(item).where(linkId='status').answerOption.valueCoding.where(code=%Immunization.status).first(), %Questionnaire.repeat(item).where(linkId='status').answerOption.valueCoding.where(code='completed').first())"
+
+  - linkId: status-reason
+    text: Status reason
     type: choice
-    linkId: status-reason
     answerValueSet: http://hl7.org/fhir/ValueSet/immunization-status-reason
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Immunization.statusReason.coding.first()'
-  - text: Vaccine Code
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Immunization.statusReason.coding.first()"
+
+  - linkId: vaccine-code
+    text: Vaccine Code
     type: choice
-    linkId: vaccine-code
     required: true
     answerValueSet: http://hl7.org/fhir/ValueSet/vaccine-code
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Immunization.vaccineCode.coding.first()'
-  - text: Occurrence date and time
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Immunization.vaccineCode.coding.first()"
+
+  - linkId: occurrence-date-time
+    text: Occurrence date and time
     type: dateTime
-    linkId: occurrence-date-time
     required: true
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Immunization.occurrenceDateTime'
-  - text: Encounter
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Immunization.occurrenceDateTime"
+
+  - linkId: encounter
+    text: Encounter
     type: reference
-    linkId: encounter
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn
-        extension:
-          - url: path
-            valueString: >-
-              class.display + ' - ' + period.start.toString().split('.')[0].split('T')[0] + ' ' + period.start.toString().split('.')[0].split('T')[1]
-          - url: forDisplay
-            valueBoolean: true
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression
-        valueExpression:
-          language: application/x-fhir-query
-          expression: Encounter?patient={{%QuestionnaireResponse.repeat(item).where(linkId='patient').answer.valueReference.reference}}
-      - url: >-
-          http://hl7.org/fhir/StructureDefinition/questionnaire-referenceResource
-        valueCode: Encounter
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Immunization.encounter'
-  - text: Performer (Practitioner)
+    referenceResource:
+      - Encounter
+    answerExpression:
+      language: application/x-fhir-query
+      expression: "Encounter?patient={{%QuestionnaireResponse.repeat(item).where(linkId='patient').answer.valueReference.reference}}"
+    choiceColumn:
+      - forDisplay: true
+        path: class.display + ' - ' + period.start.toString().split('.')[0].split('T')[0] + ' ' + period.start.toString().split('.')[0].split('T')[1]
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Immunization.encounter"
+
+  - linkId: performer
+    text: Performer (Practitioner)
     type: reference
-    linkId: performer
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn
-        extension:
-          - url: path
-            valueString: >-
-              name.given.first() + ' ' + name.family
-          - url: forDisplay
-            valueBoolean: true
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression
-        valueExpression:
-          language: application/x-fhir-query
-          expression: Practitioner
-      - url: >-
-          http://hl7.org/fhir/StructureDefinition/questionnaire-referenceResource
-        valueCode: Practitioner
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Immunization.performer.first().actor'
-  - text: Performer function
+    referenceResource:
+      - Practitioner
+    answerExpression:
+      language: application/x-fhir-query
+      expression: Practitioner
+    choiceColumn:
+      - forDisplay: true
+        path: name.given.first() + ' ' + name.family
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Immunization.performer.first().actor"
+
+  - linkId: performer-function
+    text: Performer function
     type: choice
-    linkId: performer-function
     answerValueSet: http://hl7.org/fhir/ValueSet/immunization-function
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Immunization.performer.first().function.coding.first()'
-  - text: Primary source
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Immunization.performer.first().function.coding.first()"
+
+  - linkId: primary-source
+    text: Primary source
     type: choice
-    linkId: primary-source
+    itemControl:
+      coding:
+        - code: inline-choice
     extension:
-      - url: http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl
-        valueCodeableConcept:
-          coding:
-            - code: inline-choice
-      - url: >-
-          https://emr-core.beda.software/StructureDefinition/inline-choice-direction
+      - url: https://emr-core.beda.software/StructureDefinition/inline-choice-direction
         valueString: horizontal
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: >-
-            iif(%Immunization.primarySource = true, %Questionnaire.repeat(item).where(linkId='primary-source').answerOption.valueCoding.where(code='yes').first(), iif(%Immunization.primarySource = false, %Questionnaire.repeat(item).where(linkId='primary-source').answerOption.valueCoding.where(code='no').first(), {}))
     answerOption:
       - valueCoding:
-          code: 'yes'
-          display: 'Yes'
+          code: "yes"
+          display: "Yes"
       - valueCoding:
-          code: 'no'
-          display: 'No'
-  - text: Report origin
+          code: "no"
+          display: "No"
+    initialExpression:
+      language: text/fhirpath
+      expression: "iif(%Immunization.primarySource = true, %Questionnaire.repeat(item).where(linkId='primary-source').answerOption.valueCoding.where(code='yes').first(), iif(%Immunization.primarySource = false, %Questionnaire.repeat(item).where(linkId='primary-source').answerOption.valueCoding.where(code='no').first(), {}))"
+
+  - linkId: report-origin
+    text: Report origin
     type: choice
-    linkId: report-origin
     answerValueSet: http://hl7.org/fhir/ValueSet/immunization-origin
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Immunization.reportOrigin.coding.first()'
-  - text: Location
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Immunization.reportOrigin.coding.first()"
+
+  - linkId: location
+    text: Location
     type: reference
-    linkId: location
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn
-        extension:
-          - url: path
-            valueString: name
-          - url: forDisplay
-            valueBoolean: true
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression
-        valueExpression:
-          language: application/x-fhir-query
-          expression: Location
-      - url: >-
-          http://hl7.org/fhir/StructureDefinition/questionnaire-referenceResource
-        valueCode: Location
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Immunization.location'
-  - text: Lot number
+    referenceResource:
+      - Location
+    answerExpression:
+      language: application/x-fhir-query
+      expression: Location
+    choiceColumn:
+      - forDisplay: true
+        path: name
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Immunization.location"
+
+  - linkId: lot-number
+    text: Lot number
     type: string
-    linkId: lot-number
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Immunization.lotNumber'
-  - text: Batch number
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Immunization.lotNumber"
+
+  - linkId: batch-number
+    text: Batch number
     type: string
-    linkId: batch-number
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: >-
-            %Immunization.extension.where(url='https://fhir.doh.gov.ph/phcore/StructureDefinition/batch-number').valueString.first()
-  - text: Administered product
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Immunization.extension.where(url='https://fhir.doh.gov.ph/phcore/StructureDefinition/batch-number').valueString.first()"
+
+  - linkId: administered-product
+    text: Administered product
     type: reference
-    linkId: administered-product
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn
-        extension:
-          - url: path
-            valueString: code.coding.first().display
-          - url: forDisplay
-            valueBoolean: true
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression
-        valueExpression:
-          language: application/x-fhir-query
-          expression: Medication
-      - url: >-
-          http://hl7.org/fhir/StructureDefinition/questionnaire-referenceResource
-        valueCode: Medication
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: >-
-            %Immunization.extension.where(url='https://fhir.doh.gov.ph/phcore/StructureDefinition/administered-product').valueReference.first()
-  - text: Route
+    referenceResource:
+      - Medication
+    answerExpression:
+      language: application/x-fhir-query
+      expression: Medication
+    choiceColumn:
+      - forDisplay: true
+        path: code.coding.first().display
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Immunization.extension.where(url='https://fhir.doh.gov.ph/phcore/StructureDefinition/administered-product').valueReference.first()"
+
+  - linkId: route
+    text: Route
     type: choice
-    linkId: route
     answerValueSet: http://hl7.org/fhir/ValueSet/immunization-route
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Immunization.route.coding.first()'
-  - text: Site
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Immunization.route.coding.first()"
+
+  - linkId: site
+    text: Site
     type: choice
-    linkId: site
     answerValueSet: http://hl7.org/fhir/ValueSet/immunization-site
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Immunization.site.coding.first()'
-  - text: Funding source
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Immunization.site.coding.first()"
+
+  - linkId: funding-source
+    text: Funding source
     type: choice
-    linkId: funding-source
     answerValueSet: http://hl7.org/fhir/ValueSet/immunization-funding-source
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Immunization.fundingSource.coding.first()'
-  - text: Reason
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Immunization.fundingSource.coding.first()"
+
+  - linkId: reason-code
+    text: Reason
     type: choice
-    linkId: reason-code
     repeats: true
     answerValueSet: http://hl7.org/fhir/ValueSet/immunization-reason
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Immunization.reasonCode.coding'
-  - text: Subpotent reason
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Immunization.reasonCode.coding"
+
+  - linkId: subpotent-reason
+    text: Subpotent reason
     type: choice
-    linkId: subpotent-reason
     answerValueSet: http://hl7.org/fhir/ValueSet/immunization-subpotent-reason
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Immunization.subpotentReason.first().coding.first()'
-  - text: Program eligibility
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Immunization.subpotentReason.first().coding.first()"
+
+  - linkId: program-eligibility
+    text: Program eligibility
     type: choice
-    linkId: program-eligibility
     answerValueSet: http://hl7.org/fhir/ValueSet/immunization-program-eligibility
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Immunization.programEligibility.first().coding.first()'
-  - text: Dose number
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Immunization.programEligibility.first().coding.first()"
+
+  - linkId: dose-number
+    text: Dose number
     type: integer
-    linkId: dose-number
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Immunization.protocolApplied.first().doseNumberPositiveInt'
-  - text: Target disease
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Immunization.protocolApplied.first().doseNumberPositiveInt"
+
+  - linkId: target-disease
+    text: Target disease
     type: choice
-    linkId: target-disease
     answerValueSet: http://hl7.org/fhir/ValueSet/immunization-target-disease
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Immunization.protocolApplied.first().targetDisease.first().coding.first()'
-  - text: Note
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Immunization.protocolApplied.first().targetDisease.first().coding.first()"
+
+  - linkId: note
+    text: Note
     type: text
-    linkId: note
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: '%Immunization.note.text.first()'
-resourceType: Questionnaire
-title: Immunization create PH
-subjectType:
-  - Patient
-extension:
-  - url: https://emr-core.beda.software/StructureDefinition/questionnaire-mapper
-    valueReference:
-      reference: Mapping/immunization-create-extract-connectathon
-  - url: http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-launchContext
-    extension:
-      - url: name
-        valueCoding:
-          code: Immunization
-      - url: type
-        valueCode: Immunization
-status: active
-id: immunization-create-connectathon
-url: immunization-create
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Immunization.note.text.first()"

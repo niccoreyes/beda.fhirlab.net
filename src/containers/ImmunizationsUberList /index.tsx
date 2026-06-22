@@ -8,31 +8,15 @@ import { compileAsArray, compileAsFirst, formatHumanDateTime } from '@beda.softw
 
 export const getPerformers = compileAsArray<Immunization, Reference>('Immunization.performer.actor');
 
-export const getVaccineCode = compileAsFirst<Immunization, string>('Immunization.vaccineCode.coding.first().display');
-
-function getPatientLabel(patient?: Reference): string | undefined {
-    if (!patient) {
-        return undefined;
-    }
-    if (patient.display) {
-        return patient.display;
-    }
-    if (patient.reference) {
-        return patient.reference;
-    }
-    const aidboxPatient = patient as Reference & { id?: string; resourceType?: string };
-    if (aidboxPatient.id && aidboxPatient.resourceType) {
-        return `${aidboxPatient.resourceType}/${aidboxPatient.id}`;
-    }
-    return undefined;
-}
-
-function getOccurrenceDateTime(resource: Immunization): string | undefined {
-    return (
-        resource.occurrenceDateTime ??
-        (resource as Immunization & { occurrence?: { dateTime?: string } }).occurrence?.dateTime
-    );
-}
+export const getVaccineCode = compileAsFirst<Immunization, string>(
+    'Immunization.vaccineCode.text | Immunization.vaccineCode.coding.first().display',
+);
+export const getPatientLabel = compileAsFirst<Immunization, string>(
+    'Immunization.patient.display | Immunization.patient.reference',
+);
+export const getOccurrenceDateTime = compileAsFirst<Immunization, string>(
+    'Immunization.occurrenceDateTime | Immunization.occurrencePeriod.start',
+);
 
 export function ImmunizationsUberList() {
     return (
@@ -60,13 +44,13 @@ export function ImmunizationsUberList() {
                     key: 'vaccine',
                     width: 250,
                     render: (_text: any, { resource }) =>
-                        resource.vaccineCode?.text ?? getVaccineCode(resource) ?? resource.vaccineCode?.coding?.[0]?.display,
+                        getVaccineCode(resource),
                 },
                 {
                     title: 'Patient',
                     dataIndex: 'patient',
                     key: 'patient',
-                    render: (_text: any, { resource }) => getPatientLabel(resource.patient),
+                    render: (_text: any, { resource }) => getPatientLabel(resource),
                 },
                 {
                     title: 'Performer',
