@@ -29,24 +29,30 @@ address:
       - url: https://fhir.doh.gov.ph/phcore/StructureDefinition/region
         valueCoding:
           code: '1300000000'
-          system: https://fhir.doh.gov.ph/phcore/CodeSystem/PSGC
-          display: National Capital Region
+          system: https://psa.gov.ph/classification/psgc
+          display: National Capital Region (NCR)
       - url: https://fhir.doh.gov.ph/phcore/StructureDefinition/province
         valueCoding:
-          code: '1339000000'
-          system: https://fhir.doh.gov.ph/phcore/CodeSystem/PSGC
-          display: Metro Manila
+          code: '0349000000'
+          system: https://psa.gov.ph/classification/psgc
+          display: Pampanga
       - url: https://fhir.doh.gov.ph/phcore/StructureDefinition/city-municipality
         valueCoding:
-          code: '1376000000'
-          system: https://fhir.doh.gov.ph/phcore/CodeSystem/PSGC
+          code: '1380600000'
+          system: https://psa.gov.ph/classification/psgc
           display: City of Manila
     city: Manila
     district: NCR
     postalCode: '1003'
     country: PH
 contact:
-  - name:
+  - purpose:
+      coding:
+        - system: http://hl7.org/fhir/contactentity-type
+          code: ADMIN
+          display: Administrative
+      text: Administrative
+    name:
       text: Health Facility Contact
     telecom:
       - system: phone
