@@ -1,6 +1,6 @@
 services:
   sdc:
-    image: bedasoftware/fhir-sdc:2.0.0a2
+    image: bedasoftware/fhir-sdc:2.1.0a6
     depends_on:
       devbox:
         condition: service_healthy
@@ -60,13 +60,6 @@ services:
       - ./resources/seeds:/app/resources:ro
     env_file:
       - ./env/build-seeds
-  fhir-converters-app:
-    image: bedasoftware/aidbox-fhir-converter:main
-    depends_on:
-      devbox:
-        condition: service_healthy
-    env_file:
-      - ./env/fhir-converters-app
   questionnaire-fce-fhir-converter:
     image: bedasoftware/questionnaire-fce-fhir-converter:latest
     healthcheck:
