@@ -3,85 +3,64 @@ resourceType: Mapping
 type: FHIRPath
 body:
   "{% assign %}":
-    - id: "{{ %QuestionnaireResponse.answers('practitionerId') }}"
     - firstName: "{{ %QuestionnaireResponse.answers('first-name') }}"
-    - middleName: "{{ %QuestionnaireResponse.answers('middle-name') }}"
     - lastName: "{{ %QuestionnaireResponse.answers('last-name') }}"
     - gender: "{{ %QuestionnaireResponse.answers('gender') }}"
     - birthDate: "{{ %QuestionnaireResponse.answers('birth-date') }}"
     - phone: "{{ %QuestionnaireResponse.answers('phone') }}"
     - email: "{{ %QuestionnaireResponse.answers('email') }}"
-    - communicationLanguages: "{[ %QuestionnaireResponse.item.where(linkId='communication-language').answer.valueCoding ]}"
-    - addressGroupItems: "{[ %QuestionnaireResponse.item.where(linkId='address-group') ]}"
-    - addPractitioner:
-        request:
-          "{% if %id.exists() %}":
-            url: /Practitioner/{{ %id }}
-            method: PUT
-          "{% else %}":
-            url: /Practitioner
-            method: POST
-        resource:
-          resourceType: Practitioner
-          active: true
-          meta:
-            profile:
-              - https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-practitioner
-          id: "{{ %id }}"
-          name:
-            - use: official
-              given:
-                - "{{ %firstName }}"
-                - "{{ %middleName }}"
-              family: "{{ %lastName }}"
-          gender: "{{ %gender.code }}"
-          birthDate: "{{ %birthDate }}"
-          telecom:
-            - system: phone
-              value: "{{ %phone }}"
-              use: mobile
-            - system: email
-              value: "{{ %email }}"
-              use: work
-          communication:
-            - "{% for language in %communicationLanguages %}":
-                coding:
-                  - "{{ %language }}"
-                text: "{{ %language.display }}"
-          address:
-            - "{% for addressItem in %addressGroupItems %}":
-                "{% assign %}":
-                  - addressUse: "{{ %addressItem.item.where(linkId='address-use').answer.valueCoding.first() }}"
-                  - addressLine: "{{ %addressItem.item.where(linkId='address-line').answer.valueString.first() }}"
-                  - addressRegion: "{{ %addressItem.item.where(linkId='address-region').answer.valueCoding.first() }}"
-                  - addressProvince: "{{ %addressItem.item.where(linkId='address-province').answer.valueCoding.first() }}"
-                  - addressCityMunicipality: "{{ %addressItem.item.where(linkId='address-city-municipality').answer.valueCoding.first() }}"
-                  - addressBarangay: "{{ %addressItem.item.where(linkId='address-barangay').answer.valueCoding.first() }}"
-                  - addressCity: "{{ %addressItem.item.where(linkId='address-city').answer.valueString.first() }}"
-                  - addressDistrict: "{{ %addressItem.item.where(linkId='address-district').answer.valueString.first() }}"
-                  - addressPostalCode: "{{ %addressItem.item.where(linkId='address-postal-code').answer.valueString.first() }}"
-                  - addressCountry: "{{ %addressItem.item.where(linkId='address-country').answer.valueCoding.first() }}"
-                use: "{{ %addressUse.code }}"
-                line:
-                  - "{{ %addressLine }}"
-                extension:
-                  - "{% if %addressRegion.exists() %}":
-                      url: https://fhir.doh.gov.ph/phcore/StructureDefinition/region
-                      valueCoding: "{{ %addressRegion }}"
-                  - "{% if %addressProvince.exists() %}":
-                      url: https://fhir.doh.gov.ph/phcore/StructureDefinition/province
-                      valueCoding: "{{ %addressProvince }}"
-                  - "{% if %addressCityMunicipality.exists() %}":
-                      url: https://fhir.doh.gov.ph/phcore/StructureDefinition/city-municipality
-                      valueCoding: "{{ %addressCityMunicipality }}"
-                  - "{% if %addressBarangay.exists() %}":
-                      url: https://fhir.doh.gov.ph/phcore/StructureDefinition/barangay
-                      valueCoding: "{{ %addressBarangay }}"
-                city: "{{ %addressCity }}"
-                district: "{{ %addressDistrict }}"
-                postalCode: "{{ %addressPostalCode }}"
-                country: "{{ %addressCountry.code }}"
+    - addAddress: "{{ %QuestionnaireResponse.answers('add-address') }}"
+    - addressUse: "{{ %QuestionnaireResponse.answers('address-use') }}"
+    - addressRegion: "{{ %QuestionnaireResponse.answers('address-region') }}"
+    - province: "{{ %QuestionnaireResponse.answers('address-province') }}"
+    - cityMunicipality: "{{ %QuestionnaireResponse.answers('address-city-municipality') }}"
+    - barangay: "{{ %QuestionnaireResponse.answers('address-barangay') }}"
+
   resourceType: Bundle
   type: transaction
   entry:
-    - "{{ %addPractitioner }}"
+    - "{% if %gender.exists() or %birthDate.exists() or %phone.exists() or %email.exists() or %firstName.exists() or %lastName.exists() or %addAddress %}":
+        request:
+          method: POST
+          url: /Practitioner
+        resource:
+          resourceType: Practitioner
+          meta:
+            profile:
+            - urn://example.com/ph-core/fhir/StructureDefinition/ph-core-practitioner
+          gender:
+            "{% if %gender.exists() %}": "{{ %gender.code }}"
+          birthDate:
+            "{% if %birthDate.exists() %}": "{{ %birthDate }}"
+          telecom:
+            "{% if %phone.exists() or %email.exists() %}":
+              - "{% if %phone.exists() %}":
+                  system: phone
+                  value: "{{ %phone }}"
+                  use: mobile
+              - "{% if %email.exists() %}":
+                  system: email
+                  value: "{{ %email }}"
+                  use: work
+          name:
+            "{% if %firstName.exists() or %lastName.exists() %}":
+              - given:
+                  "{% if %firstName.exists() %}":
+                    - "{{ %firstName }}"
+                family: "{{ %lastName }}"
+          "{% if %addAddress %}":
+            address:
+              - use: "{{ %addressUse.code }}"
+                extension:
+                  - "{% if %addressRegion.exists() %}":
+                      url: urn://example.com/ph-core/fhir/StructureDefinition/region
+                      valueCoding: "{{ %addressRegion }}"
+                  - "{% if %province.exists() %}":
+                      url: urn://example.com/ph-core/fhir/StructureDefinition/province
+                      valueCoding: "{{ %province }}"
+                  - "{% if %cityMunicipality.exists() %}":
+                      url: urn://example.com/ph-core/fhir/StructureDefinition/city-municipality
+                      valueCoding: "{{ %cityMunicipality }}"
+                  - "{% if %barangay.exists() %}":
+                      url: urn://example.com/ph-core/fhir/StructureDefinition/barangay
+                      valueCoding: "{{ %barangay }}"
