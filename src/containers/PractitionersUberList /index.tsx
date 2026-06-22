@@ -7,7 +7,7 @@ import { SearchBarColumnType } from '@beda.software/emr/dist/components/SearchBa
 import { renderHumanName, formatHumanDate, compileAsFirst } from '@beda.software/emr/utils';
 
 const getCommunicationLanguages = compileAsFirst<Practitioner, string>(
-    "Practitioner.communication.select(text | coding.first().display | coding.first().code).join(', ')",
+    'Practitioner.communication.coding.display.join(\', \')',
 );
 
 export function PractitionersUberList() {
