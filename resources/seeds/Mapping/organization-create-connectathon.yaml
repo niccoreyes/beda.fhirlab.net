@@ -5,13 +5,11 @@ body:
   "{% assign %}":
     - id: "{{ %QuestionnaireResponse.answers('organizationId') }}"
     - orgName: "{{ %QuestionnaireResponse.answers('organization-name') }}"
-    - organizationName: "{{ %Organization.name }}"
     - nhfrCode: "{{ %QuestionnaireResponse.answers('nhfr-code') }}"
     - hcpnCode: "{{ %QuestionnaireResponse.answers('hcpn-code') }}"
     - pan: "{{ %QuestionnaireResponse.answers('pan') }}"
     - pen: "{{ %QuestionnaireResponse.answers('pen') }}"
     - active: "{{ %QuestionnaireResponse.answers('active') }}"
-    - organizationActive: "{{ %Organization.active }}"
     - phone: "{{ %QuestionnaireResponse.answers('phone') }}"
     - email: "{{ %QuestionnaireResponse.answers('email') }}"
     - organizationTypes: "{[ %QuestionnaireResponse.repeat(item).where(linkId='organization-type').answer.valueCoding ]}"
@@ -32,8 +30,8 @@ body:
               - https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-organization
           id:
             "{% if %id.exists() %}": "{{ %id }}"
-          name: "{{ iif(%orgName.exists(), %orgName, %organizationName) }}"
-          active: "{{ iif(%active.exists(), %active, iif(%organizationActive.exists(), %organizationActive, true)) }}"
+          name: "{{ %orgName }}"
+          active: "{{ %active }}"
           "{% merge %}":
             - "{% if %nhfrCode.exists() or %hcpnCode.exists() or %pan.exists() or %pen.exists() %}":
                 identifier:
@@ -107,7 +105,7 @@ body:
                           - "{% if %addressPostalCode.exists() %}":
                               postalCode: "{{ %addressPostalCode }}"
                           - "{% if %addressCountry.exists() %}":
-                              country: "{{ iif(%addressCountry.code.exists(), %addressCountry.code, %addressCountry) }}"
+                              country: "{{ %addressCountry.code }}"
             - "{% if %contactGroupItems.exists() %}":
                 contact:
                   - "{% for contactItem in %contactGroupItems %}":
