@@ -12,16 +12,14 @@ body:
     - periodStart: "{{ %QuestionnaireResponse.answers('period-start') }}"
     - periodEnd: "{{ %QuestionnaireResponse.answers('period-end') }}"
     - status: "{{ %QuestionnaireResponse.answers('status') }}"
-    - encounterStatus: "{{ %Encounter.status }}"
-    - statusCode: "{{ iif(%status.code.exists(), %status.code, iif(%status.exists(), %status, %encounterStatus)) }}"
+    - statusCode: "{{ %status.coding.code }}"
     - encounterClass: "{{ %QuestionnaireResponse.answers('class') }}"
-    - encounterClassExisting: "{{ %Encounter.class }}"
-    - classDisplay: "{{ iif(%encounterClass.display.exists(), %encounterClass.display, %encounterClassExisting.display) }}"
+    - classDisplay: "{{ %encounterClass.display }}"
     - encounterTypes: "{[ %QuestionnaireResponse.repeat(item).where(linkId='encounter-type').answer.valueCoding ]}"
     - serviceType: "{{ %QuestionnaireResponse.answers('service-type') }}"
     - priority: "{{ %QuestionnaireResponse.answers('priority') }}"
     - reasonCodes: "{[ %QuestionnaireResponse.repeat(item).where(linkId='reason-code').answer.valueCoding ]}"
-    - narrativeDiv: "<div xmlns='http://www.w3.org/1999/xhtml'>PH Core Encounter{{ iif(%patientRef.display.exists(), ' for ' + %patientRef.display, '') }} — status {{ %statusCode }}{{ iif(%classDisplay.exists(), ', class ' + %classDisplay, '') }}.</div>"
+    - narrativeDiv: "<div xmlns='http://www.w3.org/1999/xhtml'>PH Core Encounter — status {{ %statusCode }}, class {{ %classDisplay }}.</div>"
     - addEncounter:
         request:
           "{% if %id.exists() %}":
@@ -38,7 +36,7 @@ body:
           id:
             "{% if %id.exists() %}": "{{ %id }}"
           status: "{{ %statusCode }}"
-          class: "{{ iif(%encounterClass.exists(), %encounterClass, %encounterClassExisting) }}"
+          class: "{{ %encounterClass }}"
           text:
             status: generated
             div: "{{ %narrativeDiv }}"
