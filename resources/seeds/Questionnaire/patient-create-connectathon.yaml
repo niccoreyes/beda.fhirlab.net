@@ -180,6 +180,9 @@ item:
     text: "Indigenous Group"
     type: choice
     repeats: true
+    itemControl:
+      coding:
+        - code: inline-choice
     enableWhen:
       - answerCoding:
           code: "yes"
@@ -189,16 +192,16 @@ item:
     # answerValueSet: https://fhir.doh.gov.ph/phcore/ValueSet/indigenous-groups-vs
     answerOption:
       - valueCoding:
-          system: "https://fhir.doh.gov.ph/phcore/CodeSystem/indigenous-groups"
+          system: "https://fhir.doh.gov.ph/phcore/CodeSystem/indigenous-groups-cs"
           code: Ilongots
           display: Ilongots
       - valueCoding:
-          system: "https://fhir.doh.gov.ph/phcore/CodeSystem/indigenous-groups"
+          system: "https://fhir.doh.gov.ph/phcore/CodeSystem/indigenous-groups-cs"
           code: Aetas
           display: Aetas
     initialExpression:
       language: text/fhirpath
-      expression: |-
+      expression: >-
         %Questionnaire.repeat(item).where(linkId='indigenous-group').answerOption.valueCoding.where(code in %Patient.extension.where(url='https://fhir.doh.gov.ph/phcore/StructureDefinition/indigenous-group').valueCodeableConcept.coding.code)
 
   - linkId: race
