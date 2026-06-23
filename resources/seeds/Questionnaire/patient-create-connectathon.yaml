@@ -180,9 +180,6 @@ item:
     text: "Indigenous Group"
     type: choice
     repeats: true
-    itemControl:
-      coding:
-        - code: inline-choice
     enableWhen:
       - answerCoding:
           code: "yes"
