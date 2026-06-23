@@ -1,165 +1,229 @@
+resourceType: Questionnaire
+id: observation-create-connectathon
+name: observation-create-connectathon
+title: Observation create PH
+status: active
+url: observation-create
+subjectType:
+  - Patient
 meta:
   profile:
     - https://emr-core.beda.software/StructureDefinition/fhir-emr-questionnaire
-name: observation-create-connectathon
+mapping:
+  - reference: Mapping/observation-create-connectathon
+launchContext:
+  - name:
+      code: Patient
+    type:
+      - Patient
 item:
-  - text: Patient
+  - linkId: patient
+    text: Patient
     type: reference
-    linkId: patient
     required: true
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn
-        extension:
-          - url: path
-            valueString: >-
-              name.given.first() + ' ' + name.family.first()
-          - url: forDisplay
-            valueBoolean: true
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression
-        valueExpression:
-          language: application/x-fhir-query
-          expression: Patient
-      - url: >-
-          http://hl7.org/fhir/StructureDefinition/questionnaire-referenceResource
-        valueCode: Patient
-  - text: Height
+    referenceResource:
+      - Patient
+    answerExpression:
+      language: application/x-fhir-query
+      expression: Patient
+    choiceColumn:
+      - forDisplay: true
+        path: name.given.first() + ' ' + name.family.first()
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Patient"
+
+  - linkId: encounter
+    text: Encounter
+    type: reference
+    referenceResource:
+      - Encounter
+    answerExpression:
+      language: application/x-fhir-query
+      expression: "Encounter?patient={{%QuestionnaireResponse.repeat(item).where(linkId='patient').answer.valueReference.reference}}"
+    choiceColumn:
+      - forDisplay: true
+        path: class.display + ' - ' + period.start.toString()
+
+  - linkId: performer
+    text: Performer
+    type: reference
+    referenceResource:
+      - Practitioner
+    answerExpression:
+      language: application/x-fhir-query
+      expression: Practitioner
+    choiceColumn:
+      - forDisplay: true
+        path: name.given.first() + ' ' + name.family
+
+  - linkId: status
+    text: Status
+    type: choice
+    required: true
+    answerOption:
+      - valueCoding:
+          system: http://hl7.org/fhir/observation-status
+          code: registered
+          display: Registered
+      - valueCoding:
+          system: http://hl7.org/fhir/observation-status
+          code: preliminary
+          display: Preliminary
+      - valueCoding:
+          system: http://hl7.org/fhir/observation-status
+          code: final
+          display: Final
+      - valueCoding:
+          system: http://hl7.org/fhir/observation-status
+          code: amended
+          display: Amended
+      - valueCoding:
+          system: http://hl7.org/fhir/observation-status
+          code: corrected
+          display: Corrected
+      - valueCoding:
+          system: http://hl7.org/fhir/observation-status
+          code: cancelled
+          display: Cancelled
+      - valueCoding:
+          system: http://hl7.org/fhir/observation-status
+          code: entered-in-error
+          display: Entered in Error
+      - valueCoding:
+          system: http://hl7.org/fhir/observation-status
+          code: unknown
+          display: Unknown
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Questionnaire.repeat(item).where(linkId='status').answerOption.valueCoding.where(code='final').first()"
+
+  - linkId: effective-date-time
+    text: Effective date and time
+    type: dateTime
+    required: true
+    initialExpression:
+      language: text/fhirpath
+      expression: now()
+
+  - linkId: height
+    text: Height
     type: quantity
-    linkId: height
-    extension:
-      - url: http://hl7.org/fhir/StructureDefinition/questionnaire-unit
-        valueCoding:
-          code: cm
-          system: http://unitsofmeasure.org
-          display: cm
-  - text: Weight
+    unitOption:
+      - code: cm
+        system: http://unitsofmeasure.org
+        display: cm
+
+  - linkId: weight
+    text: Weight
     type: quantity
-    linkId: weight
-    extension:
-      - url: http://hl7.org/fhir/StructureDefinition/questionnaire-unit
-        valueCoding:
-          code: kg
-          system: http://unitsofmeasure.org
-          display: kg
-  - text: BMI
+    unitOption:
+      - code: kg
+        system: http://unitsofmeasure.org
+        display: kg
+
+  - linkId: bmi
+    text: BMI
     type: decimal
-    linkId: bmi
     readOnly: true
-    required: true
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-calculatedExpression
-        valueExpression:
-          language: text/fhirpath
-          # expression: "%QuestionnaireResponse.item.where(linkId='weight').answer.valueQuantity.value"
-          expression: >-
-            (%QuestionnaireResponse.item.where(linkId='weight').answer.valueQuantity.value
-            /
-            ((%QuestionnaireResponse.item.where(linkId='height').answer.valueQuantity.value
-            / 100) *
-            (%QuestionnaireResponse.item.where(linkId='height').answer.valueQuantity.value
-            / 100))).round(2)
-  - text: Temperature
+    unit:
+      code: kg/m2
+      system: http://unitsofmeasure.org
+      display: kg/m2
+    calculatedExpression:
+      language: text/fhirpath
+      expression: >-
+        (%QuestionnaireResponse.item.where(linkId='weight').answer.valueQuantity.value
+        /
+        ((%QuestionnaireResponse.item.where(linkId='height').answer.valueQuantity.value
+        / 100) *
+        (%QuestionnaireResponse.item.where(linkId='height').answer.valueQuantity.value
+        / 100))).round(2)
+
+  - linkId: temperature
+    text: Temperature
     type: quantity
-    linkId: temperature
-    extension:
-      - url: http://hl7.org/fhir/StructureDefinition/questionnaire-unit
-        valueCoding:
-          code: Celsius
-          system: http://unitsofmeasure.org
-          display: Celsius
-  - text: Oxygen saturation
+    unitOption:
+      - code: Cel
+        system: http://unitsofmeasure.org
+        display: °C
+
+  - linkId: oxygen-saturation
+    text: Oxygen saturation
     type: quantity
-    linkId: oxygen-saturation
-    extension:
-      - url: http://hl7.org/fhir/StructureDefinition/questionnaire-unit
-        valueCoding:
-          code: "%"
-          system: http://unitsofmeasure.org
-          display: "%"
-  - text: Pulse rate
+    unitOption:
+      - code: '%'
+        system: http://unitsofmeasure.org
+        display: '%'
+
+  - linkId: pulse-rate
+    text: Pulse rate
     type: quantity
-    linkId: pulse-rate
-    extension:
-      - url: http://hl7.org/fhir/StructureDefinition/questionnaire-unit
-        valueCoding:
-          code: bpm
-          system: http://unitsofmeasure.org
-          display: bpm
-  - text: Respiratory Rate
+    unitOption:
+      - code: /min
+        system: http://unitsofmeasure.org
+        display: /min
+
+  - linkId: respiratory-rate
+    text: Respiratory Rate
     type: quantity
-    linkId: respiratory-rate
-    extension:
-      - url: http://hl7.org/fhir/StructureDefinition/questionnaire-unit
-        valueCoding:
-          code: bpm
-          system: http://unitsofmeasure.org
-          display: bpm
-  - item:
-      - item:
-          - text: BP systolic
-            type: quantity
-            linkId: blood-pressure-systolic
-            extension:
-              - url: http://hl7.org/fhir/StructureDefinition/questionnaire-unit
-                valueCoding:
-                  code: mmHg
-                  system: http://unitsofmeasure.org
-                  display: mmHg
-          - text: BP diastolic
-            type: quantity
-            linkId: blood-pressure-diastolic
-            extension:
-              - url: http://hl7.org/fhir/StructureDefinition/questionnaire-unit
-                valueCoding:
-                  code: mmHg
-                  system: http://unitsofmeasure.org
-                  display: mmHg
-        type: group
-        linkId: blood-pressure-systolic-diastolic
-      - text: Positions
-        type: choice
-        linkId: blood-pressure-positions
-        answerOption:
-          - valueCoding:
-              code: sitting
-              display: Sitting
-          - valueCoding:
-              code: lying
-              display: Lying
-          - valueCoding:
-              code: standing
-              display: Standing
-        extension:
-          - url: http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl
-            valueCodeableConcept:
-              coding:
-                - code: inline-choice
-      - text: Arm
-        type: choice
-        linkId: blood-pressure-arm
-        answerOption:
-          - valueCoding:
-              code: biceps-left
-              display: Biceps left
-          - valueCoding:
-              code: biceps-right
-              display: Biceps right
-        extension:
-          - url: http://hl7.org/fhir/StructureDefinition/questionnaire-itemControl
-            valueCodeableConcept:
-              coding:
-                - code: inline-choice
+    unitOption:
+      - code: /min
+        system: http://unitsofmeasure.org
+        display: /min
+
+  - linkId: blood-pressure
     text: Blood Pressure
     type: group
-    linkId: blood-pressure
-resourceType: Questionnaire
-title: Observation create PH
-extension:
-  - url: https://emr-core.beda.software/StructureDefinition/questionnaire-mapper
-    valueReference:
-      reference: Mapping/observation-create-connectathon
-status: active
-id: observation-create-connectathon
-url: observation-create
+    item:
+      - linkId: blood-pressure-systolic-diastolic
+        type: group
+        item:
+          - linkId: blood-pressure-systolic
+            text: BP systolic
+            type: quantity
+            unitOption:
+              - code: mm[Hg]
+                system: http://unitsofmeasure.org
+                display: mmHg
+          - linkId: blood-pressure-diastolic
+            text: BP diastolic
+            type: quantity
+            unitOption:
+              - code: mm[Hg]
+                system: http://unitsofmeasure.org
+                display: mmHg
+      - linkId: blood-pressure-position
+        text: Position
+        type: choice
+        itemControl:
+          coding:
+            - code: inline-choice
+        answerOption:
+          - valueCoding:
+              system: http://snomed.info/sct
+              code: '33586001'
+              display: Sitting position
+          - valueCoding:
+              system: http://snomed.info/sct
+              code: '102538003'
+              display: Standing position
+          - valueCoding:
+              system: http://snomed.info/sct
+              code: '102541000'
+              display: Lying position
+      - linkId: blood-pressure-arm
+        text: Arm
+        type: choice
+        itemControl:
+          coding:
+            - code: inline-choice
+        answerOption:
+          - valueCoding:
+              system: http://snomed.info/sct
+              code: '368208006'
+              display: Left arm
+          - valueCoding:
+              system: http://snomed.info/sct
+              code: '368209003'
+              display: Right arm

@@ -1,94 +1,329 @@
+resourceType: Questionnaire
+id: encounter-create-connectathon
+name: encounter-create-connectathon
+title: Encounter create PH
+status: active
+url: encounter-create
+subjectType:
+  - Patient
 meta:
   profile:
     - https://emr-core.beda.software/StructureDefinition/fhir-emr-questionnaire
-name: encounter-create-connectathon
+mapping:
+  - reference: Mapping/encounter-create-extract-connectathon
+launchContext:
+  - name:
+      code: Encounter
+    type:
+      - Encounter
 item:
-  - text: Patient
+  - linkId: encounterId
+    text: EncounterId
+    type: string
+    hidden: true
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Encounter.id"
+
+  - linkId: encounter-identifier
+    text: Encounter identifier
+    type: string
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Encounter.identifier.where(system='https://fhir.doh.gov.ph/phcore/Identifier/encounter-id').value.first()"
+
+  - linkId: patient
+    text: Patient
     type: reference
-    linkId: patient
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn
-        extension:
-          - url: path
-            valueString: >-
-              name.given.first() + ' ' + name.family.first()
-          - url: forDisplay
-            valueBoolean: true
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression
-        valueExpression:
-          language: application/x-fhir-query
-          expression: Patient
-      - url: >-
-          http://hl7.org/fhir/StructureDefinition/questionnaire-referenceResource
-        valueCode: Patient
-  - text: Practitioner
+    required: true
+    referenceResource:
+      - Patient
+    answerExpression:
+      language: application/x-fhir-query
+      expression: Patient
+    choiceColumn:
+      - forDisplay: true
+        path: name.given.first() + ' ' + name.family.first()
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Encounter.subject"
+
+  - linkId: practitioner
+    text: Practitioner
     type: reference
-    linkId: practitioner
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn
-        extension:
-          - url: path
-            valueString: >-
-              name.given.first() + ' ' +
-              name.family
-          - url: forDisplay
-            valueBoolean: true
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression
-        valueExpression:
-          language: application/x-fhir-query
-          expression: Practitioner
-      - url: >-
-          http://hl7.org/fhir/StructureDefinition/questionnaire-referenceResource
-        valueCode: Practitioner
-  - text: Organization
+    referenceResource:
+      - Practitioner
+    answerExpression:
+      language: application/x-fhir-query
+      expression: Practitioner
+    choiceColumn:
+      - forDisplay: true
+        path: name.given.first() + ' ' + name.family
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Encounter.participant.individual.first()"
+
+  - linkId: participant-type
+    text: Participant role
+    type: choice
+    answerOption:
+      - valueCoding:
+          system: http://terminology.hl7.org/CodeSystem/v3-ParticipationType
+          code: ADM
+          display: admitter
+      - valueCoding:
+          system: http://terminology.hl7.org/CodeSystem/v3-ParticipationType
+          code: ATND
+          display: attender
+      - valueCoding:
+          system: http://terminology.hl7.org/CodeSystem/v3-ParticipationType
+          code: CALLBCK
+          display: callback contact
+      - valueCoding:
+          system: http://terminology.hl7.org/CodeSystem/v3-ParticipationType
+          code: CON
+          display: consultant
+      - valueCoding:
+          system: http://terminology.hl7.org/CodeSystem/v3-ParticipationType
+          code: DIS
+          display: discharger
+      - valueCoding:
+          system: http://terminology.hl7.org/CodeSystem/v3-ParticipationType
+          code: ESC
+          display: escort
+      - valueCoding:
+          system: http://terminology.hl7.org/CodeSystem/v3-ParticipationType
+          code: REF
+          display: referrer
+      - valueCoding:
+          system: http://terminology.hl7.org/CodeSystem/participant-type
+          code: translator
+          display: Translator
+      - valueCoding:
+          system: http://terminology.hl7.org/CodeSystem/participant-type
+          code: emergency
+          display: Emergency
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Questionnaire.repeat(item).where(linkId='participant-type').answerOption.valueCoding.where(code=%Encounter.participant.type.coding.first().code).first()"
+
+  - linkId: organization
+    text: Organization
     type: reference
-    linkId: organization
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn
-        extension:
-          - url: path
-            valueString: >-
-              name
-          - url: forDisplay
-            valueBoolean: true
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression
-        valueExpression:
-          language: application/x-fhir-query
-          expression: Organization
-      - url: >-
-          http://hl7.org/fhir/StructureDefinition/questionnaire-referenceResource
-        valueCode: Organization
-  - text: Date
+    referenceResource:
+      - Organization
+    answerExpression:
+      language: application/x-fhir-query
+      expression: Organization
+    choiceColumn:
+      - forDisplay: true
+        path: name
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Encounter.serviceProvider"
+
+  - linkId: status
+    text: Status
+    type: choice
+    required: true
+    answerOption:
+      - valueCoding:
+          system: http://hl7.org/fhir/encounter-status
+          code: planned
+          display: Planned
+      - valueCoding:
+          system: http://hl7.org/fhir/encounter-status
+          code: arrived
+          display: Arrived
+      - valueCoding:
+          system: http://hl7.org/fhir/encounter-status
+          code: triaged
+          display: Triaged
+      - valueCoding:
+          system: http://hl7.org/fhir/encounter-status
+          code: in-progress
+          display: In Progress
+      - valueCoding:
+          system: http://hl7.org/fhir/encounter-status
+          code: onleave
+          display: On Leave
+      - valueCoding:
+          system: http://hl7.org/fhir/encounter-status
+          code: finished
+          display: Finished
+      - valueCoding:
+          system: http://hl7.org/fhir/encounter-status
+          code: cancelled
+          display: Cancelled
+      - valueCoding:
+          system: http://hl7.org/fhir/encounter-status
+          code: entered-in-error
+          display: Entered in Error
+      - valueCoding:
+          system: http://hl7.org/fhir/encounter-status
+          code: unknown
+          display: Unknown
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Questionnaire.repeat(item).where(linkId='status').answerOption.valueCoding.where(code=%Encounter.status).first()"
+
+  - linkId: class
+    text: Class
+    type: choice
+    required: true
+    answerOption:
+      - valueCoding:
+          system: http://terminology.hl7.org/CodeSystem/v3-ActCode
+          code: AMB
+          display: ambulatory
+      - valueCoding:
+          system: http://terminology.hl7.org/CodeSystem/v3-ActCode
+          code: EMER
+          display: emergency
+      - valueCoding:
+          system: http://terminology.hl7.org/CodeSystem/v3-ActCode
+          code: FLD
+          display: field
+      - valueCoding:
+          system: http://terminology.hl7.org/CodeSystem/v3-ActCode
+          code: HH
+          display: home health
+      - valueCoding:
+          system: http://terminology.hl7.org/CodeSystem/v3-ActCode
+          code: ACUTE
+          display: inpatient acute
+      - valueCoding:
+          system: http://terminology.hl7.org/CodeSystem/v3-ActCode
+          code: IMP
+          display: inpatient encounter
+      - valueCoding:
+          system: http://terminology.hl7.org/CodeSystem/v3-ActCode
+          code: NONAC
+          display: inpatient non-acute
+      - valueCoding:
+          system: http://terminology.hl7.org/CodeSystem/v3-ActCode
+          code: OBSENC
+          display: observation encounter
+      - valueCoding:
+          system: http://terminology.hl7.org/CodeSystem/v3-ActCode
+          code: PRENC
+          display: pre-admission
+      - valueCoding:
+          system: http://terminology.hl7.org/CodeSystem/v3-ActCode
+          code: SS
+          display: short stay
+      - valueCoding:
+          system: http://terminology.hl7.org/CodeSystem/v3-ActCode
+          code: VR
+          display: virtual
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Questionnaire.repeat(item).where(linkId='class').answerOption.valueCoding.where(code=%Encounter.class.code).first()"
+
+  - linkId: encounter-type
+    text: Encounter type
+    type: choice
+    repeats: true
+    answerValueSet: http://hl7.org/fhir/ValueSet/encounter-type
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Encounter.type.coding"
+
+  - linkId: service-type
+    text: Service type
+    type: choice
+    answerValueSet: http://hl7.org/fhir/ValueSet/service-type
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Encounter.serviceType.coding.first()"
+
+  - linkId: priority
+    text: Priority
+    type: choice
+    answerOption:
+      - valueCoding:
+          system: http://terminology.hl7.org/CodeSystem/v3-ActPriority
+          code: PRN
+          display: as needed
+      - valueCoding:
+          system: http://terminology.hl7.org/CodeSystem/v3-ActPriority
+          code: A
+          display: ASAP
+      - valueCoding:
+          system: http://terminology.hl7.org/CodeSystem/v3-ActPriority
+          code: CS
+          display: callback for scheduling
+      - valueCoding:
+          system: http://terminology.hl7.org/CodeSystem/v3-ActPriority
+          code: CSP
+          display: callback placer for scheduling
+      - valueCoding:
+          system: http://terminology.hl7.org/CodeSystem/v3-ActPriority
+          code: CR
+          display: callback results
+      - valueCoding:
+          system: http://terminology.hl7.org/CodeSystem/v3-ActPriority
+          code: CSR
+          display: contact recipient for scheduling
+      - valueCoding:
+          system: http://terminology.hl7.org/CodeSystem/v3-ActPriority
+          code: EL
+          display: elective
+      - valueCoding:
+          system: http://terminology.hl7.org/CodeSystem/v3-ActPriority
+          code: EM
+          display: emergency
+      - valueCoding:
+          system: http://terminology.hl7.org/CodeSystem/v3-ActPriority
+          code: P
+          display: preop
+      - valueCoding:
+          system: http://terminology.hl7.org/CodeSystem/v3-ActPriority
+          code: R
+          display: routine
+      - valueCoding:
+          system: http://terminology.hl7.org/CodeSystem/v3-ActPriority
+          code: RR
+          display: rush reporting
+      - valueCoding:
+          system: http://terminology.hl7.org/CodeSystem/v3-ActPriority
+          code: S
+          display: stat
+      - valueCoding:
+          system: http://terminology.hl7.org/CodeSystem/v3-ActPriority
+          code: T
+          display: timing critical
+      - valueCoding:
+          system: http://terminology.hl7.org/CodeSystem/v3-ActPriority
+          code: UR
+          display: urgent
+      - valueCoding:
+          system: http://terminology.hl7.org/CodeSystem/v3-ActPriority
+          code: UD
+          display: use as directed
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Questionnaire.repeat(item).where(linkId='priority').answerOption.valueCoding.where(code=%Encounter.priority.coding.first().code).first()"
+
+  - linkId: reason-code
+    text: Reason for visit
+    type: choice
+    repeats: true
+    answerValueSet: http://hl7.org/fhir/ValueSet/encounter-reason
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Encounter.reasonCode.coding"
+
+  - linkId: period-start
+    text: Start
     type: dateTime
-    linkId: date
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: now()
-  - text: Status
-    type: choice
-    linkId: status
-    required: true
-    answerValueSet: http://hl7.org/fhir/ValueSet/encounter-status
-  - text: Class
-    type: choice
-    linkId: class
-    required: true
-    answerValueSet: http://terminology.hl7.org/ValueSet/v3-ActEncounterCode
-resourceType: Questionnaire
-title: Encounter create PH
-extension:
-  - url: https://emr-core.beda.software/StructureDefinition/questionnaire-mapper
-    valueReference:
-      reference: Mapping/encounter-create-extract-connectathon
-status: active
-id: encounter-create-connectathon
-url: encounter-create
+    initialExpression:
+      language: text/fhirpath
+      expression: iif(%Encounter.period.start.exists(), %Encounter.period.start, now())
+
+  - linkId: period-end
+    text: End
+    type: dateTime
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Encounter.period.end"

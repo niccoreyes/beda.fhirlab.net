@@ -1,0 +1,47 @@
+resourceType: Procedure
+id: procedure-single-ex
+meta:
+  profile:
+    - https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-procedure
+status: completed
+category:
+  coding:
+    - system: http://snomed.info/sct
+      code: '387713003'
+      display: Surgical procedure
+  text: Surgical procedure
+code:
+  coding:
+    - system: http://snomed.info/sct
+      code: '225358003'
+      display: Wound care
+  text: Wound care
+subject:
+  reference: Patient/patient-single-ex
+  display: Juan Dela Cruz
+encounter:
+  reference: Encounter/encounter-single-ex
+performedDateTime: '2026-06-17T11:15:00+08:00'
+bodySite:
+  - coding:
+      - system: http://snomed.info/sct
+        code: '40983000'
+        display: Forearm structure
+    text: Forearm structure
+reasonCode:
+  - coding:
+      - system: http://snomed.info/sct
+        code: '225552003'
+        display: Wound
+    text: Wound
+outcome:
+  coding:
+    - system: http://snomed.info/sct
+      code: '385669000'
+      display: Successful
+  text: Successful
+text:
+  status: generated
+  div: >-
+    <div xmlns="http://www.w3.org/1999/xhtml">PH Core Procedure for Juan Dela Cruz
+    — Wound care — status completed.</div>

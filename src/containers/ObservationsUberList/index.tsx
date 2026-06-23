@@ -1,38 +1,25 @@
 import { PlusOutlined } from '@ant-design/icons';
 import { t, Trans } from '@lingui/macro';
-import { Observation, ObservationComponent } from 'fhir/r4b';
+import { Observation } from 'fhir/r4b';
 
 import { questionnaireAction, ResourceListPage } from '@beda.software/emr/components';
 import { compileAsFirst, formatHumanDateTime } from '@beda.software/emr/utils';
 
-export const getObservationCode = compileAsFirst<Observation,string>("Observation.code.coding.first().display")
-function getComponentValue(c: ObservationComponent) {
-    if (c.dataAbsentReason) {
-        return [c.dataAbsentReason.text];
-    }
-    return [`${c.valueQuantity?.value} ${c.valueQuantity?.unit}`];
-}
-export const getObservationValue = (r: Observation): string | React.ReactElement => {
-    if (r.dataAbsentReason) {
-        return r.dataAbsentReason.text ?? r.dataAbsentReason.coding?.[0]?.display ?? 'unknown';
-    } else if (r.valueQuantity) {
-        return `${r.valueQuantity.value} ${r.valueQuantity.unit}`;
-    } else if (r.valueCodeableConcept) {
-        return r.valueCodeableConcept.text ?? r.valueCodeableConcept.coding?.[0]?.display ?? 'Unknown';
-    } else if (r.component) {
-        return (
-            <>
-                {r.component
-                    .map((c) => [...[c.code.coding?.[0]?.display], ...getComponentValue(c)].join(': '))
-                    .map((v) => (
-                        <div key={v}>{v}</div>
-                    ))}
-            </>
-        );
-    }
-    return 'Unknown';
-};
+export const getEffectiveDateTime = compileAsFirst<Observation, string>(
+    'Observation.effectiveDateTime | Observation.effective.dateTime',
+);
 
+export const getSubjectLabel = compileAsFirst<Observation, string>(
+    "Observation.subject.display | Observation.subject.reference | (Observation.subject.resourceType & '/' & Observation.subject.id)",
+);
+
+export const getObservationCode = compileAsFirst<Observation, string>(
+    'Observation.code.coding.first().display',
+);
+
+export const getObservationValue = compileAsFirst<Observation, string>(
+    "Observation.dataAbsentReason.text | Observation.dataAbsentReason.coding.first().display | (Observation.valueQuantity.value.toString() + ' ' + Observation.valueQuantity.unit) | Observation.valueCodeableConcept.text | Observation.valueCodeableConcept.coding.first().display | Observation.component.select((code.coding.first().display | code.text) + ': ' + (dataAbsentReason.text | (valueQuantity.value.toString() + ' ' + valueQuantity.unit))).join(' | ') | 'Unknown'",
+);
 
 export function ObservationsUberList() {
     return (
@@ -44,27 +31,19 @@ export function ObservationsUberList() {
                     title: 'Status',
                     dataIndex: 'status',
                     key: 'status',
-                    render: (_text: any, { resource }) => {
-                        return resource.status;
-                    },
+                    render: (_text: any, { resource }) => resource.status,
                 },
                 {
                     title: 'Date',
                     dataIndex: 'date',
                     key: 'date',
-                    render: (_text: any, { resource }) => formatHumanDateTime(resource.effectiveDateTime),
+                    render: (_text: any, { resource }) => formatHumanDateTime(getEffectiveDateTime(resource)),
                 },
                 {
                     title: 'Patient',
                     dataIndex: 'patient',
                     key: 'patient',
-                    render: (_text: any, { resource }) => {
-                        const reference = resource.subject;
-                        if (reference) {
-                            return reference.display ?? reference.reference;
-
-                        }
-                    },
+                    render: (_text: any, { resource }) => getSubjectLabel(resource),
                 },
                 {
                     title: 'Code',
@@ -77,11 +56,18 @@ export function ObservationsUberList() {
                     dataIndex: 'value',
                     key: 'value',
                     render: (_text: any, { resource }) => getObservationValue(resource),
-                }
+                },
             ]}
             getHeaderActions={() => [
                 questionnaireAction(<Trans>Create observation</Trans>, 'observation-create-connectathon', {
                     icon: <PlusOutlined />,
+                    extra: {
+                        qrfProps: {
+                            launchContextParameters: [
+                                { name: 'Patient', resource: { resourceType: 'Patient' } },
+                            ],
+                        },
+                    },
                 }),
             ]}
             getReportColumns={(bundle) => [
