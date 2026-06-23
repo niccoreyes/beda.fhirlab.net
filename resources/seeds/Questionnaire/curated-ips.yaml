@@ -610,12 +610,12 @@ item:
 
               - linkId: immunization-vaccine-code
                 text: Vaccine Code
-                type: choice
+                type: open-choice
                 required: true
                 initialExpression:
                   language: text/fhirpath
-                  expression: "%context.vaccineCode.coding"
-                answerValueSet: https://tx.fhirlab.net/ValueSet/vaccines
+                  expression: "%context.vaccineCode.coding.first()"
+                answerValueSet: http://hl7.org/fhir/ValueSet/vaccine-code
 
               - linkId: immunization-status
                 text: Status
@@ -635,7 +635,10 @@ item:
                       display: Not Done
                 initialExpression:
                   language: text/fhirpath
-                  expression: "%Questionnaire.repeat(item).where(linkId='immunization-status').answerOption.valueCoding.where(code=%context.status)"
+                  expression: >-
+                    iif(%context.status.exists(),
+                    %Questionnaire.repeat(item).where(linkId='immunization-status').answerOption.valueCoding.where(code=%context.status).first(),
+                    %Questionnaire.repeat(item).where(linkId='immunization-status').answerOption.valueCoding.where(code='completed').first())
                 required: true
 
               - linkId: immunization-occurrence-datetime
@@ -730,7 +733,10 @@ item:
                 type: choice
                 initialExpression:
                   language: text/fhirpath
-                  expression: "%Questionnaire.repeat(item).where(linkId='procedure-status').answerOption.valueCoding.where(code=%context.status)"
+                  expression: >-
+                    iif(%context.status.exists(),
+                    %Questionnaire.repeat(item).where(linkId='procedure-status').answerOption.valueCoding.where(code=%context.status).first(),
+                    %Questionnaire.repeat(item).where(linkId='procedure-status').answerOption.valueCoding.where(code='completed').first())
                 required: true
                 answerOption:
                   - valueCoding:
