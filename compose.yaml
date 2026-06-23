@@ -1,6 +1,6 @@
 services:
   sdc:
-    image: bedasoftware/fhir-sdc:2.0.0a2
+    image: bedasoftware/fhir-sdc:2.1.0a6
     depends_on:
       devbox:
         condition: service_healthy
@@ -39,12 +39,20 @@ services:
     image: bedasoftware/fhirsnake:latest
     command:
       - export
+      - --input
+      - /app/resources/ig0
+      - --input
+      - /app/resources/ig1
+      - --input
+      - /app/resources/seeds
       - --output
       - /app/init-bundles/initBundle.json
       - --external-questionnaire-fce-fhir-converter-url
       - http://questionnaire-fce-fhir-converter:3000/to-fhir
     volumes:
-      - ./resources/seeds:/app/resources:ro
+      - ./resources/ig0:/app/resources/ig0:ro
+      - ./resources/ig1:/app/resources/ig1:ro
+      - ./resources/seeds:/app/resources/seeds:ro
       - ./resources/init-bundles:/app/init-bundles
     env_file:
       - ./env/build-seeds
@@ -52,21 +60,22 @@ services:
     image: bedasoftware/fhirsnake:latest
     command:
       - watch
+      - --input
+      - /app/resources/ig0
+      - --input
+      - /app/resources/ig1
+      - --input
+      - /app/resources/seeds
       - --external-fhir-server-url
       - http://root:secret@devbox:8080
       - --external-questionnaire-fce-fhir-converter-url
       - http://questionnaire-fce-fhir-converter:3000/to-fhir
     volumes:
-      - ./resources/seeds:/app/resources:ro
+      - ./resources/ig0:/app/resources/ig0:ro
+      - ./resources/ig1:/app/resources/ig1:ro
+      - ./resources/seeds:/app/resources/seeds:ro
     env_file:
       - ./env/build-seeds
-  fhir-converters-app:
-    image: bedasoftware/aidbox-fhir-converter:main
-    depends_on:
-      devbox:
-        condition: service_healthy
-    env_file:
-      - ./env/fhir-converters-app
   questionnaire-fce-fhir-converter:
     image: bedasoftware/questionnaire-fce-fhir-converter:latest
     healthcheck:
