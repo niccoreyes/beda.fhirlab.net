@@ -67,12 +67,9 @@ item:
   - text: Date
     type: dateTime
     linkId: date
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-initialExpression
-        valueExpression:
-          language: text/fhirpath
-          expression: now()
+    initialExpression:
+      language: text/fhirpath
+      expression: now()
   - text: Status
     type: choice
     linkId: status
