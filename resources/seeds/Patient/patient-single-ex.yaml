@@ -48,7 +48,7 @@ extension:
     valueCodeableConcept:
       coding:
         - code: Ilongots
-          system: https://fhir.doh.gov.ph/phcore/CodeSystem/indigenous-groups
+          system: https://fhir.doh.gov.ph/phcore/CodeSystem/indigenous-groups-cs
           display: Ilongots
   - url: https://fhir.doh.gov.ph/phcore/StructureDefinition/race
     valueCodeableConcept:
