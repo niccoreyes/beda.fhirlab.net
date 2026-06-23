@@ -14,7 +14,7 @@ body:
     - fundingSource: "{{ %QuestionnaireResponse.answers('funding-source') }}"
     - isSubpotent: "{{ %QuestionnaireResponse.answers('is-subpotent') }}"
     - lotNumber: "{{ %QuestionnaireResponse.answers('lot-number') }}"
-    - occurrenceDate: "{{ %QuestionnaireResponse.answers('occurrence-date') }}"
+    - occurrenceDateTime: "{{ %QuestionnaireResponse.answers('occurrence-date-time') }}"
     - primarySource: "{{ %QuestionnaireResponse.answers('primary-source') }}"
     - route: "{{ %QuestionnaireResponse.answers('route') }}"
     - site: "{{ %QuestionnaireResponse.answers('site') }}"
@@ -44,7 +44,7 @@ body:
             text: "{{ %vaccineCode.display }}"
           doseQuantity: "{{ %doseQuantity }}"
           encounter: "{{ %encounterRef }}"
-          occurrenceDateTime: "{{ %occurrenceDate }}"
+          occurrenceDateTime: "{{ %occurrenceDateTime }}"
           expirationDate:
             "{% if %expirationDate.exists() %}": "{{ %expirationDate }}"
           fundingSource:
