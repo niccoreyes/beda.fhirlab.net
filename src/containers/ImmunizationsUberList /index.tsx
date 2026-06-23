@@ -131,7 +131,7 @@ export function ImmunizationsUberList() {
                     extra: {
                         qrfProps: {
                             launchContextParameters: [
-                                { name: 'Immunization', resource: { resourceType: 'Immunization' } },
+                                { name: 'Immunization', resource: { resourceType: 'Immunization' } as Immunization},
                             ],
                         },
                     },

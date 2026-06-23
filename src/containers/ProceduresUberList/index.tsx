@@ -108,7 +108,7 @@ export function ProceduresUberList() {
                     extra: {
                         qrfProps: {
                             launchContextParameters: [
-                                { name: 'Procedure', resource: { resourceType: 'Procedure' } },
+                                { name: 'Procedure', resource: { resourceType: 'Procedure' } as Procedure},
                             ],
                         },
                     },

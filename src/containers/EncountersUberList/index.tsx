@@ -126,7 +126,7 @@ export function EncountersUberList() {
                     extra: {
                         qrfProps: {
                             launchContextParameters: [
-                                { name: 'Encounter', resource: { resourceType: 'Encounter' } },
+                                { name: 'Encounter', resource: { resourceType: 'Encounter' } as Encounter },
                             ],
                         },
                     },
