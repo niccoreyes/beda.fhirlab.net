@@ -1,0 +1,15 @@
+resourceType: CodeSystem
+id: choice-list-orientation
+url: http://terminology.hl7.org/CodeSystem/choice-list-orientation
+version: "1.0.0"
+name: ChoiceListOrientation
+title: Choice List Orientation
+status: active
+content: complete
+concept:
+  - code: horizontal
+    display: Horizontal
+    definition: Display options are listed as a horizontal list
+  - code: vertical
+    display: Vertical
+    definition: Display options are listed as a vertical list
