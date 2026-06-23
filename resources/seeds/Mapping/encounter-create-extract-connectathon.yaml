@@ -23,13 +23,12 @@ body:
         resourceType: Encounter
         status: "{{ %status.code }}"
         class: "{{ %class }}"
-        "{% merge %}":
-          - "{% if %patientRef.exists() %}":
-              subject: "{{ %patientRef }}"
-          - "{% if %practitionerRef.exists() %}":
-              participant:
-                - individual: "{{ %practitionerRef }}"
-          - "{% if %organizationRef.exists() %}":
-              serviceProvider: "{{ %organizationRef }}"
+        subject:
+          "{% if %patientRef.exists() %}": "{{ %patientRef }}"
+        participant:
+          "{% if %practitionerRef.exists() %}":
+            - individual: "{{ %practitionerRef }}"
+        serviceProvider:
+          "{% if %organizationRef.exists() %}": "{{ %organizationRef }}"
         period:
           start: "{{ %date }}"
