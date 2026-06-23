@@ -1,9 +1,9 @@
 emr:
   image: ghcr.io/beda-software/beda.fhirlab.net
-  tag: 0.2.2
+  tag: 0.3.0
 sdc:
   image: bedasoftware/fhir-sdc
-  tag: 2.0.0a2
+  tag: 2.1.0a6
   aidbox_init_url: https://aidbox.fhirlab.net
   app_url: https://sdc.beda.fhirlab.net
   secrets:
