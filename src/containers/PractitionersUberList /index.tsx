@@ -15,6 +15,7 @@ export function PractitionersUberList() {
         <ResourceListPage<Practitioner>
             headerTitle={t`Practitioners`}
             resourceType="Practitioner"
+            searchParams={{ profile: 'https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-practitioner' }}
             getTableColumns={() => [
                 {
                     title: <Trans>Name</Trans>,

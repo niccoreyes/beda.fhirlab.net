@@ -23,6 +23,7 @@ export function ImmunizationsUberList() {
         <ResourceListPage<Immunization>
             headerTitle="Immunizations"
             resourceType="Immunization"
+            searchParams={{ profile: 'https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-immunization' }}
             getTableColumns={() => [
                 {
                     title: 'Status',

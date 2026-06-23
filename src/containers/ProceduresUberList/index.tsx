@@ -21,6 +21,7 @@ export function ProceduresUberList() {
         <ResourceListPage<Procedure>
             headerTitle="Procedures"
             resourceType="Procedure"
+            searchParams={{ profile: 'https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-procedure' }}
             getTableColumns={() => [
                 {
                     title: 'Status',
@@ -86,7 +87,7 @@ export function ProceduresUberList() {
                     searchParam: 'encounter',
                     type: SearchBarColumnType.REFERENCE,
                     placeholder: 'Find by encounter',
-                    expression: 'Encounter',
+                    expression: 'Encounter?_profile=https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-encounter',
                     path: "class.display + ' - ' + period.start",
                     placement: ['search-bar', 'table'],
                 },

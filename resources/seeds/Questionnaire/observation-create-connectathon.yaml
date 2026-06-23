@@ -25,7 +25,7 @@ item:
       - Patient
     answerExpression:
       language: application/x-fhir-query
-      expression: Patient
+      expression: Patient?_profile=https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-patient
     choiceColumn:
       - forDisplay: true
         path: name.given.first() + ' ' + name.family.first()
@@ -40,7 +40,7 @@ item:
       - Encounter
     answerExpression:
       language: application/x-fhir-query
-      expression: "Encounter?patient={{%QuestionnaireResponse.repeat(item).where(linkId='patient').answer.valueReference.reference}}"
+      expression: "Encounter?patient={{%QuestionnaireResponse.repeat(item).where(linkId='patient').answer.valueReference.reference}}&_profile=https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-encounter"
     choiceColumn:
       - forDisplay: true
         path: class.display + ' - ' + period.start.toString()
@@ -52,7 +52,7 @@ item:
       - Practitioner
     answerExpression:
       language: application/x-fhir-query
-      expression: Practitioner
+      expression: Practitioner?_profile=https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-practitioner
     choiceColumn:
       - forDisplay: true
         path: name.given.first() + ' ' + name.family

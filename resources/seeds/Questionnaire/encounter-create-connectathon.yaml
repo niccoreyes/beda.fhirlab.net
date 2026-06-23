@@ -40,7 +40,7 @@ item:
       - Patient
     answerExpression:
       language: application/x-fhir-query
-      expression: Patient
+      expression: Patient?_profile=https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-patient
     choiceColumn:
       - forDisplay: true
         path: name.given.first() + ' ' + name.family.first()
@@ -55,7 +55,7 @@ item:
       - Practitioner
     answerExpression:
       language: application/x-fhir-query
-      expression: Practitioner
+      expression: Practitioner?_profile=https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-practitioner
     choiceColumn:
       - forDisplay: true
         path: name.given.first() + ' ' + name.family
@@ -114,7 +114,7 @@ item:
       - Organization
     answerExpression:
       language: application/x-fhir-query
-      expression: Organization
+      expression: Organization?_profile=https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-organization
     choiceColumn:
       - forDisplay: true
         path: name
