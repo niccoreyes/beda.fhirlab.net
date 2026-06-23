@@ -91,8 +91,13 @@ item:
         - code: phoneWidget
     initialExpression:
       language: text/fhirpath
-      expression: "%Practitioner.telecom.where(system='phone').value.first()"
-
+      language: text/fhirpath
+      expression: >-
+        iif(
+          %Practitioner.telecom.where(system='phone').value.exists(),
+          %Practitioner.telecom.where(system='phone').value.first(),
+          '+63'
+        )
   - linkId: email
     text: Email
     type: string
