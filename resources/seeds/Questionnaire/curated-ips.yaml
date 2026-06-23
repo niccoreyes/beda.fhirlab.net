@@ -118,7 +118,7 @@ item:
                 type: choice
                 initialExpression:
                   language: text/fhirpath
-                  expression: "%context.code.coding"
+                  expression: "%context.code.coding.first()"
                 answerValueSet: https://tx.fhirlab.net/ValueSet/problems
 
               - linkId: condition-clinical-status
@@ -128,7 +128,7 @@ item:
                 answerValueSet: http://hl7.org/fhir/ValueSet/condition-clinical
                 initialExpression:
                   language: text/fhirpath
-                  expression: "%context.clinicalStatus.coding"
+                  expression: "%context.clinicalStatus.coding.first()"
 
               - linkId: condition-verification-status
                 text: Verification Status
@@ -136,7 +136,7 @@ item:
                 answerValueSet: http://hl7.org/fhir/ValueSet/condition-ver-status
                 initialExpression:
                   language: text/fhirpath
-                  expression: "%context.verificationStatus.coding"
+                  expression: "%context.verificationStatus.coding.first()"
 
               - linkId: condition-category
                 text: Category
@@ -230,7 +230,7 @@ item:
                 type: choice
                 initialExpression:
                   language: text/fhirpath
-                  expression: "%context.code.coding"
+                  expression: "%context.code.coding.first()"
                 answerValueSet: https://tx.fhirlab.net/ValueSet/allergyintolerance
                 required: true
 
@@ -240,7 +240,7 @@ item:
                 answerValueSet: http://hl7.org/fhir/ValueSet/allergyintolerance-clinical
                 initialExpression:
                   language: text/fhirpath
-                  expression: "%context.clinicalStatus.coding"
+                  expression: "%context.clinicalStatus.coding.first()"
                 required: true
 
               - linkId: allergy-verification-status
@@ -249,7 +249,7 @@ item:
                 answerValueSet: http://hl7.org/fhir/ValueSet/allergyintolerance-verification
                 initialExpression:
                   language: text/fhirpath
-                  expression: "%context.verificationStatus.coding"
+                  expression: "%context.verificationStatus.coding.first()"
 
               - linkId: allergy-category
                 text: Category
@@ -274,7 +274,7 @@ item:
                     required: true
                     initialExpression:
                       language: text/fhirpath
-                      expression: "%context.manifestation.coding"
+                      expression: "%context.manifestation.first().coding.first()"
                     answerValueSet: https://tx.fhirlab.net/ValueSet/reaction
 
                   - linkId: allergy-severity
@@ -282,7 +282,10 @@ item:
                     type: choice
                     initialExpression:
                       language: text/fhirpath
-                      expression: "%Questionnaire.repeat(item).where(linkId='allergy-severity').answerOption.valueCoding.where(code=%context.severity)"
+                      expression: >-
+                        iif(%context.severity.exists(),
+                        %Questionnaire.repeat(item).where(linkId='allergy-severity').answerOption.valueCoding.where(code=%context.severity).first(),
+                        {})
                     answerOption:
                       - valueCoding:
                           system: http://hl7.org/fhir/reaction-event-severity
@@ -419,8 +422,8 @@ item:
                   language: text/fhirpath
                   expression: >-
                     iif(%context.medicationReference.exists(),
-                    %Questionnaire.repeat(item).where(linkId='medication-input-type').answerOption.valueCoding.where(code='reference'),
-                    %Questionnaire.repeat(item).where(linkId='medication-input-type').answerOption.valueCoding.where(code='code'))
+                    %Questionnaire.repeat(item).where(linkId='medication-input-type').answerOption.valueCoding.where(code='reference').first(),
+                    %Questionnaire.repeat(item).where(linkId='medication-input-type').answerOption.valueCoding.where(code='code').first())
 
               - linkId: medication-medication
                 text: Medication
@@ -456,7 +459,7 @@ item:
                       code: code
                 initialExpression:
                   language: text/fhirpath
-                  expression: "%context.medicationCodeableConcept.coding"
+                  expression: "%context.medicationCodeableConcept.coding.first()"
                 answerValueSet: https://fhir.doh.gov.ph/phcore/ValueSet/drugs-vs
 
               - linkId: medication-status
@@ -464,7 +467,10 @@ item:
                 type: choice
                 initialExpression:
                   language: text/fhirpath
-                  expression: "%Questionnaire.repeat(item).where(linkId='medication-status').answerOption.valueCoding.where(code=%context.status)"
+                  expression: >-
+                    iif(%context.status.exists(),
+                    %Questionnaire.repeat(item).where(linkId='medication-status').answerOption.valueCoding.where(code=%context.status).first(),
+                    %Questionnaire.repeat(item).where(linkId='medication-status').answerOption.valueCoding.where(code='active').first())
                 required: true
                 answerOption:
                   - valueCoding:
@@ -610,7 +616,7 @@ item:
 
               - linkId: immunization-vaccine-code
                 text: Vaccine Code
-                type: open-choice
+                type: choice
                 required: true
                 initialExpression:
                   language: text/fhirpath
@@ -725,7 +731,7 @@ item:
                 required: true
                 initialExpression:
                   language: text/fhirpath
-                  expression: "%context.code.coding"
+                  expression: "%context.code.coding.first()"
                 answerValueSet: https://tx.fhirlab.net/ValueSet/procedures
 
               - linkId: procedure-status
