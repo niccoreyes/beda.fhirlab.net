@@ -1,141 +1,165 @@
+resourceType: Questionnaire
+id: patient-create-connectathon
+name: patient-create-connectathon
+title: "Patient create PH"
+status: active
+url: patient-create
+subjectType:
+  - Patient
 meta:
   profile:
-    - https://emr-core.beda.software/StructureDefinition/fhir-emr-questionnaire
-name: patient-create-connectathon
+    - "https://emr-core.beda.software/StructureDefinition/fhir-emr-questionnaire"
+mapping:
+  - reference: "Mapping/patient-create-extract-connectathon"
+launchContext:
+  - name:
+      code: Patient
+    type:
+      - Patient
 item:
-  - text: PatientId
+  - linkId: patientId
+    text: PatientId
     type: string
-    linkId: patientId
     hidden: true
     initialExpression:
-      language: text/fhirpath
+      language: "text/fhirpath"
       expression: "%Patient.id"
-  - text: First name
+
+  - linkId: first-name
+    text: "First name"
     type: string
-    linkId: first-name
     required: true
     initialExpression:
-      language: text/fhirpath
+      language: "text/fhirpath"
       expression: "%Patient.name.given.first()"
-  - text: Middle name
+
+  - linkId: middle-name
+    text: "Middle name"
     type: string
-    linkId: middle-name
     initialExpression:
-      language: text/fhirpath
+      language: "text/fhirpath"
       expression: "%Patient.name.given[1]"
-  - text: Last name
+
+  - linkId: last-name
+    text: "Last name"
     type: string
-    linkId: last-name
     required: true
     initialExpression:
-      language: text/fhirpath
+      language: "text/fhirpath"
       expression: "%Patient.name.family"
-  - text: Gender
+
+  - linkId: gender
+    text: Gender
     type: choice
-    linkId: gender
     required: true
     answerOption:
       - valueCoding:
-          system: http://hl7.org/fhir/administrative-gender
+          system: "http://hl7.org/fhir/administrative-gender"
           code: male
           display: Male
       - valueCoding:
-          system: http://hl7.org/fhir/administrative-gender
+          system: "http://hl7.org/fhir/administrative-gender"
           code: female
           display: Female
       - valueCoding:
-          system: http://hl7.org/fhir/administrative-gender
+          system: "http://hl7.org/fhir/administrative-gender"
           code: other
           display: Other
       - valueCoding:
-          system: http://hl7.org/fhir/administrative-gender
+          system: "http://hl7.org/fhir/administrative-gender"
           code: unknown
           display: Unknown
     initialExpression:
-      language: text/fhirpath
-      expression: >-
+      language: "text/fhirpath"
+      expression: |-
         %Questionnaire.repeat(item).where(linkId='gender').answerOption.valueCoding.where(code=%Patient.gender).first()
-  - text: Date of Birth
+
+  - linkId: birth-date
+    text: "Date of Birth"
     type: date
-    linkId: birth-date
     required: true
     initialExpression:
-      language: text/fhirpath
+      language: "text/fhirpath"
       expression: "%Patient.birthDate"
-  - text: Phone
+
+  - linkId: phone
+    text: Phone
     type: string
-    linkId: phone
-    regex: ^\+63(?:[\s.-]?9\d{2}[\s.-]?\d{3}[\s.-]?\d{4}|9\d{9})$
     itemControl:
       coding:
         - code: phoneWidget
     initialExpression:
-      language: text/fhirpath
-      expression: >-
-        iif(
-          %Patient.telecom.where(system='phone').value.exists(),
-          %Patient.telecom.where(system='phone').value.first(),
-          '+63'
-        )
-  - text: Email
+      language: "text/fhirpath"
+      expression: "%Patient.telecom.where(system='phone').value.first() | '+63'"
+    regex: "^\\+63(?:[\\s.-]?9\\d{2}[\\s.-]?\\d{3}[\\s.-]?\\d{4}|9\\d{9})$"
+
+  - linkId: email
+    text: Email
     type: string
-    linkId: email
     initialExpression:
-      language: text/fhirpath
+      language: "text/fhirpath"
       expression: "%Patient.telecom.where(system='email').value.first()"
-  - item:
-      - text: Nationality
-        type: choice
-        linkId: nationality
-        answerValueSet: http://hl7.org/fhir/ValueSet/iso3166-1-2
-        initialExpression:
-          language: text/fhirpath
-          expression: "%context.extension.where(url='code').valueCodeableConcept.coding.first()"
-      - text: Start Date
-        type: date
-        linkId: nationality-start
-        initialExpression:
-          language: text/fhirpath
-          expression: "%context.extension.where(url='period').valuePeriod.start"
-      - text: End Date
-        type: date
-        linkId: nationality-end
-        initialExpression:
-          language: text/fhirpath
-          expression: "%context.extension.where(url='period').valuePeriod.end"
+
+  - linkId: nationality-group
+    text: Nationality
     type: group
-    linkId: nationality-group
     repeats: true
     itemPopulationContext:
-      language: text/fhirpath
-      expression: "%Patient.extension.where(url='http://hl7.org/fhir/StructureDefinition/patient-nationality')"
+      language: "text/fhirpath"
+      expression: |-
+        %Patient.extension.where(url='http://hl7.org/fhir/StructureDefinition/patient-nationality')
       name: nationality
-  - text: Religion
+    item:
+      - linkId: nationality
+        text: Nationality
+        type: choice
+        # TODO: uncomment answerValueSet when tx.fhirlab.net expands iso3166-1-2
+        # answerValueSet: http://hl7.org/fhir/ValueSet/iso3166-1-2
+        answerOption:
+          - valueCoding:
+              system: "urn:iso:std:iso:3166"
+              code: "PH"
+              display: Philippines
+          - valueCoding:
+              system: "urn:iso:std:iso:3166"
+              code: "US"
+              display: "United States of America"
+        initialExpression:
+          language: "text/fhirpath"
+          expression: |-
+            %context.extension.where(url='code').valueCodeableConcept.coding.first()
+
+      - linkId: nationality-start
+        text: "Start Date"
+        type: date
+        initialExpression:
+          language: "text/fhirpath"
+          expression: "%context.extension.where(url='period').valuePeriod.start"
+
+      - linkId: nationality-end
+        text: "End Date"
+        type: date
+        initialExpression:
+          language: "text/fhirpath"
+          expression: "%context.extension.where(url='period').valuePeriod.end"
+
+  - linkId: religion
+    text: Religion
     type: choice
-    linkId: religion
-    answerValueSet: http://terminology.hl7.org/ValueSet/v3-ReligiousAffiliation
+    answerValueSet: "http://terminology.hl7.org/ValueSet/v3-ReligiousAffiliation"
     initialExpression:
-      language: text/fhirpath
-      expression: "%Patient.extension.where(url='http://hl7.org/fhir/StructureDefinition/patient-religion').valueCodeableConcept.coding.first()"
-  - text: Are you Indigenous?
+      language: "text/fhirpath"
+      expression: |-
+        %Patient.extension.where(url='http://hl7.org/fhir/StructureDefinition/patient-religion').valueCodeableConcept.coding.first()
+
+  - linkId: indigenous
+    text: "Are you Indigenous?"
     type: choice
-    linkId: indigenous
     required: true
     itemControl:
       coding:
         - code: inline-choice
-    extension:
-      - url: >-
-          https://emr-core.beda.software/StructureDefinition/inline-choice-direction
-        valueString: horizontal
-    initialExpression:
-      language: text/fhirpath
-      expression: >-
-        iif(
-          %Patient.extension('https://fhir.doh.gov.ph/phcore/StructureDefinition/indigenous-people').valueBoolean,
-          %Questionnaire.repeat(item).where(linkId='indigenous').answerOption.valueCoding.where(code='yes').first(),
-          %Questionnaire.repeat(item).where(linkId='indigenous').answerOption.valueCoding.where(code='no').first()
-        )
+    choiceOrientation: horizontal
     answerOption:
       - valueCoding:
           code: "yes"
@@ -143,268 +167,335 @@ item:
       - valueCoding:
           code: "no"
           display: "No"
-  - item:
-      - text: Indigenous Group
-        type: choice
-        linkId: indigenous-group
-        answerValueSet: https://fhir.doh.gov.ph/phcore/ValueSet/indigenous-groups-vs
-        initialExpression:
-          language: text/fhirpath
-          expression: "%context.valueCodeableConcept.coding.first()"
-    text: Indigenous Groups
-    type: group
-    linkId: indigenous-group-group
+    initialExpression:
+      language: "text/fhirpath"
+      expression: |-
+        iif(
+          %Patient.extension('https://fhir.doh.gov.ph/phcore/StructureDefinition/indigenous-people').valueBoolean,
+          %Questionnaire.repeat(item).where(linkId='indigenous').answerOption.valueCoding.where(code='yes').first(),
+          %Questionnaire.repeat(item).where(linkId='indigenous').answerOption.valueCoding.where(code='no').first()
+        )
+
+  - linkId: indigenous-group
+    text: "Indigenous Group"
+    type: choice
     repeats: true
     enableWhen:
       - answerCoding:
           code: "yes"
         operator: "="
         question: indigenous
-    itemPopulationContext:
-      language: text/fhirpath
-      expression: "%Patient.extension('https://fhir.doh.gov.ph/phcore/StructureDefinition/indigenous-group')"
-      name: indigenousGroup
-  - text: Race
-    type: choice
-    linkId: race
-    answerValueSet: http://terminology.hl7.org/ValueSet/v3-Race
+    # TODO: uncomment answerValueSet when tx.fhirlab.net is stable for indigenous-groups-vs
+    # answerValueSet: https://fhir.doh.gov.ph/phcore/ValueSet/indigenous-groups-vs
+    answerOption:
+      - valueCoding:
+          system: "https://fhir.doh.gov.ph/phcore/CodeSystem/indigenous-groups"
+          code: Ilongots
+          display: Ilongots
+      - valueCoding:
+          system: "https://fhir.doh.gov.ph/phcore/CodeSystem/indigenous-groups"
+          code: Aetas
+          display: Aetas
     initialExpression:
       language: text/fhirpath
-      expression: "%Patient.extension('https://fhir.doh.gov.ph/phcore/StructureDefinition/race').valueCodeableConcept.coding.first()"
-  - text: Marital Status
+      expression: |-
+        %Questionnaire.repeat(item).where(linkId='indigenous-group').answerOption.valueCoding.where(code in %Patient.extension.where(url='https://fhir.doh.gov.ph/phcore/StructureDefinition/indigenous-group').valueCodeableConcept.coding.code)
+
+  - linkId: race
+    text: Race
     type: choice
-    linkId: marital-status
-    answerValueSet: http://hl7.org/fhir/ValueSet/marital-status
+    # TODO: uncomment answerValueSet when tx.fhirlab.net expands v3-Race
+    # answerValueSet: http://terminology.hl7.org/ValueSet/v3-Race
+    answerOption:
+      - valueCoding:
+          system: "http://terminology.hl7.org/CodeSystem/v3-Race"
+          code: "2036-2"
+          display: Filipino
     initialExpression:
-      language: text/fhirpath
+      language: "text/fhirpath"
+      expression: |-
+        %Patient.extension('https://fhir.doh.gov.ph/phcore/StructureDefinition/race').valueCodeableConcept.coding.first()
+
+  - linkId: marital-status
+    text: "Marital Status"
+    type: choice
+    answerValueSet: "http://hl7.org/fhir/ValueSet/marital-status"
+    initialExpression:
+      language: "text/fhirpath"
       expression: "%Patient.maritalStatus.coding.first()"
-  - text: Educational Attainment
+
+  - linkId: educational-attainment
+    text: "Educational Attainment"
     type: choice
-    linkId: educational-attainment
     # TODO: uncomment answerValueSet when tx.fhirlab.net expands educational-attainments
     # answerValueSet: https://fhir.doh.gov.ph/phcore/ValueSet/educational-attainments
     answerOption:
       - valueCoding:
-          system: https://psa.gov.ph/classification/psced/level
+          system: "https://psa.gov.ph/classification/psced/level"
           code: C201303
-          display: College Graduate
+          display: "College Graduate"
     initialExpression:
-      language: text/fhirpath
-      expression: "%Patient.extension('https://fhir.doh.gov.ph/phcore/StructureDefinition/educational-attainment').valueCodeableConcept.coding.first()"
-  - item:
-      - text: Occupation
+      language: "text/fhirpath"
+      expression: |-
+        %Patient.extension('https://fhir.doh.gov.ph/phcore/StructureDefinition/educational-attainment').valueCodeableConcept.coding.first()
+
+  - linkId: occupation-group
+    text: Occupation
+    type: group
+    repeats: true
+    itemPopulationContext:
+      language: "text/fhirpath"
+      expression: |-
+        %Patient.extension('https://fhir.doh.gov.ph/phcore/StructureDefinition/occupation')
+      name: occupation
+    item:
+      - linkId: occupation-classification
+        text: Occupation
         type: choice
-        linkId: occupation-classification
         # TODO: uncomment answerValueSet when tx.fhirlab.net expands occupational-classifications
         # answerValueSet: https://fhir.doh.gov.ph/phcore/ValueSet/occupational-classifications
         answerOption:
           - valueCoding:
-              system: https://psa.gov.ph/classification/psoc/unit
+              system: "https://psa.gov.ph/classification/psoc/unit"
               code: "211101"
-              display: Medical Doctor
+              display: "Medical Doctor"
+          - valueCoding:
+              system: "https://psa.gov.ph/classification/psoc/unit"
+              code: "222101"
+              display: "Registered Nurse"
         initialExpression:
-          language: text/fhirpath
-          expression: "%context.extension.where(url='occupationClassification').valueCodeableConcept.coding.first()"
-      - text: Occupation Start Date
+          language: "text/fhirpath"
+          expression: |-
+            %context.extension.where(url='occupationClassification').valueCodeableConcept.coding.first()
+
+      - linkId: occupation-length-start
+        text: "Occupation Start Date"
         type: date
-        linkId: occupation-length-start
         initialExpression:
-          language: text/fhirpath
+          language: "text/fhirpath"
           expression: "%context.extension.where(url='occupationLength').valuePeriod.start"
-    text: Occupation
+
+  - linkId: philhealth-id
+    text: "Philhealth ID"
+    type: string
+    initialExpression:
+      language: "text/fhirpath"
+      expression: |-
+        %Patient.identifier.where(system='http://philhealth.gov.ph/fhir/Identifier/philhealth-id').value
+
+  - linkId: philsys-id
+    text: "PhilSys ID"
+    type: string
+    initialExpression:
+      language: "text/fhirpath"
+      expression: |-
+        %Patient.identifier.where(system='http://philsys.gov.ph/fhir/Identifier/philsys-id').value
+
+  - linkId: communication-language
+    text: "Preferred Language"
+    type: choice
+    # TODO: uncomment answerValueSet when tx.fhirlab.net expands languages
+    # answerValueSet: http://hl7.org/fhir/ValueSet/languages
+    answerOption:
+      - valueCoding:
+          system: "urn:ietf:bcp:47"
+          code: en
+          display: English
+      - valueCoding:
+          system: "urn:ietf:bcp:47"
+          code: fil
+          display: Filipino
+    initialExpression:
+      language: "text/fhirpath"
+      expression: "%Patient.communication.language.coding.first()"
+
+  - linkId: address-group
+    text: Address
     type: group
-    linkId: occupation-group
     repeats: true
     itemPopulationContext:
-      language: text/fhirpath
-      expression: "%Patient.extension('https://fhir.doh.gov.ph/phcore/StructureDefinition/occupation')"
-      name: occupation
-  - text: Philhealth ID
-    type: string
-    linkId: philhealth-id
-    initialExpression:
-      language: text/fhirpath
-      expression: "%Patient.identifier.where(system='http://philhealth.gov.ph/fhir/Identifier/philhealth-id').value"
-  - text: PhilSys ID
-    type: string
-    linkId: philsys-id
-    initialExpression:
-      language: text/fhirpath
-      expression: "%Patient.identifier.where(system='http://philsys.gov.ph/fhir/Identifier/philsys-id').value"
-  - text: Preferred Language
-    type: choice
-    linkId: communication-language
-    answerValueSet: http://hl7.org/fhir/ValueSet/languages
-    initialExpression:
-      language: text/fhirpath
-      expression: "%Patient.communication.language.coding.first()"
-  - item:
-      - text: Address use
+      language: "text/fhirpath"
+      expression: "%Patient.address"
+      name: address
+    item:
+      - linkId: address-use
+        text: "Address use"
         type: choice
-        linkId: address-use
         answerOption:
           - valueCoding:
-              system: http://hl7.org/fhir/address-use
+              system: "http://hl7.org/fhir/address-use"
               code: home
               display: Home
           - valueCoding:
-              system: http://hl7.org/fhir/address-use
+              system: "http://hl7.org/fhir/address-use"
               code: work
               display: Work
           - valueCoding:
-              system: http://hl7.org/fhir/address-use
+              system: "http://hl7.org/fhir/address-use"
               code: temp
               display: Temporary
           - valueCoding:
-              system: http://hl7.org/fhir/address-use
+              system: "http://hl7.org/fhir/address-use"
               code: old
-              display: Old / Incorrect
+              display: "Old / Incorrect"
           - valueCoding:
-              system: http://hl7.org/fhir/address-use
+              system: "http://hl7.org/fhir/address-use"
               code: billing
               display: Billing
         initialExpression:
-          language: text/fhirpath
-          expression: >-
+          language: "text/fhirpath"
+          expression: |-
             %Questionnaire.repeat(item).where(linkId='address-use').answerOption.valueCoding.where(code=%context.use).first()
-      - text: Address Line
+
+      - linkId: address-line
+        text: "Address Line"
         type: string
-        linkId: address-line
         initialExpression:
-          language: text/fhirpath
+          language: "text/fhirpath"
           expression: "%context.line.first()"
-      - text: Region
+
+      - linkId: address-region
+        text: Region
         type: choice
-        linkId: address-region
         # TODO: uncomment answerValueSet when tx.fhirlab.net expands regions
         # answerValueSet: https://fhir.doh.gov.ph/phcore/ValueSet/regions
         answerOption:
           - valueCoding:
-              system: https://psa.gov.ph/classification/psgc
+              system: "https://psa.gov.ph/classification/psgc"
               code: "0102800000"
-              display: Ilocos Norte
+              display: "Ilocos Norte"
+          - valueCoding:
+              system: "https://psa.gov.ph/classification/psgc"
+              code: "1300000000"
+              display: "National Capital Region (NCR)"
         initialExpression:
-          language: text/fhirpath
-          expression: "%context.extension('https://fhir.doh.gov.ph/phcore/StructureDefinition/region').valueCoding"
-      - text: Province
+          language: "text/fhirpath"
+          expression: |-
+            %context.extension('https://fhir.doh.gov.ph/phcore/StructureDefinition/region').valueCoding
+
+      - linkId: address-province
+        text: Province
         type: choice
-        linkId: address-province
         # TODO: uncomment answerValueSet when tx.fhirlab.net expands provinces
         # answerValueSet: https://fhir.doh.gov.ph/phcore/ValueSet/provinces
         answerOption:
           - valueCoding:
-              system: https://psa.gov.ph/classification/psgc
+              system: "https://psa.gov.ph/classification/psgc"
               code: "1705100000"
-              display: Occidental Mindoro
+              display: "Occidental Mindoro"
+          - valueCoding:
+              system: "https://psa.gov.ph/classification/psgc"
+              code: "0349000000"
+              display: "Pampanga"
         initialExpression:
-          language: text/fhirpath
-          expression: "%context.extension('https://fhir.doh.gov.ph/phcore/StructureDefinition/province').valueCoding"
-      - text: City Municipality
+          language: "text/fhirpath"
+          expression: |-
+            %context.extension('https://fhir.doh.gov.ph/phcore/StructureDefinition/province').valueCoding
+
+      - linkId: address-city-municipality
+        text: "City Municipality"
         type: choice
-        linkId: address-city-municipality
         # TODO: uncomment answerValueSet when tx.fhirlab.net expands cities
         # answerValueSet: https://fhir.doh.gov.ph/phcore/ValueSet/cities
         answerOption:
           - valueCoding:
-              system: https://psa.gov.ph/classification/psgc
+              system: "https://psa.gov.ph/classification/psgc"
               code: "1380100000"
-              display: City of Caloocan
+              display: "City of Caloocan"
+          - valueCoding:
+              system: "https://psa.gov.ph/classification/psgc"
+              code: "1380600000"
+              display: "City of Manila"
         initialExpression:
-          language: text/fhirpath
-          expression: "%context.extension('https://fhir.doh.gov.ph/phcore/StructureDefinition/city-municipality').valueCoding"
-      - text: Barangay
+          language: "text/fhirpath"
+          expression: |-
+            %context.extension('https://fhir.doh.gov.ph/phcore/StructureDefinition/city-municipality').valueCoding
+
+      - linkId: address-barangay
+        text: Barangay
         type: choice
-        linkId: address-barangay
         # TODO: uncomment answerValueSet when tx.fhirlab.net expands barangays
         # answerValueSet: https://fhir.doh.gov.ph/phcore/ValueSet/barangays
         answerOption:
           - valueCoding:
-              system: https://psa.gov.ph/classification/psgc
+              system: "https://psa.gov.ph/classification/psgc"
               code: "1380100001"
-              display: Barangay 1
+              display: "Barangay 1, City of Caloocan"
+          - valueCoding:
+              system: "https://psa.gov.ph/classification/psgc"
+              code: "1380603000"
+              display: "Quiapo, City of Manila"
         initialExpression:
-          language: text/fhirpath
-          expression: "%context.extension('https://fhir.doh.gov.ph/phcore/StructureDefinition/barangay').valueCoding"
-      - text: City
+          language: "text/fhirpath"
+          expression: |-
+            %context.extension('https://fhir.doh.gov.ph/phcore/StructureDefinition/barangay').valueCoding
+
+      - linkId: address-city
+        text: City
         type: string
-        linkId: address-city
         initialExpression:
-          language: text/fhirpath
+          language: "text/fhirpath"
           expression: "%context.city"
-      - text: District
+
+      - linkId: address-district
+        text: District
         type: string
-        linkId: address-district
         initialExpression:
-          language: text/fhirpath
+          language: "text/fhirpath"
           expression: "%context.district"
-      - text: Postal Code
+
+      - linkId: address-postal-code
+        text: "Postal Code"
         type: string
-        linkId: address-postal-code
         initialExpression:
-          language: text/fhirpath
+          language: "text/fhirpath"
           expression: "%context.postalCode"
-      - text: Country
+
+      - linkId: address-country
+        text: Country
         type: choice
-        linkId: address-country
-        answerValueSet: http://hl7.org/fhir/ValueSet/iso3166-1-2
-        initial:
+        # TODO: uncomment answerValueSet when tx.fhirlab.net expands iso3166-1-2
+        # answerValueSet: http://hl7.org/fhir/ValueSet/iso3166-1-2
+        answerOption:
           - valueCoding:
               system: urn:iso:std:iso:3166
-              code: PH
+              code: "PH"
+              display: Philippines
+          - valueCoding:
+              system: urn:iso:std:iso:3166
+              code: "US"
+              display: "United States of America"
         initialExpression:
           language: text/fhirpath
-          expression: iif(%context.country.exists(), %context.country, 'PH')
-    text: Address
+          expression: "%context.country | 'PH'"
+
+  - linkId: contact-group
+    text: "Emergency Contact"
     type: group
-    linkId: address-group
     repeats: true
     itemPopulationContext:
-      language: text/fhirpath
-      expression: "%Patient.address"
-      name: address
-  - item:
-      - text: Relationship
-        type: choice
-        linkId: contact-relationship
-        answerValueSet: http://hl7.org/fhir/ValueSet/relatedperson-relationshiptype
-        initialExpression:
-          language: text/fhirpath
-          expression: "%context.relationship.coding.first()"
-      - text: Contact First Name
-        type: string
-        linkId: contact-first-name
-        initialExpression:
-          language: text/fhirpath
-          expression: "%context.name.given.first()"
-      - text: Contact Last Name
-        type: string
-        linkId: contact-last-name
-        initialExpression:
-          language: text/fhirpath
-          expression: "%context.name.family"
-    text: Emergency Contact
-    type: group
-    linkId: contact-group
-    repeats: true
-    itemPopulationContext:
-      language: text/fhirpath
+      language: "text/fhirpath"
       expression: "%Patient.contact"
       name: contact
-resourceType: Questionnaire
-title: Patient create PH
-subjectType:
-  - Patient
-extension:
-  - url: https://emr-core.beda.software/StructureDefinition/questionnaire-mapper
-    valueReference:
-      reference: Mapping/patient-create-extract-connectathon
-  - url: http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-launchContext
-    extension:
-      - url: name
-        valueCoding:
-          code: Patient
-      - url: type
-        valueCode: Patient
-status: active
-id: patient-create-connectathon
-url: patient-create
+    item:
+      - linkId: contact-relationship
+        text: Relationship
+        type: choice
+        answerValueSet: "http://hl7.org/fhir/ValueSet/relatedperson-relationshiptype"
+        initialExpression:
+          language: "text/fhirpath"
+          expression: "%context.relationship.coding.first()"
+
+      - linkId: contact-first-name
+        text: "Contact First Name"
+        type: string
+        initialExpression:
+          language: "text/fhirpath"
+          expression: "%context.name.given.first()"
+
+      - linkId: contact-last-name
+        text: "Contact Last Name"
+        type: string
+        initialExpression:
+          language: "text/fhirpath"
+          expression: "%context.name.family"
