@@ -1,54 +1,460 @@
+resourceType: Questionnaire
+id: organization-create-connectathon
+name: organization-create-connectathon
+title: "Organization create PH"
+status: active
+url: organization-create
+subjectType:
+  - Organization
 meta:
   profile:
     - https://emr-core.beda.software/StructureDefinition/fhir-emr-questionnaire
-name: organization-create-connectathon
+mapping:
+  - reference: Mapping/organization-create-connectathon
+launchContext:
+  - name:
+      code: Organization
+    type:
+      - Organization
 item:
-  - text: Name
+  - linkId: organizationId
+    text: OrganizationId
     type: string
-    linkId: organization-name
-  - text: DOH-FHUD Code
+    hidden: true
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Organization.id"
+
+  - linkId: organization-name
+    text: Name
     type: string
     required: true
-    linkId: doh-fhud-code
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Organization.name"
 
-  - text: Add address
+  - linkId: nhfr-code
+    text: "DOH NHFR Code"
+    type: string
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Organization.identifier.where(system='https://fhir.doh.gov.ph/phcore/Identifier/doh-nhfr-code').value"
+
+  - linkId: hcpn-code
+    text: "HCPN Code"
+    type: string
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Organization.identifier.where(system='https://fhir.doh.gov.ph/phcore/Identifier/hcpn-code').value"
+
+  - linkId: pan
+    text: "PhilHealth Accreditation Number (PAN)"
+    type: string
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Organization.identifier.where(system='http://nhdr.gov.ph/fhir/Identifier/philhealthaccreditationnumber').value"
+
+  - linkId: pen
+    text: "PhilHealth Employer Number (PEN)"
+    type: string
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Organization.identifier.where(system='http://nhdr.gov.ph/fhir/Identifier/philhealthemployernumber').value"
+
+  - linkId: active
+    text: Active
     type: boolean
-    linkId: add-address
-  - type: group
+    initialExpression:
+      language: text/fhirpath
+      expression: iif(%Organization.active.exists(), %Organization.active, true)
+
+  - linkId: organization-type
+    text: "Organization type"
+    type: choice
+    repeats: true
+    # TODO: uncomment answerValueSet when tx.fhirlab.net is stable for organization-type
+    # answerValueSet: http://hl7.org/fhir/ValueSet/organization-type
+    answerOption:
+      - valueCoding:
+          system: "http://terminology.hl7.org/CodeSystem/organization-type"
+          code: prov
+          display: "Healthcare Provider"
+      - valueCoding:
+          system: "http://terminology.hl7.org/CodeSystem/organization-type"
+          code: dept
+          display: Hospital Department
+    initialExpression:
+      language: text/fhirpath
+      expression: |-
+        %Questionnaire.repeat(item).where(linkId='organization-type').answerOption.valueCoding.where(code in %Organization.type.coding.code)
+
+  - linkId: phone
+    text: Phone
+    type: string
+    regex: ^\+63(?:[\s.-]?9\d{2}[\s.-]?\d{3}[\s.-]?\d{4}|9\d{9})$
+    itemControl:
+      coding:
+        - code: phoneWidget
+    initialExpression:
+      language: text/fhirpath
+      expression: >-
+        iif(
+          %Organization.telecom.where(system='phone').value.exists(),
+          %Organization.telecom.where(system='phone').value.first(),
+          '+63'
+        )
+  - linkId: email
+    text: Email
+    type: string
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Organization.telecom.where(system='email').value.first()"
+
+  - linkId: address-group
     text: Address
-    linkId: address-group
-    enableWhen:
-      - answerBoolean: true
-        operator: "="
-        question: add-address
+    type: group
+    repeats: true
+    itemPopulationContext:
+      language: text/fhirpath
+      expression: "%Organization.address"
+      name: address
     item:
-      - text: Address use
+      - linkId: address-use
+        text: "Address use"
         type: choice
-        linkId: address-use
-        required: true
-        answerValueSet: http://hl7.org/fhir/ValueSet/address-use
-      - text: Region
+        answerOption:
+          - valueCoding:
+              system: "http://hl7.org/fhir/address-use"
+              code: work
+              display: Work
+          - valueCoding:
+              system: "http://hl7.org/fhir/address-use"
+              code: temp
+              display: Temporary
+          - valueCoding:
+              system: "http://hl7.org/fhir/address-use"
+              code: old
+              display: "Old / Incorrect"
+          - valueCoding:
+              system: "http://hl7.org/fhir/address-use"
+              code: billing
+              display: Billing
+        initialExpression:
+          language: text/fhirpath
+          expression: |-
+            %Questionnaire.repeat(item).where(linkId='address-use').answerOption.valueCoding.where(code=%context.use).first()
+
+      - linkId: address-line
+        text: "Address Line"
+        type: string
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.line.first()"
+
+      - linkId: address-region
+        text: Region
         type: choice
-        linkId: address-region
-        answerValueSet: urn://example.com/ph-core/fhir/ValueSet/regions
-      - text: Province
+        # TODO: uncomment answerValueSet when tx.fhirlab.net expands regions
+        # answerValueSet: https://fhir.doh.gov.ph/phcore/ValueSet/regions
+        answerOption:
+          - valueCoding:
+              system: "https://psa.gov.ph/classification/psgc"
+              code: "0102800000"
+              display: "Ilocos Norte"
+          - valueCoding:
+              system: "https://psa.gov.ph/classification/psgc"
+              code: "1300000000"
+              display: "National Capital Region (NCR)"
+        initialExpression:
+          language: text/fhirpath
+          expression: |-
+            %context.extension('https://fhir.doh.gov.ph/phcore/StructureDefinition/region').valueCoding
+
+      - linkId: address-province
+        text: Province
         type: choice
-        linkId: address-province
-        answerValueSet: urn://example.com/ph-core/fhir/ValueSet/provinces
-      - text: City Municipality
+        # TODO: uncomment answerValueSet when tx.fhirlab.net expands provinces
+        # answerValueSet: https://fhir.doh.gov.ph/phcore/ValueSet/provinces
+        answerOption:
+          - valueCoding:
+              system: "https://psa.gov.ph/classification/psgc"
+              code: "1705100000"
+              display: "Occidental Mindoro"
+          - valueCoding:
+              system: "https://psa.gov.ph/classification/psgc"
+              code: "0349000000"
+              display: Pampanga
+        initialExpression:
+          language: text/fhirpath
+          expression: |-
+            %context.extension('https://fhir.doh.gov.ph/phcore/StructureDefinition/province').valueCoding
+
+      - linkId: address-city-municipality
+        text: "City Municipality"
         type: choice
-        linkId: address-city-municipality
-        answerValueSet: urn://example.com/ph-core/fhir/ValueSet/cities
-      - text: Barangay
+        # TODO: uncomment answerValueSet when tx.fhirlab.net expands cities
+        # answerValueSet: https://fhir.doh.gov.ph/phcore/ValueSet/cities
+        answerOption:
+          - valueCoding:
+              system: "https://psa.gov.ph/classification/psgc"
+              code: "1380100000"
+              display: "City of Caloocan"
+          - valueCoding:
+              system: "https://psa.gov.ph/classification/psgc"
+              code: "1380600000"
+              display: "City of Manila"
+        initialExpression:
+          language: text/fhirpath
+          expression: |-
+            %context.extension('https://fhir.doh.gov.ph/phcore/StructureDefinition/city-municipality').valueCoding
+
+      - linkId: address-barangay
+        text: Barangay
         type: choice
-        linkId: address-barangay
-        answerValueSet: urn://example.com/ph-core/fhir/ValueSet/barangays
-resourceType: Questionnaire
-title: Organization create PH
-extension:
-  - url: http://beda.software/fhir-extensions/questionnaire-mapper
-    valueReference:
-      reference: Mapping/organization-create-connectathon
-status: active
-id: organization-create-connectathon
-url: organization-create
+        # TODO: uncomment answerValueSet when tx.fhirlab.net expands barangays
+        # answerValueSet: https://fhir.doh.gov.ph/phcore/ValueSet/barangays
+        answerOption:
+          - valueCoding:
+              system: "https://psa.gov.ph/classification/psgc"
+              code: "1380100001"
+              display: "Barangay 1, City of Caloocan"
+          - valueCoding:
+              system: "https://psa.gov.ph/classification/psgc"
+              code: "1380603000"
+              display: "Quiapo, City of Manila"
+        initialExpression:
+          language: text/fhirpath
+          expression: |-
+            %context.extension('https://fhir.doh.gov.ph/phcore/StructureDefinition/barangay').valueCoding
+
+      - linkId: address-city
+        text: City
+        type: string
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.city"
+
+      - linkId: address-district
+        text: District
+        type: string
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.district"
+
+      - linkId: address-postal-code
+        text: "Postal Code"
+        type: string
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.postalCode"
+
+      - linkId: address-country
+        text: Country
+        type: choice
+        # TODO: uncomment answerValueSet when tx.fhirlab.net expands iso3166-1-2
+        # answerValueSet: http://hl7.org/fhir/ValueSet/iso3166-1-2
+        answerOption:
+          - valueCoding:
+              system: urn:iso:std:iso:3166
+              code: "PH"
+              display: Philippines
+          - valueCoding:
+              system: urn:iso:std:iso:3166
+              code: "US"
+              display: "United States of America"
+        initialExpression:
+          language: text/fhirpath
+          expression: |-
+            %Questionnaire.repeat(item).where(linkId='address-country').answerOption.valueCoding.where(code=iif(%context.country.exists(), %context.country, 'PH')).first()
+
+  - linkId: contact-group
+    text: Contact
+    type: group
+    repeats: true
+    itemPopulationContext:
+      language: text/fhirpath
+      expression: "%Organization.contact"
+      name: contact
+    item:
+      - linkId: contact-purpose
+        text: "Contact purpose"
+        type: choice
+        # TODO: uncomment answerValueSet when tx.fhirlab.net expands contactentity-type
+        # answerValueSet: http://hl7.org/fhir/ValueSet/contactentity-type
+        answerOption:
+          - valueCoding:
+              system: "http://hl7.org/fhir/contactentity-type"
+              code: ADMIN
+              display: Administrative
+          - valueCoding:
+              system: "http://hl7.org/fhir/contactentity-type"
+              code: PATINF
+              display: "Patient intake"
+        initialExpression:
+          language: text/fhirpath
+          expression: |-
+            %Questionnaire.repeat(item).where(linkId='contact-purpose').answerOption.valueCoding.where(code=%context.purpose.coding.code).first()
+
+      - linkId: contact-name
+        text: "Contact name"
+        type: string
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.name.text"
+
+      - linkId: contact-phone
+        text: "Contact phone"
+        type: string
+        regex: ^\+63(?:[\s.-]?9\d{2}[\s.-]?\d{3}[\s.-]?\d{4}|9\d{9})$
+        itemControl:
+          coding:
+            - code: phoneWidget
+        initialExpression:
+          language: text/fhirpath
+          expression: "%context.telecom.where(system='phone').value.first()"
+
+      - linkId: contact-address-group
+        text: "Contact address"
+        type: group
+        itemPopulationContext:
+          language: text/fhirpath
+          expression: "%context.address"
+          name: address
+        item:
+          - linkId: contact-address-use
+            text: "Address use"
+            type: choice
+            answerOption:
+              - valueCoding:
+                  system: "http://hl7.org/fhir/address-use"
+                  code: work
+                  display: Work
+              - valueCoding:
+                  system: "http://hl7.org/fhir/address-use"
+                  code: temp
+                  display: Temporary
+              - valueCoding:
+                  system: "http://hl7.org/fhir/address-use"
+                  code: old
+                  display: "Old / Incorrect"
+              - valueCoding:
+                  system: "http://hl7.org/fhir/address-use"
+                  code: billing
+                  display: Billing
+            initialExpression:
+              language: text/fhirpath
+              expression: |-
+                %Questionnaire.repeat(item).where(linkId='contact-address-use').answerOption.valueCoding.where(code=%address.use).first()
+
+          - linkId: contact-address-line
+            text: "Address Line"
+            type: string
+            initialExpression:
+              language: text/fhirpath
+              expression: "%address.line.first()"
+
+          - linkId: contact-address-region
+            text: Region
+            type: choice
+            answerOption:
+              - valueCoding:
+                  system: "https://psa.gov.ph/classification/psgc"
+                  code: "0102800000"
+                  display: "Ilocos Norte"
+              - valueCoding:
+                  system: "https://psa.gov.ph/classification/psgc"
+                  code: "1300000000"
+                  display: "National Capital Region (NCR)"
+            initialExpression:
+              language: text/fhirpath
+              expression: |-
+                %address.extension('https://fhir.doh.gov.ph/phcore/StructureDefinition/region').valueCoding
+
+          - linkId: contact-address-province
+            text: Province
+            type: choice
+            answerOption:
+              - valueCoding:
+                  system: "https://psa.gov.ph/classification/psgc"
+                  code: "1705100000"
+                  display: "Occidental Mindoro"
+              - valueCoding:
+                  system: "https://psa.gov.ph/classification/psgc"
+                  code: "0349000000"
+                  display: Pampanga
+            initialExpression:
+              language: text/fhirpath
+              expression: |-
+                %address.extension('https://fhir.doh.gov.ph/phcore/StructureDefinition/province').valueCoding
+
+          - linkId: contact-address-city-municipality
+            text: "City Municipality"
+            type: choice
+            answerOption:
+              - valueCoding:
+                  system: "https://psa.gov.ph/classification/psgc"
+                  code: "1380100000"
+                  display: "City of Caloocan"
+              - valueCoding:
+                  system: "https://psa.gov.ph/classification/psgc"
+                  code: "1380600000"
+                  display: "City of Manila"
+            initialExpression:
+              language: text/fhirpath
+              expression: |-
+                %address.extension('https://fhir.doh.gov.ph/phcore/StructureDefinition/city-municipality').valueCoding
+
+          - linkId: contact-address-barangay
+            text: Barangay
+            type: choice
+            answerOption:
+              - valueCoding:
+                  system: "https://psa.gov.ph/classification/psgc"
+                  code: "1380100001"
+                  display: "Barangay 1, City of Caloocan"
+              - valueCoding:
+                  system: "https://psa.gov.ph/classification/psgc"
+                  code: "1380603000"
+                  display: "Quiapo, City of Manila"
+            initialExpression:
+              language: text/fhirpath
+              expression: |-
+                %address.extension('https://fhir.doh.gov.ph/phcore/StructureDefinition/barangay').valueCoding
+
+          - linkId: contact-address-city
+            text: City
+            type: string
+            initialExpression:
+              language: text/fhirpath
+              expression: "%address.city"
+
+          - linkId: contact-address-district
+            text: District
+            type: string
+            initialExpression:
+              language: text/fhirpath
+              expression: "%address.district"
+
+          - linkId: contact-address-postal-code
+            text: "Postal Code"
+            type: string
+            initialExpression:
+              language: text/fhirpath
+              expression: "%address.postalCode"
+
+          - linkId: contact-address-country
+            text: Country
+            type: choice
+            answerOption:
+              - valueCoding:
+                  system: urn:iso:std:iso:3166
+                  code: "PH"
+                  display: Philippines
+              - valueCoding:
+                  system: urn:iso:std:iso:3166
+                  code: "US"
+                  display: "United States of America"
+            initialExpression:
+              language: text/fhirpath
+              expression: |-
+                %Questionnaire.repeat(item).where(linkId='contact-address-country').answerOption.valueCoding.where(code=iif(%address.country.exists(), %address.country, 'PH')).first()

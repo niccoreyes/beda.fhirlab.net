@@ -109,9 +109,27 @@ export function EncountersUberList() {
                     placement: ['table', 'search-bar'],
                 },
             ]}
+            getRecordActions={(record) => [
+                questionnaireAction('Edit', 'encounter-create-connectathon', {
+                    extra: {
+                        qrfProps: {
+                            launchContextParameters: [
+                                { name: 'Encounter', resource: record.resource },
+                            ],
+                        },
+                    },
+                }),
+            ]}
             getHeaderActions={() => [
                 questionnaireAction(<Trans>Create encounter</Trans>, 'encounter-create-connectathon', {
                     icon: <PlusOutlined />,
+                    extra: {
+                        qrfProps: {
+                            launchContextParameters: [
+                                { name: 'Encounter', resource: { resourceType: 'Encounter' } },
+                            ],
+                        },
+                    },
                 }),
             ]}
             getReportColumns={(bundle) => [
