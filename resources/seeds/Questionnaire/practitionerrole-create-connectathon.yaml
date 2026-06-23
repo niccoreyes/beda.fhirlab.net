@@ -129,10 +129,14 @@ item:
     initialExpression:
       language: text/fhirpath
       expression: >-
-        iif(%PractitionerRole.telecom.where(system='phone').value.exists(),
-        %PractitionerRole.telecom.where(system='phone').value.first(),
-        %Practitioner.telecom.where(system='phone').value.first())
-
+    initialExpression:
+      language: text/fhirpath
+      expression: >-
+        iif(
+          %PractitionerRole.telecom.where(system='phone').value.exists(),
+          %PractitionerRole.telecom.where(system='phone').value.first(),
+          '+63'
+        )
   - linkId: email
     text: Email
     type: string
