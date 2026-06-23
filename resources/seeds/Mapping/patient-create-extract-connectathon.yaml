@@ -5,24 +5,26 @@ body:
   "{% assign %}":
     - id: "{{ %QuestionnaireResponse.answers('patientId') }}"
     - firstName: "{{ %QuestionnaireResponse.answers('first-name') }}"
+    - middleName: "{{ %QuestionnaireResponse.answers('middle-name') }}"
     - lastName: "{{ %QuestionnaireResponse.answers('last-name') }}"
     - gender: "{{ %QuestionnaireResponse.answers('gender') }}"
+    - patientGender: "{{ %Patient.gender }}"
     - birthDate: "{{ %QuestionnaireResponse.answers('birth-date') }}"
-    - nationalityGroup: "{{ %QuestionnaireResponse.answers('nationality-group') }}"
+    - phone: "{{ %QuestionnaireResponse.answers('phone') }}"
+    - email: "{{ %QuestionnaireResponse.answers('email') }}"
+    - nationalityGroup: "{[ %QuestionnaireResponse.item.where(linkId='nationality-group') ]}"
     - religion: "{{ %QuestionnaireResponse.answers('religion') }}"
     - indigenous: "{{ %QuestionnaireResponse.answers('indigenous') }}"
-    - indigenousGroup: "{{ %QuestionnaireResponse.answers('indigenous-group') }}"
+    - indigenousGroupItems: "{[ %QuestionnaireResponse.item.where(linkId='indigenous-group-group') ]}"
     - race: "{{ %QuestionnaireResponse.answers('race') }}"
     - maritalStatus: "{{ %QuestionnaireResponse.answers('marital-status') }}"
+    - educationalAttainment: "{{ %QuestionnaireResponse.answers('educational-attainment') }}"
+    - occupationGroupItems: "{[ %QuestionnaireResponse.item.where(linkId='occupation-group') ]}"
     - philhealthId: "{{ %QuestionnaireResponse.answers('philhealth-id') }}"
-    - addressLine: "{{ %QuestionnaireResponse.answers('address-line') }}"
-    - addressRegion: "{{ %QuestionnaireResponse.answers('address-region') }}"
-    - addressProvince: "{{ %QuestionnaireResponse.answers('address-province') }}"
-    - addressCityMunicipality: "{{ %QuestionnaireResponse.answers('address-city-municipality') }}"
-    - addressCity: "{{ %QuestionnaireResponse.answers('address-city') }}"
-    - addressDistrict: "{{ %QuestionnaireResponse.answers('address-district') }}"
-    - addressPostalCode: "{{ %QuestionnaireResponse.answers('address-postal-code') }}"
-    - addressCountry: "{{ %QuestionnaireResponse.answers('address-country') }}"
+    - philsysId: "{{ %QuestionnaireResponse.answers('philsys-id') }}"
+    - communicationLanguage: "{{ %QuestionnaireResponse.answers('communication-language') }}"
+    - addressGroupItems: "{[ %QuestionnaireResponse.item.where(linkId='address-group') ]}"
+    - contactGroupItems: "{[ %QuestionnaireResponse.item.where(linkId='contact-group') ]}"
     - addPatient:
         request:
           "{% if %id.exists() %}":
@@ -34,92 +36,184 @@ body:
         resource:
           meta:
             profile:
-              - "urn://example.com/ph-core/fhir/StructureDefinition/ph-core-patient"
+              - "https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-patient"
           resourceType: Patient
           active: true
+          id:
+            "{% if %id.exists() %}": "{{ %id }}"
           name:
-            - given:
-                - "{{ %firstName }}"
+            - use: official
+              "{% if %middleName.exists() %}":
+                given:
+                  - "{{ %firstName }}"
+                  - "{{ %middleName }}"
+              "{% else %}":
+                given:
+                  - "{{ %firstName }}"
               family: "{{ %lastName }}"
           "{% merge %}":
             - "{% if %maritalStatus.exists() %}":
                 maritalStatus:
                   coding:
-                  - "{{ %maritalStatus }}"
+                    - "{{ %maritalStatus }}"
                   text: "{{ %maritalStatus.display }}"
-            - "{% if %gender.exists() %}":
-                gender: "{{ %gender.code }}"
+            - "{% if %gender.exists() or %patientGender.exists() %}":
+                gender: "{{ iif(%gender.code.exists(), %gender.code, iif(%gender.exists(), %gender, %patientGender)) }}"
             - "{% if %birthDate.exists() %}":
                 birthDate: "{{ %birthDate }}"
-            - "{% if %philhealthId.exists() %}":
+            - "{% if %philhealthId.exists() or %philsysId.exists() %}":
                 identifier:
-                  - system: "urn://example.com/ph-core/fhir/NamingSystem/philhealth-id-ns"
-                    value: "{{ %philhealthId }}"
-            - "{% if %addressLine.exists() or %addressRegion.exists() or %addressProvince.exists() or %addressCityMunicipality.exists() or %addressCity.exists() or %addressDistrict.exists() or %addressPostalCode.exists() or %addressCountry.exists() %}":
+                  - "{% if %philhealthId.exists() %}":
+                      system: "http://philhealth.gov.ph/fhir/Identifier/philhealth-id"
+                      value: "{{ %philhealthId }}"
+                  - "{% if %philsysId.exists() %}":
+                      system: "http://philsys.gov.ph/fhir/Identifier/philsys-id"
+                      value: "{{ %philsysId }}"
+            - "{% if %phone.exists() or %email.exists() %}":
+                telecom:
+                  - "{% if %phone.exists() %}":
+                      system: phone
+                      value: "{{ %phone }}"
+                      use: mobile
+                  - "{% if %email.exists() %}":
+                      system: email
+                      value: "{{ %email }}"
+                      use: home
+            - "{% if %communicationLanguage.exists() %}":
+                communication:
+                  - language:
+                      coding:
+                        - "{{ %communicationLanguage }}"
+                    preferred: true
+            - "{% if %contactGroupItems.exists() %}":
+                contact:
+                  - "{% for contactItem in %contactGroupItems %}":
+                      "{% assign %}":
+                        - contactRelationship: "{{ %contactItem.item.where(linkId='contact-relationship').answer.valueCoding.first() }}"
+                        - contactFirstName: "{{ %contactItem.item.where(linkId='contact-first-name').answer.valueString.first() }}"
+                        - contactLastName: "{{ %contactItem.item.where(linkId='contact-last-name').answer.valueString.first() }}"
+                      "{% if %contactRelationship.exists() or %contactFirstName.exists() or %contactLastName.exists() %}":
+                        "{% merge %}":
+                          - "{% if %contactRelationship.exists() %}":
+                              relationship:
+                                - coding:
+                                    - "{{ %contactRelationship }}"
+                                  text: "{{ %contactRelationship.display }}"
+                          - "{% if %contactFirstName.exists() or %contactLastName.exists() %}":
+                              name:
+                                use: official
+                                given:
+                                  - "{% if %contactFirstName.exists() %}": "{{ %contactFirstName }}"
+                                family:
+                                  "{% if %contactLastName.exists() %}": "{{ %contactLastName }}"
+            - "{% if %addressGroupItems.exists() %}":
                 address:
-                  - "{% merge %}":
-                      - "{% if %addressLine.exists() %}":
-                          line:
-                            - "{{ %addressLine }}"
-                      - "{% if %addressRegion.exists() or %addressProvince.exists() or %addressCityMunicipality.exists() %}":
-                          extension:
-                            - "{% if %addressRegion.exists() %}":
-                                url: "urn://example.com/ph-core/fhir/StructureDefinition/region"
-                                valueCoding: "{{ %addressRegion }}"
-                            - "{% if %addressProvince.exists() %}":
-                                url: "urn://example.com/ph-core/fhir/StructureDefinition/province"
-                                valueCoding: "{{ %addressProvince }}"
-                            - "{% if %addressCityMunicipality.exists() %}":
-                                url: "urn://example.com/ph-core/fhir/StructureDefinition/city-municipality"
-                                valueCoding: "{{ %addressCityMunicipality }}"
-                      - "{% if %addressCity.exists() %}":
-                          city: "{{ %addressCity }}"
-                      - "{% if %addressDistrict.exists() %}":
-                          district: "{{ %addressDistrict }}"
-                      - "{% if %addressPostalCode.exists() %}":
-                          postalCode: "{{ %addressPostalCode }}"
-                      - "{% if %addressCountry.exists() %}":
-                          country: "{{ %addressCountry.code }}"
+                  - "{% for addressItem in %addressGroupItems %}":
+                      "{% assign %}":
+                        - addressUse: "{{ %addressItem.item.where(linkId='address-use').answer.valueCoding.first() }}"
+                        - addressLine: "{{ %addressItem.item.where(linkId='address-line').answer.valueString.first() }}"
+                        - addressRegion: "{{ %addressItem.item.where(linkId='address-region').answer.valueCoding.first() }}"
+                        - addressProvince: "{{ %addressItem.item.where(linkId='address-province').answer.valueCoding.first() }}"
+                        - addressCityMunicipality: "{{ %addressItem.item.where(linkId='address-city-municipality').answer.valueCoding.first() }}"
+                        - addressBarangay: "{{ %addressItem.item.where(linkId='address-barangay').answer.valueCoding.first() }}"
+                        - addressCity: "{{ %addressItem.item.where(linkId='address-city').answer.valueString.first() }}"
+                        - addressDistrict: "{{ %addressItem.item.where(linkId='address-district').answer.valueString.first() }}"
+                        - addressPostalCode: "{{ %addressItem.item.where(linkId='address-postal-code').answer.valueString.first() }}"
+                        - addressCountry: "{{ %addressItem.item.where(linkId='address-country').answer.valueCoding.first() }}"
+                      "{% if %addressUse.exists() or %addressLine.exists() or %addressRegion.exists() or %addressProvince.exists() or %addressCityMunicipality.exists() or %addressBarangay.exists() or %addressCity.exists() or %addressDistrict.exists() or %addressPostalCode.exists() or %addressCountry.exists() %}":
+                        "{% merge %}":
+                          - "{% if %addressUse.exists() %}":
+                              use: "{{ %addressUse.code }}"
+                          - "{% if %addressLine.exists() %}":
+                              line:
+                                - "{{ %addressLine }}"
+                          - "{% if %addressRegion.exists() or %addressProvince.exists() or %addressCityMunicipality.exists() or %addressBarangay.exists() %}":
+                              extension:
+                                - "{% if %addressRegion.exists() %}":
+                                    url: "https://fhir.doh.gov.ph/phcore/StructureDefinition/region"
+                                    valueCoding: "{{ %addressRegion }}"
+                                - "{% if %addressProvince.exists() %}":
+                                    url: "https://fhir.doh.gov.ph/phcore/StructureDefinition/province"
+                                    valueCoding: "{{ %addressProvince }}"
+                                - "{% if %addressCityMunicipality.exists() %}":
+                                    url: "https://fhir.doh.gov.ph/phcore/StructureDefinition/city-municipality"
+                                    valueCoding: "{{ %addressCityMunicipality }}"
+                                - "{% if %addressBarangay.exists() %}":
+                                    url: "https://fhir.doh.gov.ph/phcore/StructureDefinition/barangay"
+                                    valueCoding: "{{ %addressBarangay }}"
+                          - "{% if %addressCity.exists() %}":
+                              city: "{{ %addressCity }}"
+                          - "{% if %addressDistrict.exists() %}":
+                              district: "{{ %addressDistrict }}"
+                          - "{% if %addressPostalCode.exists() %}":
+                              postalCode: "{{ %addressPostalCode }}"
+                          - "{% if %addressCountry.exists() %}":
+                              country: "{{ iif(%addressCountry.code.exists(), %addressCountry.code, %addressCountry) }}"
           extension:
             - "{% for nationalityItem in %nationalityGroup %}":
-                - "{% assign %}":
-                    - nationality: "{{ nationalityItem.answers('nationality') }}"
-                    - nationalityStart: "{{ nationalityItem.answers('nationality-start') }}"
-                    - nationalityEnd: "{{ nationalityItem.answers('nationality-end') }}"
-                  extension:
-                    - "{% if %nationality.exists() %}":
-                        url: code
+                "{% assign %}":
+                    - nationality: "{{ %nationalityItem.item.where(linkId='nationality').answer.valueCoding.first() }}"
+                    - nationalityStart: "{{ %nationalityItem.item.where(linkId='nationality-start').answer.valueDate.first() }}"
+                    - nationalityEnd: "{{ %nationalityItem.item.where(linkId='nationality-end').answer.valueDate.first() }}"
+                "{% if %nationality.exists() %}":
+                    url: "http://hl7.org/fhir/StructureDefinition/patient-nationality"
+                    extension:
+                      - url: code
                         valueCodeableConcept:
                           coding:
                             - "{{ %nationality }}"
-                    - "{% if %nationalityStart.exists() or %nationalityEnd.exists() %}":
-                        valuePeriod:
-                          "{% merge %}":
-                            - "{% if %nationalityStart.exists() %}":
-                                start: "{{ %nationalityStart}}"
-                            - "{% if %nationalityEnd.exists() %}":
-                                end: "{{ %nationalityEnd }}"
-                        url: period
-                  url: "http://hl7.org/fhir/StructureDefinition/patient-nationality"
+                      - "{% if %nationalityStart.exists() or %nationalityEnd.exists() %}":
+                          url: period
+                          valuePeriod:
+                            "{% merge %}":
+                              - "{% if %nationalityStart.exists() %}":
+                                  start: "{{ %nationalityStart }}"
+                              - "{% if %nationalityEnd.exists() %}":
+                                  end: "{{ %nationalityEnd }}"
             - "{% if %religion.exists() %}":
                 url: "http://hl7.org/fhir/StructureDefinition/patient-religion"
                 valueCodeableConcept:
                   coding:
                     - "{{ %religion }}"
-            - url: "urn://example.com/ph-core/fhir/StructureDefinition/indigenous-people"
-              valueBoolean:
-                "{% if %indigenous.code = 'yes' %}": true
-                "{% else %}": false
-            - "{% if %indigenousGroup.exists() %}":
-                url: "urn://example.com/ph-core/fhir/StructureDefinition/indigenous-group"
-                valueCodeableConcept:
-                  coding:
-                    - "{{ %indigenousGroup }}"
+            - "{% if %indigenous.exists() %}":
+                url: "https://fhir.doh.gov.ph/phcore/StructureDefinition/indigenous-people"
+                valueBoolean:
+                  "{% if %indigenous.code = 'yes' %}": true
+                  "{% else %}": false
+            - "{% for indigenousGroupItem in %indigenousGroupItems %}":
+                "{% assign %}":
+                  - indigenousGroup: "{{ %indigenousGroupItem.item.where(linkId='indigenous-group').answer.valueCoding.first() }}"
+                "{% if %indigenous.code = 'yes' and %indigenousGroup.exists() %}":
+                  url: "https://fhir.doh.gov.ph/phcore/StructureDefinition/indigenous-group"
+                  valueCodeableConcept:
+                    coding:
+                      - "{{ %indigenousGroup }}"
             - "{% if %race.exists() %}":
-                url: "urn://example.com/ph-core/fhir/StructureDefinition/race"
+                url: "https://fhir.doh.gov.ph/phcore/StructureDefinition/race"
                 valueCodeableConcept:
                   coding:
                     - "{{ %race }}"
+            - "{% if %educationalAttainment.exists() %}":
+                url: "https://fhir.doh.gov.ph/phcore/StructureDefinition/educational-attainment"
+                valueCodeableConcept:
+                  coding:
+                    - "{{ %educationalAttainment }}"
+            - "{% for occupationItem in %occupationGroupItems %}":
+                "{% assign %}":
+                  - occupationClassification: "{{ %occupationItem.item.where(linkId='occupation-classification').answer.valueCoding.first() }}"
+                  - occupationLengthStart: "{{ %occupationItem.item.where(linkId='occupation-length-start').answer.valueDate.first() }}"
+                "{% if %occupationClassification.exists() or %occupationLengthStart.exists() %}":
+                  url: "https://fhir.doh.gov.ph/phcore/StructureDefinition/occupation"
+                  extension:
+                    - "{% if %occupationClassification.exists() %}":
+                        url: occupationClassification
+                        valueCodeableConcept:
+                          coding:
+                            - "{{ %occupationClassification }}"
+                    - "{% if %occupationLengthStart.exists() %}":
+                        url: occupationLength
+                        valuePeriod:
+                          start: "{{ %occupationLengthStart }}"
   resourceType: Bundle
   type: transaction
   entry:
