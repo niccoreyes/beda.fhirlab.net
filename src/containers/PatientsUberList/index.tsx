@@ -14,6 +14,7 @@ export function PatientUberList() {
         <ResourceListPage<Patient>
             headerTitle={t`Patients`}
             resourceType="Patient"
+            searchParams={{ profile: "https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-patient"}}
             getTableColumns={() => [
                 {
                     title: <Trans>Name</Trans>,
