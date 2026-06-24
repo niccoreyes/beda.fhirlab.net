@@ -50,6 +50,12 @@ extension:
         - code: Ilongots
           system: https://fhir.doh.gov.ph/phcore/CodeSystem/indigenous-groups-cs
           display: Ilongots
+  - url: https://fhir.doh.gov.ph/phcore/StructureDefinition/indigenous-group
+    valueCodeableConcept:
+      coding:
+        - code: Aetas
+          system: https://fhir.doh.gov.ph/phcore/CodeSystem/indigenous-groups-cs
+          display: Aetas
   - url: https://fhir.doh.gov.ph/phcore/StructureDefinition/race
     valueCodeableConcept:
       coding:
