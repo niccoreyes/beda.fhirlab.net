@@ -4,31 +4,42 @@ import { Organization } from 'fhir/r4b';
 
 import { questionnaireAction, ResourceListPage } from '@beda.software/emr/components';
 import { SearchBarColumnType } from '@beda.software/emr/dist/components/SearchBar/types';
-import { formatHumanDateTime } from '@beda.software/emr/utils';
+import { compileAsFirst } from '@beda.software/emr/utils';
+
+const NHFR_SYSTEM = 'https://fhir.doh.gov.ph/phcore/Identifier/doh-nhfr-code';
+
+const getNhfrCode = compileAsFirst<Organization, string>(
+    `Organization.identifier.where(system='${NHFR_SYSTEM}').value`,
+);
 
 export function OrganizationsUberList() {
     return (
         <ResourceListPage<Organization>
             headerTitle={t`Organizations`}
             resourceType="Organization"
+            searchParams={{ profile: 'https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-organization' }}
             getTableColumns={() => [
                 {
                     title: <Trans>Name</Trans>,
                     dataIndex: 'name',
                     key: 'name',
-                    render: (_text, { resource }) => {
-                        return resource.name;
-                    },
-                    width: 300,
+                    render: (_text, { resource }) => resource.name,
+                    width: '35%',
                 },
                 {
-                    title: <Trans>Date</Trans>,
-                    dataIndex: 'date',
-                    key: 'date',
-                    render: (_text, { resource }) => {
-                        return formatHumanDateTime(resource.meta?.lastUpdated);
-                    },
-                    width: 300,
+                    title: <Trans>DOH NHFR Code</Trans>,
+                    dataIndex: 'identifier',
+                    key: 'identifier',
+                    render: (_text, { resource }) => getNhfrCode(resource),
+                    width: '25%',
+                },
+                {
+                    title: <Trans>Active</Trans>,
+                    dataIndex: 'active',
+                    key: 'active',
+                    render: (_text, { resource }) =>
+                        resource.active === undefined ? null : resource.active ? t`Yes` : t`No`,
+                    width: '15%',
                 },
             ]}
             getFilters={() => [
@@ -40,9 +51,27 @@ export function OrganizationsUberList() {
                     placement: ['search-bar', 'table'],
                 },
             ]}
+            getRecordActions={(record) => [
+                questionnaireAction('Edit', 'organization-create-connectathon', {
+                    extra: {
+                        qrfProps: {
+                            launchContextParameters: [
+                                { name: 'Organization', resource: record.resource },
+                            ],
+                        },
+                    },
+                }),
+            ]}
             getHeaderActions={() => [
                 questionnaireAction(<Trans>Add organization</Trans>, 'organization-create-connectathon', {
                     icon: <PlusOutlined />,
+                    extra: {
+                        qrfProps: {
+                            launchContextParameters: [
+                                { name: 'Organization', resource: { resourceType: 'Organization' } },
+                            ],
+                        },
+                    },
                 }),
             ]}
             getReportColumns={(bundle) => [

@@ -17,6 +17,7 @@ export function EncountersUberList() {
         <ResourceListPage<Encounter>
             headerTitle="Encounters"
             resourceType="Encounter"
+            searchParams={{ profile: "https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-encounter" }}
             getTableColumns={() => [
                 {
                     title: 'Status',
@@ -109,9 +110,27 @@ export function EncountersUberList() {
                     placement: ['table', 'search-bar'],
                 },
             ]}
+            getRecordActions={(record) => [
+                questionnaireAction('Edit', 'encounter-create-connectathon', {
+                    extra: {
+                        qrfProps: {
+                            launchContextParameters: [
+                                { name: 'Encounter', resource: record.resource },
+                            ],
+                        },
+                    },
+                }),
+            ]}
             getHeaderActions={() => [
                 questionnaireAction(<Trans>Create encounter</Trans>, 'encounter-create-connectathon', {
                     icon: <PlusOutlined />,
+                    extra: {
+                        qrfProps: {
+                            launchContextParameters: [
+                                { name: 'Encounter', resource: { resourceType: 'Encounter' } as Encounter },
+                            ],
+                        },
+                    },
                 }),
             ]}
             getReportColumns={(bundle) => [

@@ -9,6 +9,7 @@ export function MedicationsUberList() {
         <ResourceListPage<Medication>
             headerTitle="Medications"
             resourceType="Medication"
+            searchParams={{ profile: 'https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-medication' }}
             getTableColumns={() => [
                 {
                     title: 'Status',

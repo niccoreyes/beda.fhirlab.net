@@ -4,13 +4,17 @@ import { Patient } from 'fhir/r4b';
 
 import { questionnaireAction, navigationAction, ResourceListPage } from '@beda.software/emr/components';
 import { SearchBarColumnType } from '@beda.software/emr/dist/components/SearchBar/types';
-import { formatHumanDate, renderHumanName } from '@beda.software/emr/utils';
+import { formatHumanDate, renderHumanName, compileAsFirst } from '@beda.software/emr/utils';
+
+const getPhilHealthId = compileAsFirst<Patient, string>("Patient.identifier.where(system='http://philhealth.gov.ph/fhir/Identifier/philhealth-id').value");
+const getPhilsysId = compileAsFirst<Patient, string>("Patient.identifier.where(system='http://philsys.gov.ph/fhir/Identifier/philsys-id').value");
 
 export function PatientUberList() {
     return (
         <ResourceListPage<Patient>
             headerTitle={t`Patients`}
             resourceType="Patient"
+            searchParams={{ profile: "https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-patient"}}
             getTableColumns={() => [
                 {
                     title: <Trans>Name</Trans>,
@@ -24,22 +28,26 @@ export function PatientUberList() {
                     dataIndex: 'birthDate',
                     key: 'birthDate',
                     render: (_text, { resource }) => (resource.birthDate ? formatHumanDate(resource.birthDate) : null),
-                    width: 150,
                 },
                 {
                     title: <Trans>Gender</Trans>,
                     dataIndex: 'gender',
                     key: 'gender',
                     render: (_text, { resource }) => resource.gender,
-                    width: 150,
                 },
                 {
                     title: 'PhilHealth ID',
                     dataIndex: 'identifier',
                     key: 'identifier',
                     render: (_text, { resource }) =>
-                        resource.identifier?.find(({ system }) => system === 'urn://example.com/ph-core/fhir/NamingSystem/philhealth-id-ns')?.value,
-                    width: 250,
+                        getPhilHealthId(resource) ?? ''
+                },
+                {
+                    title: 'PhilSys ID',
+                    dataIndex: 'identifier',
+                    key: 'identifier',
+                    render: (_text, { resource }) =>
+                        getPhilsysId(resource) ?? ''
                 },
             ]}
             getFilters={() => [

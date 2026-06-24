@@ -1,0 +1,37 @@
+resourceType: PractitionerRole
+id: practitionerrole-single-ex
+meta:
+  profile:
+    - https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-practitionerrole
+practitioner:
+  reference: Practitioner/practitioner-single-ex
+  display: Maria Clara Santos
+organization:
+  reference: Organization/organization-single-ex
+  display: Department of Health - Central Office
+code:
+  - coding:
+      - system: http://terminology.hl7.org/CodeSystem/practitioner-role
+        code: doctor
+        display: Doctor
+    text: Doctor
+specialty:
+  - coding:
+      - system: http://snomed.info/sct
+        code: "394583002"
+        display: Endocrinology
+    text: Endocrinology
+identifier:
+  - value: PR-2026-0001
+telecom:
+  - system: phone
+    value: +63-2-8651-7801
+    use: work
+  - system: email
+    value: dr.santos@doh.gov.ph
+    use: work
+text:
+  status: generated
+  div: >-
+    <div xmlns="http://www.w3.org/1999/xhtml">Dr. Maria Clara Santos practices as
+    Doctor (Endocrinology) at Department of Health - Central Office.</div>

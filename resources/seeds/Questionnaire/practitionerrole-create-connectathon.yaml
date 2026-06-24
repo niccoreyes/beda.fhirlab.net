@@ -1,0 +1,148 @@
+resourceType: Questionnaire
+id: practitionerrole-create-connectathon
+name: practitionerrole-create-connectathon
+title: PractitionerRole create PH
+status: active
+url: practitionerrole-create
+meta:
+  profile:
+    - https://emr-core.beda.software/StructureDefinition/fhir-emr-questionnaire
+mapping:
+  - reference: Mapping/practitionerrole-create-extract-connectathon
+launchContext:
+  - name:
+      code: PractitionerRole
+    type:
+      - PractitionerRole
+  - name:
+      code: Practitioner
+    type:
+      - Practitioner
+item:
+  - linkId: practitionerRoleId
+    text: PractitionerRoleId
+    type: string
+    hidden: true
+    initialExpression:
+      language: text/fhirpath
+      expression: "%PractitionerRole.id"
+
+  - linkId: practitioner
+    text: Practitioner
+    type: reference
+    required: true
+    referenceResource:
+      - Practitioner
+    answerExpression:
+      language: application/x-fhir-query
+      expression: Practitioner?_profile=https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-practitioner
+    choiceColumn:
+      - forDisplay: true
+        path: name.given.first() + ' ' + name.family.first()
+    initialExpression:
+      language: text/fhirpath
+      expression: "%PractitionerRole.practitioner"
+
+  - linkId: organization
+    text: Organization
+    type: reference
+    referenceResource:
+      - Organization
+    answerExpression:
+      language: application/x-fhir-query
+      expression: Organization?_profile=https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-organization
+    choiceColumn:
+      - forDisplay: true
+        path: name
+    initialExpression:
+      language: text/fhirpath
+      expression: "%PractitionerRole.organization"
+
+  - linkId: code
+    text: Role
+    type: choice
+    required: true
+    answerValueSet: http://hl7.org/fhir/ValueSet/practitioner-role
+    initialExpression:
+      language: text/fhirpath
+      expression: "%PractitionerRole.code.coding.first()"
+
+  - linkId: specialty
+    text: Specialty
+    type: choice
+    repeats: true
+    # TODO: uncomment answerValueSet when tx.fhirlab.net expands c80-practice-codes reliably
+    # answerValueSet: http://hl7.org/fhir/ValueSet/c80-practice-codes
+    answerOption:
+      - valueCoding:
+          system: http://snomed.info/sct
+          code: "394577000"
+          display: Anesthetics
+      - valueCoding:
+          system: http://snomed.info/sct
+          code: "394579002"
+          display: Cardiology
+      - valueCoding:
+          system: http://snomed.info/sct
+          code: "394582007"
+          display: Dermatology
+      - valueCoding:
+          system: http://snomed.info/sct
+          code: "394583002"
+          display: Endocrinology
+      - valueCoding:
+          system: http://snomed.info/sct
+          code: "419772000"
+          display: Family practice
+      - valueCoding:
+          system: http://snomed.info/sct
+          code: "419192003"
+          display: Internal medicine
+      - valueCoding:
+          system: http://snomed.info/sct
+          code: "394585009"
+          display: Obstetrics and gynecology
+      - valueCoding:
+          system: http://snomed.info/sct
+          code: "394537008"
+          display: Pediatrics
+    initialExpression:
+      language: text/fhirpath
+      expression: "%PractitionerRole.specialty.coding"
+
+  - linkId: identifier-value
+    text: Identifier
+    type: string
+    initialExpression:
+      language: text/fhirpath
+      expression: "%PractitionerRole.identifier.value.first()"
+
+  - linkId: phone
+    text: Phone
+    type: string
+    itemControl:
+      coding:
+        - code: phoneWidget
+    extension:
+      - url: http://hl7.org/fhir/StructureDefinition/regex
+        valueString: ^\+63(?:[\s.-]?9\d{2}[\s.-]?\d{3}[\s.-]?\d{4}|9\d{9})$
+    initialExpression:
+      language: text/fhirpath
+      expression: >-
+    initialExpression:
+      language: text/fhirpath
+      expression: >-
+        iif(
+          %PractitionerRole.telecom.where(system='phone').value.exists(),
+          %PractitionerRole.telecom.where(system='phone').value.first(),
+          '+63'
+        )
+  - linkId: email
+    text: Email
+    type: string
+    initialExpression:
+      language: text/fhirpath
+      expression: >-
+        iif(%PractitionerRole.telecom.where(system='email').value.exists(),
+        %PractitionerRole.telecom.where(system='email').value.first(),
+        %Practitioner.telecom.where(system='email').value.first())

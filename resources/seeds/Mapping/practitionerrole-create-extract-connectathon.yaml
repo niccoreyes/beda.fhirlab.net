@@ -1,0 +1,61 @@
+id: practitionerrole-create-extract-connectathon
+resourceType: Mapping
+type: FHIRPath
+body:
+  "{% assign %}":
+    - id: "{{ %QuestionnaireResponse.answers('practitionerRoleId') }}"
+    - practitionerRef: "{{ %QuestionnaireResponse.answers('practitioner') }}"
+    - organizationRef: "{{ %QuestionnaireResponse.answers('organization') }}"
+    - code: "{{ %QuestionnaireResponse.answers('code') }}"
+    - specialties: "{[ %QuestionnaireResponse.item.where(linkId='specialty').answer.valueCoding ]}"
+    - identifierValue: "{{ %QuestionnaireResponse.answers('identifier-value') }}"
+    - phone: "{{ %QuestionnaireResponse.answers('phone') }}"
+    - email: "{{ %QuestionnaireResponse.answers('email') }}"
+    - codeDisplay: "{{ %code.display | %code.text }}"
+    - practitionerDisplay: "{{ %practitionerRef.display | %practitionerRef.reference }}"
+    - organizationDisplay: "{{ %organizationRef.display | %organizationRef.reference }}"
+    - narrativeDiv: "<div xmlns='http://www.w3.org/1999/xhtml'>PH Core PractitionerRole — {{ %practitionerDisplay }} at {{ %organizationDisplay }} — {{ %codeDisplay }}.</div>"
+    - addPractitionerRole:
+        request:
+          "{% if %id.exists() %}":
+            url: /PractitionerRole/{{ %id }}
+            method: PUT
+          "{% else %}":
+            url: /PractitionerRole
+            method: POST
+        resource:
+          resourceType: PractitionerRole
+          meta:
+            profile:
+              - https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-practitionerrole
+          id: "{{ %id }}"
+          practitioner: "{{ %practitionerRef }}"
+          organization: "{{ %organizationRef }}"
+          text:
+            status: generated
+            div: "{{ %narrativeDiv }}"
+          code:
+            - coding:
+                - "{{ %code }}"
+              text: "{{ %codeDisplay }}"
+          specialty:
+            - "{% for specialty in %specialties %}":
+                coding:
+                  - "{{ %specialty }}"
+                text: "{{ %specialty.display }}"
+          identifier:
+            - "{% if %identifierValue.exists() %}":
+                value: "{{ %identifierValue }}"
+          telecom:
+            - "{% if %phone.exists() %}":
+                system: phone
+                value: "{{ %phone }}"
+                use: work
+            - "{% if %email.exists() %}":
+                system: email
+                value: "{{ %email }}"
+                use: work
+  resourceType: Bundle
+  type: transaction
+  entry:
+    - "{{ %addPractitionerRole }}"

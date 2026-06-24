@@ -1,15 +1,23 @@
 resourceType: Medication
 id: medication-single-ex
+meta:
+  profile:
+    - https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-medication
+    - http://hl7.org/fhir/uv/ips/StructureDefinition/Medication-uv-ips
 status: active
 code:
   coding:
-    - code: "7947003"
-      system: "http://snomed.info/sct"
-      display: Product containing aspirin (medicinal product)
-meta:
-  profile:
-    - "urn://example.com/ph-core/fhir/StructureDefinition/ph-core-medication"
-    - "http://hl7.org/fhir/uv/ips/StructureDefinition/Medication-uv-ips"
+    - system: https://verification.fda.gov.ph
+      code: DRP-10144
+      display: Twinact
+  text: Twinact
+form:
+  coding:
+    - system: http://snomed.info/sct
+      code: '385055001'
+      display: Tablet dose form
+  text: Tablet dose form
 text:
   status: generated
-  div: '<div xmlns="http://www.w3.org/1999/xhtml">A medication resource has been created, but no specific details are provided.</div>'
+  div: >-
+    <div xmlns="http://www.w3.org/1999/xhtml">PH Core Medication — Twinact (DRP-10144).</div>

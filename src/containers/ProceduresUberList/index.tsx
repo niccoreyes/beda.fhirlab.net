@@ -4,12 +4,24 @@ import { Procedure } from 'fhir/r4b';
 
 import { questionnaireAction, ResourceListPage } from '@beda.software/emr/components';
 import { SearchBarColumnType } from '@beda.software/emr/dist/components/SearchBar/types';
+import { compileAsFirst, formatHumanDateTime } from '@beda.software/emr/utils';
+
+export const getProcedureCode = compileAsFirst<Procedure, string>(
+    'Procedure.code.text | Procedure.code.coding.first().display',
+);
+export const getSubjectLabel = compileAsFirst<Procedure, string>(
+    'Procedure.subject.display | Procedure.subject.reference',
+);
+export const getPerformedDateTime = compileAsFirst<Procedure, string>(
+    'Procedure.performedDateTime | Procedure.performedPeriod.start',
+);
 
 export function ProceduresUberList() {
     return (
         <ResourceListPage<Procedure>
             headerTitle="Procedures"
             resourceType="Procedure"
+            searchParams={{ profile: 'https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-procedure' }}
             getTableColumns={() => [
                 {
                     title: 'Status',
@@ -20,18 +32,21 @@ export function ProceduresUberList() {
                     },
                 },
                 {
+                    title: 'Date',
+                    dataIndex: 'date',
+                    key: 'date',
+                    width: 200,
+                    render: (_text: any, { resource }) => formatHumanDateTime(getPerformedDateTime(resource)),
+                },
+                {
                     title: 'Code',
                     key: 'code',
-                    render: (_text: any, { resource }) => {
-                        return resource.code?.text ?? resource.code?.coding?.[0]?.display;
-                    },
+                    render: (_text: any, { resource }) => getProcedureCode(resource),
                 },
                 {
                     title: 'Patient',
                     key: 'patient',
-                    render: (_text: any, { resource }) => {
-                        return resource.subject.display ?? resource.subject.reference;
-                    },
+                    render: (_text: any, { resource }) => getSubjectLabel(resource),
                 },
             ]}
             getFilters={() => [
@@ -44,16 +59,16 @@ export function ProceduresUberList() {
                         {
                             value: {
                                 Coding: {
-                                    code: 'in-progress',
-                                    display: 'In progress',
+                                    code: 'completed',
+                                    display: 'Completed',
                                 },
                             },
                         },
                         {
                             value: {
                                 Coding: {
-                                    code: 'finished',
-                                    display: 'Finished',
+                                    code: 'in-progress',
+                                    display: 'In progress',
                                 },
                             },
                         },
@@ -72,16 +87,32 @@ export function ProceduresUberList() {
                     searchParam: 'encounter',
                     type: SearchBarColumnType.REFERENCE,
                     placeholder: 'Find by encounter',
-                    expression: 'Encounter',
-                    path: `class.display +' - '+
-period.start.toString().split('.')[0].split('T')[0] + ' ' +
-period.start.toString().split('.')[0].split('T')[1]`,
+                    expression: 'Encounter?_profile=https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-encounter',
+                    path: "class.display + ' - ' + period.start",
                     placement: ['search-bar', 'table'],
                 },
+            ]}
+            getRecordActions={(record) => [
+                questionnaireAction('Edit', 'procedure-create-connectathon', {
+                    extra: {
+                        qrfProps: {
+                            launchContextParameters: [
+                                { name: 'Procedure', resource: record.resource },
+                            ],
+                        },
+                    },
+                }),
             ]}
             getHeaderActions={() => [
                 questionnaireAction(<Trans>Create procedure</Trans>, 'procedure-create-connectathon', {
                     icon: <PlusOutlined />,
+                    extra: {
+                        qrfProps: {
+                            launchContextParameters: [
+                                { name: 'Procedure', resource: { resourceType: 'Procedure' } as Procedure},
+                            ],
+                        },
+                    },
                 }),
             ]}
             getReportColumns={(bundle) => [

@@ -46,6 +46,7 @@ import { ObservationsUberList } from './containers/ObservationsUberList';
 import { OrganizationsUberList } from './containers/OrganizationsUberList';
 import { PatientUberList } from './containers/PatientsUberList';
 import { PatientDetails } from './containers/PatientsUberList/detail';
+import { PractitionerRolesUberList } from './containers/PractitionerRolesUberList';
 import { PractitionersUberList } from './containers/PractitionersUberList ';
 import { ProceduresUberList } from './containers/ProceduresUberList';
 import { QuestionnaireList } from './containers/Questionnaire/list';
@@ -138,6 +139,11 @@ function menuLayout() {
                 path: '/organizations-ph',
                 icon: <OrganizationsIcon />,
             },
+            {
+                label: t`Practitioner roles`,
+                path: '/practitionerroles-ph',
+                icon: <PractitionersIcon />,
+            },
             { label: t`Immunizations`, path: '/immunizations-ph', icon: <InvoicesIcon /> },
             { label: t`Observations`, path: '/observations-ph', icon: <ServicesIcon /> },
             { label: t`Medications`, path: '/medications-ph', icon: <MedicationsIcon /> },
@@ -176,6 +182,7 @@ export const AppWithContext = () => {
                                     <Route path="/encounters-ph" element={<EncountersUberList />} />
                                     <Route path="/practitioners-ph" element={<PractitionersUberList />} />
                                     <Route path="/organizations-ph" element={<OrganizationsUberList />} />
+                                    <Route path="/practitionerroles-ph" element={<PractitionerRolesUberList />} />
                                     <Route path="/procedures-ph" element={<ProceduresUberList />} />
                                     <Route path="/immunizations-ph" element={<ImmunizationsUberList />} />
                                     <Route path="/observations-ph" element={<ObservationsUberList />} />

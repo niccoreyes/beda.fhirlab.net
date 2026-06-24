@@ -1,64 +1,146 @@
+resourceType: Questionnaire
+id: procedure-create-connectathon
+name: procedure-create-connectathon
+title: Procedure create PH
+status: active
+url: procedure-create
+subjectType:
+  - Patient
 meta:
   profile:
     - https://emr-core.beda.software/StructureDefinition/fhir-emr-questionnaire
-name: procedure-create-connectathon
+mapping:
+  - reference: Mapping/procedure-create-connectathon
+launchContext:
+  - name:
+      code: Procedure
+    type:
+      - Procedure
 item:
-  - text: Patient
+  - linkId: procedureId
+    text: ProcedureId
+    type: string
+    hidden: true
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Procedure.id"
+
+  - linkId: patient
+    text: Patient
     type: reference
-    linkId: patient
     required: true
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn
-        extension:
-          - url: path
-            valueString: >-
-              name.given.first() + ' ' + name.family.first()
-          - url: forDisplay
-            valueBoolean: true
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression
-        valueExpression:
-          language: application/x-fhir-query
-          expression: Patient
-      - url: >-
-          http://hl7.org/fhir/StructureDefinition/questionnaire-referenceResource
-        valueCode: Patient
-  - text: Procedure Code
+    referenceResource:
+      - Patient
+    answerExpression:
+      language: application/x-fhir-query
+      expression: Patient?_profile=https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-patient
+    choiceColumn:
+      - forDisplay: true
+        path: name.given.first() + ' ' + name.family.first()
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Procedure.subject"
+
+  - linkId: encounter
+    text: Encounter
+    type: reference
+    referenceResource:
+      - Encounter
+    answerExpression:
+      language: application/x-fhir-query
+      expression: "Encounter?patient={{%QuestionnaireResponse.repeat(item).where(linkId='patient').answer.valueReference.reference}}&_profile=https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-encounter"
+    choiceColumn:
+      - forDisplay: true
+        path: class.display + ' - ' + period.start.toString().split('.')[0].split('T')[0] + ' ' + period.start.toString().split('.')[0].split('T')[1]
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Procedure.encounter"
+
+  - linkId: status
+    text: Status
     type: choice
-    linkId: code
+    required: true
+    answerOption:
+      - valueCoding:
+          system: http://hl7.org/fhir/event-status
+          code: preparation
+          display: Preparation
+      - valueCoding:
+          system: http://hl7.org/fhir/event-status
+          code: in-progress
+          display: In Progress
+      - valueCoding:
+          system: http://hl7.org/fhir/event-status
+          code: not-done
+          display: Not Done
+      - valueCoding:
+          system: http://hl7.org/fhir/event-status
+          code: on-hold
+          display: On Hold
+      - valueCoding:
+          system: http://hl7.org/fhir/event-status
+          code: stopped
+          display: Stopped
+      - valueCoding:
+          system: http://hl7.org/fhir/event-status
+          code: completed
+          display: Completed
+      - valueCoding:
+          system: http://hl7.org/fhir/event-status
+          code: entered-in-error
+          display: Entered in Error
+      - valueCoding:
+          system: http://hl7.org/fhir/event-status
+          code: unknown
+          display: Unknown
+    initialExpression:
+      language: text/fhirpath
+      expression: "iif(%Procedure.status.exists(), %Questionnaire.repeat(item).where(linkId='status').answerOption.valueCoding.where(code=%Procedure.status).first(), %Questionnaire.repeat(item).where(linkId='status').answerOption.valueCoding.where(code='completed').first())"
+
+  - linkId: category
+    text: Category
+    type: choice
+    answerValueSet: http://hl7.org/fhir/ValueSet/procedure-category
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Procedure.category.coding.first()"
+
+  - linkId: code
+    text: Procedure Code
+    type: choice
     answerValueSet: http://hl7.org/fhir/ValueSet/procedure-code
-  - text: Procedure Status
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Procedure.code.coding.first()"
+
+  - linkId: performed-date-time
+    text: Performed date and time
+    type: dateTime
+    initialExpression:
+      language: text/fhirpath
+      expression: "iif(%Procedure.performedDateTime.exists(), %Procedure.performedDateTime, %Procedure.performedPeriod.start)"
+
+  - linkId: body-site
+    text: Body site
     type: choice
-    linkId: status
-    required: true
-    answerValueSet: http://hl7.org/fhir/ValueSet/event-status
-  - text: Encounter
-    type: reference
-    linkId: encounter
-    extension:
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-choiceColumn
-        extension:
-          - url: path
-            valueString: >-
-              class.display + ' - ' + period.start.toString().split('.')[0].split('T')[0] + ' ' + period.start.toString().split('.')[0].split('T')[1]
-          - url: forDisplay
-            valueBoolean: true
-      - url: >-
-          http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression
-        valueExpression:
-          language: application/x-fhir-query
-          expression: Encounter?patient={{%QuestionnaireResponse.repeat(item).where(linkId='patient').answer.valueReference.reference}}
-      - url: >-
-          http://hl7.org/fhir/StructureDefinition/questionnaire-referenceResource
-        valueCode: Encounter
-resourceType: Questionnaire
-title: Procedure create PH
-extension:
-  - url: http://beda.software/fhir-extensions/questionnaire-mapper
-    valueReference:
-      reference: Mapping/procedure-create-connectathon
-status: active
-id: procedure-create-connectathon
-url: procedure-create
+    answerValueSet: http://hl7.org/fhir/ValueSet/body-site
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Procedure.bodySite.coding.first()"
+
+  - linkId: reason-code
+    text: Reason
+    type: choice
+    repeats: true
+    answerValueSet: http://hl7.org/fhir/ValueSet/procedure-reason
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Procedure.reasonCode.coding"
+
+  - linkId: outcome
+    text: Outcome
+    type: choice
+    answerValueSet: http://hl7.org/fhir/ValueSet/procedure-outcome
+    initialExpression:
+      language: text/fhirpath
+      expression: "%Procedure.outcome.coding.first()"
