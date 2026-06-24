@@ -318,7 +318,7 @@ item:
                   expression: "%context.medicationReference"
                 answerExpression:
                   language: application/x-fhir-query
-                  expression: "Medication?status=active"
+                  expression: "Medication?status=active&_profile=https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-medication"
                 referenceResource:
                   - Medication
                 choiceColumn:

@@ -33,7 +33,7 @@ item:
       - Patient
     answerExpression:
       language: application/x-fhir-query
-      expression: Patient
+      expression: Patient?_profile=https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-patient
     choiceColumn:
       - forDisplay: true
         path: name.given.first() + ' ' + name.family.first()
@@ -48,7 +48,7 @@ item:
       - Encounter
     answerExpression:
       language: application/x-fhir-query
-      expression: "Encounter?patient={{%QuestionnaireResponse.repeat(item).where(linkId='patient').answer.valueReference.reference}}"
+      expression: "Encounter?patient={{%QuestionnaireResponse.repeat(item).where(linkId='patient').answer.valueReference.reference}}&_profile=https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-encounter"
     choiceColumn:
       - forDisplay: true
         path: class.display + ' - ' + period.start.toString().split('.')[0].split('T')[0] + ' ' + period.start.toString().split('.')[0].split('T')[1]

@@ -17,6 +17,7 @@ export function OrganizationsUberList() {
         <ResourceListPage<Organization>
             headerTitle={t`Organizations`}
             resourceType="Organization"
+            searchParams={{ profile: 'https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-organization' }}
             getTableColumns={() => [
                 {
                     title: <Trans>Name</Trans>,

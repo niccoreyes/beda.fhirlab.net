@@ -44,7 +44,10 @@ export function PractitionerRolesUberList() {
         <ResourceListPage<PractitionerRole>
             headerTitle={t`Practitioner roles`}
             resourceType="PractitionerRole"
-            searchParams={{ _include: ['PractitionerRole:practitioner'] }}
+            searchParams={{
+                _include: ['PractitionerRole:practitioner'],
+                profile: 'https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-practitionerrole',
+            }}
             getTableColumns={() => [
                 {
                     title: <Trans>Practitioner</Trans>,

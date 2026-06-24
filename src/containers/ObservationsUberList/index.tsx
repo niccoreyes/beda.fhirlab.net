@@ -26,6 +26,7 @@ export function ObservationsUberList() {
         <ResourceListPage<Observation>
             headerTitle="Observations"
             resourceType="Observation"
+            searchParams={{ profile: 'https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-observation' }}
             getTableColumns={() => [
                 {
                     title: 'Status',

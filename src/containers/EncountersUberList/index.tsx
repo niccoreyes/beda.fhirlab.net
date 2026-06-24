@@ -17,6 +17,7 @@ export function EncountersUberList() {
         <ResourceListPage<Encounter>
             headerTitle="Encounters"
             resourceType="Encounter"
+            searchParams={{ profile: "https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-encounter" }}
             getTableColumns={() => [
                 {
                     title: 'Status',

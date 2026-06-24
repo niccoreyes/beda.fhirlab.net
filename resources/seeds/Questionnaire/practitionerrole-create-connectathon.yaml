@@ -35,7 +35,7 @@ item:
       - Practitioner
     answerExpression:
       language: application/x-fhir-query
-      expression: Practitioner
+      expression: Practitioner?_profile=https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-practitioner
     choiceColumn:
       - forDisplay: true
         path: name.given.first() + ' ' + name.family.first()
@@ -50,7 +50,7 @@ item:
       - Organization
     answerExpression:
       language: application/x-fhir-query
-      expression: Organization
+      expression: Organization?_profile=https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-organization
     choiceColumn:
       - forDisplay: true
         path: name
