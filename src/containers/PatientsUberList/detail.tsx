@@ -6,6 +6,7 @@ import { PatientDocument } from '@beda.software/emr/dist/containers/PatientDetai
 import { PatientDocumentDetails } from '@beda.software/emr/dist/containers/PatientDetails/PatientDocumentDetails/index';
 import { PatientDocuments } from '@beda.software/emr/dist/containers/PatientDetails/PatientDocuments/index';
 import { PatientOverview } from '@beda.software/emr/dist/containers/PatientDetails/PatientOverviewDynamic/index';
+import { PatientApps } from '@beda.software/emr/dist/containers/PatientDetails/PatientApps/index';
 import { ResourceDetailPage, Tab } from '@beda.software/emr/dist/uberComponents/ResourceDetailPage/index';
 import { compileAsFirst, selectCurrentUserRoleResource } from '@beda.software/emr/dist/utils/index';
 import { WithId, extractBundleResources } from '@beda.software/fhir-react';
@@ -27,6 +28,12 @@ const tabs: Array<Tab<WithId<Patient>>> = [
         label: 'Documents',
         component: ({ resource }) => <Documents patient={resource} />,
     },
+    {
+        path: 'apps',
+        label: 'Apps',
+        component: ({ resource }) => <PatientApps patient={resource} />,
+    },
+
 ];
 
 const getResult = compileAsFirst<Parameters, Bundle>("Parameters.parameter.where(name='return').resource");
