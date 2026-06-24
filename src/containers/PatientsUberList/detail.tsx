@@ -80,6 +80,7 @@ function Documents({ patient }: { patient: WithId<Patient> }) {
                             window.history.back();
                         }}
                         launchContextParameters={[{'name': 'patient', resource: patient}]}
+                        maxWidth="100%"
                     />
                 }
             />
@@ -103,6 +104,7 @@ export function PatientDetails() {
                 getSearchParams={({ id }) => ({ _id: id })}
                 getTitle={({ resource, bundle }) => getName(resource, { bundle })!}
                 tabs={tabs}
+                maxWidth="100%"
             />
         </PatientDashboardProvider>
     );
