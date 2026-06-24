@@ -18,7 +18,7 @@ import '@beda.software/emr/dist/style.css';
 import { Route } from 'react-router-dom';
 
 import { User } from '@beda.software/aidbox-types';
-import { EMR } from '@beda.software/emr/containers';
+import { AidboxFormsBuilder, EMR } from '@beda.software/emr/containers';
 import { ValueSetExpandProvider } from '@beda.software/emr/contexts';
 import { PatientDashboardProvider } from '@beda.software/emr/dist/components/Dashboard/contexts';
 import { fetchUserRoleDetails } from '@beda.software/emr/dist/containers/App/utils';
@@ -50,7 +50,6 @@ import { PractitionerRolesUberList } from './containers/PractitionerRolesUberLis
 import { PractitionersUberList } from './containers/PractitionersUberList ';
 import { ProceduresUberList } from './containers/ProceduresUberList';
 import { QuestionnaireList } from './containers/Questionnaire/list';
-import { NewQuestionnaire } from './containers/Questionnaire/new';
 import { SignIn } from './containers/SignIn';
 import { dynamicActivate, getCurrentLocale } from './services/i18n';
 
@@ -155,7 +154,7 @@ function menuLayout() {
         [Role.Practitioner]: () => [],
         [Role.Patient]: () => [],
         [Role.Receptionist]: () => [],
-    })
+    });
 }
 
 export const AppWithContext = () => {
@@ -192,11 +191,11 @@ export const AppWithContext = () => {
                                     <Route path="/analytics-ph" element={<Analytics />} />
                                     <Route
                                         path="/questionnaires-ph/aidbox-forms-builder/new"
-                                        element={<NewQuestionnaire />}
+                                        element={<AidboxFormsBuilder />}
                                     />
                                     <Route
                                         path="/questionnaires-ph/aidbox-forms-builder/:id/edit"
-                                        element={<NewQuestionnaire />}
+                                        element={<AidboxFormsBuilder />}
                                     />
                                 </>
                             }

@@ -18,6 +18,7 @@ declare const config: {
     wearablesDataStreamService: string;
     metriportIdentifierSystem: string;
     aiAssistantServiceUrl: string;
+    bedaFormsUrl?: string | null;
 };
 
 export default config;
