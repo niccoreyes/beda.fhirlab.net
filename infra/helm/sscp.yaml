@@ -1,6 +1,6 @@
 emr:
   image: ghcr.io/beda-software/beda.fhirlab.net
-  tag: 0.3.3
+  tag: 0.3.4
 sdc:
   image: bedasoftware/fhir-sdc
   tag: 2.1.0a6
