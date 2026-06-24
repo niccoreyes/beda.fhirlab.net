@@ -199,7 +199,7 @@ item:
     initialExpression:
       language: text/fhirpath
       expression: >-
-        %Questionnaire.repeat(item).where(linkId='indigenous-group').answerOption.valueCoding.where(code in %Patient.extension.where(url='https://fhir.doh.gov.ph/phcore/StructureDefinition/indigenous-group').valueCodeableConcept.coding.code)
+        %Patient.extension.where(url='https://fhir.doh.gov.ph/phcore/StructureDefinition/indigenous-group').valueCodeableConcept.coding
 
   - linkId: race
     text: Race
