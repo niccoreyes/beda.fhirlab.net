@@ -3,30 +3,71 @@ resourceType: Mapping
 type: FHIRPath
 body:
   "{% assign %}":
-    - patient: "{{ %QuestionnaireResponse.answers('patient') }}"
-    - code: "{{ %QuestionnaireResponse.answers('code') }}"
+    - id: "{{ %QuestionnaireResponse.answers('procedureId') }}"
+    - patientRef: "{{ %QuestionnaireResponse.answers('patient') }}"
+    - encounterRef: "{{ %QuestionnaireResponse.answers('encounter') }}"
     - status: "{{ %QuestionnaireResponse.answers('status') }}"
-    - encounter: "{{ %QuestionnaireResponse.answers('encounter') }}"
-    - encounterId: "{{ %encounter.reference.replace('Encounter/', '') }}"
-
+    - statusCode: "{{ %status.code }}"
+    - category: "{{ %QuestionnaireResponse.answers('category') }}"
+    - code: "{{ %QuestionnaireResponse.answers('code') }}"
+    - performedDateTime: "{{ %QuestionnaireResponse.answers('performed-date-time') }}"
+    - bodySite: "{{ %QuestionnaireResponse.answers('body-site') }}"
+    - reasonCodes: "{[ %QuestionnaireResponse.repeat(item).where(linkId='reason-code').answer.valueCoding ]}"
+    - outcome: "{{ %QuestionnaireResponse.answers('outcome') }}"
+    - codeDisplay: "{{ %code.display | %code.text }}"
+    - narrativeDiv: "<div xmlns='http://www.w3.org/1999/xhtml'>PH Core Procedure — {{ %codeDisplay }} — status {{ %statusCode }}.</div>"
+    - addProcedure:
+        request:
+          "{% if %id.exists() %}":
+            url: /Procedure/{{ %id }}
+            method: PUT
+          "{% else %}":
+            url: /Procedure
+            method: POST
+        resource:
+          resourceType: Procedure
+          meta:
+            profile:
+              - https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-procedure
+          id:
+            "{% if %id.exists() %}": "{{ %id }}"
+          status: "{{ %statusCode }}"
+          subject: "{{ %patientRef }}"
+          text:
+            status: generated
+            div: "{{ %narrativeDiv }}"
+          "{% merge %}":
+            - "{% if %code.exists() %}":
+                code:
+                  coding:
+                    - "{{ %code }}"
+                  text: "{{ %codeDisplay }}"
+            - "{% if %category.exists() %}":
+                category:
+                  coding:
+                    - "{{ %category }}"
+                  text: "{{ %category.display }}"
+            - "{% if %performedDateTime.exists() %}":
+                performedDateTime: "{{ %performedDateTime }}"
+            - "{% if %encounterRef.exists() %}":
+                encounter: "{{ %encounterRef }}"
+            - "{% if %bodySite.exists() %}":
+                bodySite:
+                  - coding:
+                      - "{{ %bodySite }}"
+                    text: "{{ %bodySite.display }}"
+            - "{% if %reasonCodes.exists() %}":
+                reasonCode:
+                  - "{% for reasonCode in %reasonCodes %}":
+                      coding:
+                        - "{{ %reasonCode }}"
+                      text: "{{ %reasonCode.display }}"
+            - "{% if %outcome.exists() %}":
+                outcome:
+                  coding:
+                    - "{{ %outcome }}"
+                  text: "{{ %outcome.display }}"
   resourceType: Bundle
   type: transaction
   entry:
-    - request:
-        method: POST
-        url: /Procedure
-      resource:
-        resourceType: Procedure
-        meta:
-          profile:
-          - urn://example.com/ph-core/fhir/StructureDefinition/ph-core-procedure
-          - http://hl7.org/fhir/uv/ips/StructureDefinition/Procedure-uv-ips
-        status: "{{ %status.code }}"
-        subject: "{{ %patient }}"
-        code:
-          "{% if %code.exists() %}":
-            coding:
-              - "{{ %code }}"
-        encounter:
-          "{% if %encounter.exists() %}":
-            reference: "Encounter/{{ %encounterId }}"
+    - "{{ %addProcedure }}"
