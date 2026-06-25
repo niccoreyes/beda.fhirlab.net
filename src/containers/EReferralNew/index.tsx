@@ -1,0 +1,392 @@
+import { useState, useEffect, useCallback } from 'react';
+import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
+import {
+    Form, Input, Select, DatePicker, InputNumber, Button, Card, Space, Typography,
+    Steps, message, Divider, Descriptions, Radio,
+} from 'antd';
+import dayjs from 'dayjs';
+import { RollbackOutlined, SendOutlined } from '@ant-design/icons';
+import { Organization } from 'fhir/r4b';
+
+import { PageContainer } from '@beda.software/emr/components';
+
+import {
+    getPatient, getPatientEncounters, getEncounterClinicalData,
+    searchOrganizations,
+} from '../../services/fhir';
+import { buildReferralBundle } from './bundleBuilder';
+import { postTransactionBundle } from '../../services/fhir';
+import { ReferralFormData } from '../types';
+
+export function EReferralNew() {
+    const { patientId } = useParams<{ patientId: string }>();
+    const [searchParams] = useSearchParams();
+    const preselectedEncounter = searchParams.get('encounter');
+    const navigate = useNavigate();
+
+    const [form] = Form.useForm();
+    const [currentStep, setCurrentStep] = useState(0);
+    const [submitting, setSubmitting] = useState(false);
+    const [encounters, setEncounters] = useState<any[]>([]);
+    const [selectedEncounterData, setSelectedEncounterData] = useState<any>(null);
+    const [facilityOptions, setFacilityOptions] = useState<Organization[]>([]);
+
+    useEffect(() => {
+        if (!patientId) return;
+        getPatient(patientId).then(p => {
+            if (p) {
+                const name = p.name?.[0];
+                const fullName = name ? `${name.given?.join(' ') || ''} ${name.family || ''}`.trim() : 'Unknown';
+                form.setFieldsValue({ patientName: fullName });
+            }
+        });
+        getPatientEncounters(patientId).then(setEncounters);
+    }, [patientId, form]);
+
+    useEffect(() => {
+        if (preselectedEncounter) {
+            form.setFieldsValue({ encounterId: preselectedEncounter });
+            getEncounterClinicalData(preselectedEncounter).then(data => {
+                setSelectedEncounterData(data);
+                const conditions = data.conditions.map((c: any) => c.code?.text || c.code?.coding?.[0]?.display || '').filter(Boolean);
+                if (conditions.length > 0) {
+                    form.setFieldsValue({ chiefComplaint: conditions[0] });
+                }
+                if (data.observations.length > 0) {
+                    const obsMap: Record<string, number> = {};
+                    for (const obs of data.observations) {
+                        const code = obs.code?.coding?.[0]?.display || '';
+                        if (code.includes('Systolic') || code.includes('Blood pressure') || obs.code?.coding?.[0]?.code === '85354-9') {
+                            const comp = obs.component;
+                            if (comp) {
+                                for (const c of comp) {
+                                    const cc = c.code?.coding?.[0]?.display || '';
+                                    if (cc.includes('Systolic')) obsMap.bpSystolic = c.valueQuantity?.value || 0;
+                                    if (cc.includes('Diastolic')) obsMap.bpDiastolic = c.valueQuantity?.value || 0;
+                                }
+                            }
+                        }
+                        if (code.includes('Heart rate') || obs.code?.coding?.[0]?.code === '8867-4') obsMap.heartRate = obs.valueQuantity?.value || 0;
+                        if (code.includes('Respiratory') || obs.code?.coding?.[0]?.code === '9279-1') obsMap.respiratoryRate = obs.valueQuantity?.value || 0;
+                        if (code.includes('Oxygen') || obs.code?.coding?.[0]?.code === '59408-5') obsMap.oxygenSaturation = obs.valueQuantity?.value || 0;
+                        if (code.includes('Temperature') || obs.code?.coding?.[0]?.code === '8310-5') obsMap.temperature = obs.valueQuantity?.value || 0;
+                        if (code.includes('Weight') || obs.code?.coding?.[0]?.code === '29463-7') obsMap.weight = obs.valueQuantity?.value || 0;
+                    }
+                    form.setFieldsValue(obsMap);
+                }
+            });
+        }
+    }, [preselectedEncounter, form]);
+
+    const searchFacility = useCallback(async (query: string) => {
+        const orgs = await searchOrganizations(query);
+        setFacilityOptions(orgs);
+    }, []);
+
+    const handleSubmit = async () => {
+        try {
+            const values = await form.validateFields();
+            setSubmitting(true);
+
+            const formData: ReferralFormData = {
+                ...values,
+                patientId: patientId!,
+                referralDate: values.referralDate ? dayjs(values.referralDate).toISOString() : new Date().toISOString(),
+                encounterDate: values.encounterDate ? dayjs(values.encounterDate).toISOString() : new Date().toISOString(),
+                sendingPractitionerPRCId: values.sendingPractitionerPRCId || '0000000',
+                receivingPractitionerPRCId: values.receivingPractitionerPRCId || '',
+            };
+
+            const bundle = buildReferralBundle(formData);
+            const success = await postTransactionBundle(bundle);
+
+            if (success) {
+                message.success('Referral submitted successfully!');
+                navigate('/referrals');
+            } else {
+                message.error('Failed to submit referral. Please try again.');
+            }
+        } catch (err) {
+            console.error('Validation error:', err);
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const steps = [
+        { title: 'Patient & Encounter' },
+        { title: 'Sending Facility' },
+        { title: 'Receiving Facility' },
+        { title: 'Clinical Details' },
+        { title: 'Review & Submit' },
+    ];
+
+    return (
+        <PageContainer
+            title="New eReferral"
+            headerContent={
+                <Button icon={<RollbackOutlined />} onClick={() => navigate(-1)}>Back</Button>
+            }
+        >
+            <Steps current={currentStep} items={steps} style={{ marginBottom: 24 }} />
+
+            <Form form={form} layout="vertical" style={{ maxWidth: 800 }}>
+                {currentStep === 0 && (
+                    <Card title="Patient & Encounter">
+                        <Form.Item name="patientName" label="Patient">
+                            <Input disabled />
+                        </Form.Item>
+
+                        <Form.Item name="encounterId" label="Select Encounter (optional)">
+                            <Select
+                                placeholder="Choose the encounter that prompted this referral"
+                                allowClear
+                                showSearch
+                                filterOption={(input, option) =>
+                                    (option?.label as string || '').toLowerCase().includes(input.toLowerCase())
+                                }
+                                options={encounters.map((e: any) => ({
+                                    label: `#${e.id} | ${e.class?.display || e.class?.code || '?'} | ${e.status} | ${e.period?.start?.slice(0, 10) || 'no date'} | ${e.subject?.display || e.subject?.reference?.replace('Patient/', '') || ''}`,
+                                    value: e.id || '',
+                                }))}
+                                onChange={(value) => {
+                                    if (value) {
+                                        getEncounterClinicalData(value).then(data => {
+                                            setSelectedEncounterData(data);
+                                        });
+                                        // Auto-fill encounter date
+                                        const enc = encounters.find((e: any) => e.id === value);
+                                        if (enc?.period?.start) {
+                                            form.setFieldsValue({ encounterDate: dayjs(enc.period.start) });
+                                        }
+                                    } else {
+                                        setSelectedEncounterData(null);
+                                    }
+                                }}
+                            />
+                        </Form.Item>
+
+                        {selectedEncounterData && (
+                            <Card title="Auto-loaded Clinical Data from Encounter" size="small" style={{ marginTop: 8 }}>
+                                <Typography.Text strong>Conditions:</Typography.Text>
+                                {selectedEncounterData.conditions.map((c: any) => (
+                                    <div key={c.id}>{c.code?.text || c.code?.coding?.[0]?.display || c.id}</div>
+                                ))}
+                                <Divider />
+                                <Typography.Text strong>Observations:</Typography.Text>
+                                {selectedEncounterData.observations.map((o: any) => (
+                                    <div key={o.id}>
+                                        {o.code?.coding?.[0]?.display || o.code?.text}: {
+                                            o.valueQuantity
+                                                ? `${o.valueQuantity.value} ${o.valueQuantity.unit || ''}`
+                                                : o.component?.map((c: any) => `${c.code?.coding?.[0]?.display}: ${c.valueQuantity?.value} ${c.valueQuantity?.unit || ''}`).join(', ')
+                                        }
+                                    </div>
+                                ))}
+                            </Card>
+                        )}
+
+                        <Form.Item name="encounterDate" label="Encounter Date" initialValue={dayjs()}>
+                            <DatePicker showTime style={{ width: '100%' }} />
+                        </Form.Item>
+
+                        <Form.Item name="referralDate" label="Referral Date" initialValue={dayjs()}>
+                            <DatePicker showTime style={{ width: '100%' }} />
+                        </Form.Item>
+                    </Card>
+                )}
+
+                {currentStep === 1 && (
+                    <Card title="Sending (Referring) Facility">
+                        <Typography.Title level={5}>Sending Practitioner</Typography.Title>
+                        <Form.Item name="sendingPractitionerName" label="Practitioner Name" rules={[{ required: true }]}>
+                            <Input placeholder="e.g., Maria Villanueva" />
+                        </Form.Item>
+                        <Form.Item name="sendingPractitionerPRCId" label="PRC License Number" rules={[{ required: true }]}>
+                            <Input placeholder="e.g., 5466863" />
+                        </Form.Item>
+                        <Form.Item name="sendingPractitionerRole" label="Role" initialValue="Medical practitioner">
+                            <Input disabled />
+                        </Form.Item>
+
+                        <Divider />
+                        <Typography.Title level={5}>Sending Facility</Typography.Title>
+                        <Form.Item name="sendingFacilityName" label="Facility Name" rules={[{ required: true }]}>
+                            <Select
+                                showSearch
+                                placeholder="Search for facility"
+                                onSearch={searchFacility}
+                                options={facilityOptions.map(f => ({ label: `${f.name} (NHFR: ${getNHFR(f)})`, value: f.id || '' }))}
+                            />
+                        </Form.Item>
+                        <Form.Item name="sendingFacilityNHFR" label="NHFR Code" rules={[{ required: true }]}>
+                            <Input placeholder="e.g., 3056" />
+                        </Form.Item>
+                        <Form.Item name="sendingFacilityHCPN" label="HCPN Name">
+                            <Input placeholder="e.g., Aklan HCPN" />
+                        </Form.Item>
+                    </Card>
+                )}
+
+                {currentStep === 2 && (
+                    <Card title="Receiving Facility">
+                        <Typography.Title level={5}>Receiving Practitioner (Care Navigator)</Typography.Title>
+                        <Form.Item name="receivingPractitionerName" label="Practitioner Name">
+                            <Input placeholder="e.g., Carlos Lim" />
+                        </Form.Item>
+                        <Form.Item name="receivingPractitionerPRCId" label="PRC License Number">
+                            <Input placeholder="e.g., 7890123" />
+                        </Form.Item>
+
+                        <Divider />
+                        <Typography.Title level={5}>Receiving Facility</Typography.Title>
+                        <Form.Item name="receivingFacilityName" label="Facility Name" rules={[{ required: true }]}>
+                            <Select
+                                showSearch
+                                placeholder="Search for receiving facility"
+                                onSearch={searchFacility}
+                                options={facilityOptions.map(f => ({ label: `${f.name} (NHFR: ${getNHFR(f)})`, value: f.id || '' }))}
+                            />
+                        </Form.Item>
+                        <Form.Item name="receivingFacilityNHFR" label="NHFR Code" rules={[{ required: true }]}>
+                            <Input placeholder="e.g., 513" />
+                        </Form.Item>
+                        <Form.Item name="receivingFacilityHCPN" label="HCPN Name">
+                            <Input placeholder="e.g., Aklan HCPN" />
+                        </Form.Item>
+
+                        <Divider />
+                        <Typography.Title level={5}>Referral Details</Typography.Title>
+                        <Form.Item name="referralCategory" label="Category" rules={[{ required: true }]} initialValue="emergency">
+                            <Radio.Group>
+                                <Radio value="emergency">Emergency</Radio>
+                                <Radio value="outpatient">Outpatient / Routine</Radio>
+                            </Radio.Group>
+                        </Form.Item>
+                        <Form.Item name="reasonForReferralDisplay" label="Reason for Referral (Service Type)" rules={[{ required: true }]} initialValue="Procedure">
+                            <Select
+                                options={[
+                                    { label: 'Consultation', value: 'Consultation' },
+                                    { label: 'Diagnostics', value: 'Diagnostics' },
+                                    { label: 'Procedure', value: 'Procedure' },
+                                    { label: 'Others', value: 'Others' },
+                                ]}
+                            />
+                        </Form.Item>
+                    </Card>
+                )}
+
+                {currentStep === 3 && (
+                    <Card title="Clinical Information">
+                        <Typography.Title level={5}>Patient Assessment</Typography.Title>
+                        <Form.Item name="chiefComplaint" label="Chief Complaint">
+                            <Input.TextArea rows={3} placeholder="e.g., Severe headache, dizziness, blurring of vision" />
+                        </Form.Item>
+                        <Form.Item name="workingImpression" label="Working Impression (Diagnosis)" rules={[{ required: true }]}>
+                            <Input.TextArea rows={2} placeholder="e.g., Severe pre-eclampsia, 32 weeks AOG" />
+                        </Form.Item>
+                        <Form.Item name="clinicalHistory" label="Clinical History">
+                            <Input.TextArea rows={3} placeholder="Pertinent medical history" />
+                        </Form.Item>
+                        <Form.Item name="clinicalNote" label="Clinical Note">
+                            <Input.TextArea rows={3} placeholder="Additional clinical notes for the referral" />
+                        </Form.Item>
+
+                        <Divider />
+                        <Typography.Title level={5}>Vital Signs</Typography.Title>
+                        <Space size="large" wrap>
+                            <Form.Item name="bpSystolic" label="BP Systolic">
+                                <InputNumber addonAfter="mmHg" />
+                            </Form.Item>
+                            <Form.Item name="bpDiastolic" label="BP Diastolic">
+                                <InputNumber addonAfter="mmHg" />
+                            </Form.Item>
+                            <Form.Item name="heartRate" label="Heart Rate">
+                                <InputNumber addonAfter="bpm" />
+                            </Form.Item>
+                            <Form.Item name="respiratoryRate" label="Respiratory Rate">
+                                <InputNumber addonAfter="/min" />
+                            </Form.Item>
+                            <Form.Item name="oxygenSaturation" label="SpO2">
+                                <InputNumber addonAfter="%" />
+                            </Form.Item>
+                            <Form.Item name="temperature" label="Temperature">
+                                <InputNumber addonAfter="°C" />
+                            </Form.Item>
+                            <Form.Item name="weight" label="Weight">
+                                <InputNumber addonAfter="kg" />
+                            </Form.Item>
+                        </Space>
+
+                        <Divider />
+                        <Typography.Title level={5}>Treatment & Labs</Typography.Title>
+                        <Form.Item name="treatmentGiven" label="Treatment Given">
+                            <Input.TextArea rows={2} placeholder="Pre-referral treatment administered" />
+                        </Form.Item>
+                        <Form.Item name="labResults" label="Lab Results">
+                            <Input.TextArea rows={3} placeholder="Laboratory results summary" />
+                        </Form.Item>
+                    </Card>
+                )}
+
+                {currentStep === 4 && (
+                    <Card title="Review & Submit">
+                        <Descriptions column={1} bordered size="small">
+                            <Descriptions.Item label="Patient">{form.getFieldValue('patientName')}</Descriptions.Item>
+                            <Descriptions.Item label="Encounter">{form.getFieldValue('encounterId') || 'New encounter will be created'}</Descriptions.Item>
+                            <Descriptions.Item label="Referring Practitioner">{form.getFieldValue('sendingPractitionerName')}</Descriptions.Item>
+                            <Descriptions.Item label="Sending Facility">{form.getFieldValue('sendingFacilityName')}</Descriptions.Item>
+                            <Descriptions.Item label="Receiving Facility">{form.getFieldValue('receivingFacilityName')}</Descriptions.Item>
+                            <Descriptions.Item label="Category">{form.getFieldValue('referralCategory')}</Descriptions.Item>
+                            <Descriptions.Item label="Working Impression">{form.getFieldValue('workingImpression')}</Descriptions.Item>
+                            <Descriptions.Item label="Chief Complaint">{form.getFieldValue('chiefComplaint')}</Descriptions.Item>
+                            <Descriptions.Item label="Clinical History">{form.getFieldValue('clinicalHistory')}</Descriptions.Item>
+                            <Descriptions.Item label="Vital Signs">
+                                {[
+                                    form.getFieldValue('bpSystolic') && `BP: ${form.getFieldValue('bpSystolic')}/${form.getFieldValue('bpDiastolic')}`,
+                                    form.getFieldValue('heartRate') && `HR: ${form.getFieldValue('heartRate')}`,
+                                    form.getFieldValue('respiratoryRate') && `RR: ${form.getFieldValue('respiratoryRate')}`,
+                                    form.getFieldValue('oxygenSaturation') && `SpO2: ${form.getFieldValue('oxygenSaturation')}%`,
+                                    form.getFieldValue('temperature') && `Temp: ${form.getFieldValue('temperature')}°C`,
+                                    form.getFieldValue('weight') && `Wt: ${form.getFieldValue('weight')}kg`,
+                                ].filter(Boolean).join(', ') || 'None entered'}
+                            </Descriptions.Item>
+                            <Descriptions.Item label="Treatment Given">{form.getFieldValue('treatmentGiven') || 'None'}</Descriptions.Item>
+                            <Descriptions.Item label="Lab Results">{form.getFieldValue('labResults') || 'None'}</Descriptions.Item>
+                        </Descriptions>
+
+                        <Typography.Text type="secondary" style={{ display: 'block', marginTop: 16 }}>
+                            On submit, a FHIR transaction bundle (21 entries) will be posted to the FHIR server.
+                        </Typography.Text>
+
+                        <Button
+                            type="primary"
+                            size="large"
+                            icon={<SendOutlined />}
+                            onClick={handleSubmit}
+                            loading={submitting}
+                            style={{ marginTop: 16 }}
+                        >
+                            Submit Referral
+                        </Button>
+                    </Card>
+                )}
+            </Form>
+
+            <div style={{ marginTop: 24, textAlign: 'center' }}>
+                <Space>
+                    {currentStep > 0 && (
+                        <Button onClick={() => setCurrentStep((s: number) => s - 1)}>Previous</Button>
+                    )}
+                    {currentStep < 4 && (
+                        <Button type="primary" onClick={() => setCurrentStep((s: number) => s + 1)}>Next</Button>
+                    )}
+                </Space>
+            </div>
+        </PageContainer>
+    );
+}
+
+function getNHFR(org: Organization): string {
+    return org.identifier?.find((i: any) => i.system?.includes('doh-nhfr-code'))?.value || '?';
+}
