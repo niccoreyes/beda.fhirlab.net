@@ -9,8 +9,6 @@ import { service } from '@beda.software/emr/services';
 import { isSuccess } from '@beda.software/remote-data';
 import { ServiceRequest } from 'fhir/r4b';
 
-import { getReferralTasks } from '../../services/fhir';
-
 interface ReferralRow {
     key: string;
     serviceRequestId: string;
@@ -32,27 +30,58 @@ const taskColors: Record<string, string> = {
     rejected: 'red', completed: 'green', cancelled: 'gray',
 };
 
-async function fetchAllServiceRequests(): Promise<ServiceRequest[]> {
-    const all: ServiceRequest[] = [];
-    let nextUrl: string | undefined = 'ServiceRequest?_sort=-authored&_total=accurate&_count=100';
+async function fetchReferralsWithTasks(): Promise<{ sr: ServiceRequest; tasks: any[] }[]> {
+    const result: { sr: ServiceRequest; tasks: any[] }[] = [];
+    let nextUrl: string | undefined =
+        'ServiceRequest?_sort=-authored&_total=accurate&_count=100&_revinclude=Task:focus&_include=ServiceRequest:patient';
 
     while (nextUrl) {
-        const result: any = await service({ url: nextUrl, method: 'GET' });
-        if (isSuccess(result)) {
-            const bundle: any = result.data;
-            const entries = bundle.entry ?? [];
+        const response: any = await service({ url: nextUrl, method: 'GET' });
+        if (isSuccess(response)) {
+            const bundle: any = response.data;
+            const entries: any[] = bundle.entry ?? [];
+
+            // Build SR->Tasks map from bundle entries
+            const taskMap: Record<string, any[]> = {};
+            const patientMap: Record<string, string> = {};
+            const serviceRequests: ServiceRequest[] = [];
+
             for (const entry of entries) {
-                if (entry.resource?.resourceType === 'ServiceRequest') {
-                    all.push(entry.resource as ServiceRequest);
+                const res = entry.resource;
+                if (!res) continue;
+                if (res.resourceType === 'ServiceRequest') {
+                    serviceRequests.push(res as ServiceRequest);
+                } else if (res.resourceType === 'Task') {
+                    const focusRef = res.focus?.reference?.replace('ServiceRequest/', '');
+                    if (focusRef) {
+                        if (!taskMap[focusRef]) taskMap[focusRef] = [];
+                        taskMap[focusRef].push(res);
+                    }
+                } else if (res.resourceType === 'Patient') {
+                    patientMap[res.id as string] =
+                        res.name?.[0] ? `${(res.name[0].given || []).join(' ')} ${res.name[0].family || ''}`.trim() : res.id;
                 }
             }
+
+            for (const sr of serviceRequests) {
+                result.push({
+                    sr,
+                    tasks: taskMap[sr.id!] || [],
+                });
+                // Patch patient name from included Patient resources
+                const patientId = sr.subject?.reference?.replace('Patient/', '');
+                if (patientId && patientMap[patientId] && !sr.subject?.display) {
+                    (sr.subject as any).display = patientMap[patientId];
+                }
+            }
+
             const nextLink = bundle.link?.find((l: any) => l.relation === 'next');
             nextUrl = nextLink?.url;
         } else {
             break;
         }
     }
-    return all;
+    return result;
 }
 
 export function EReferralList() {
@@ -65,35 +94,26 @@ export function EReferralList() {
 
     useEffect(() => {
         setLoading(true);
-        fetchAllServiceRequests().then(async serviceRequests => {
-            const rows: ReferralRow[] = [];
-            const batchSize = 20;
-            for (let i = 0; i < serviceRequests.length; i += batchSize) {
-                const batch = serviceRequests.slice(i, i + batchSize);
-                const batchResults = await Promise.all(
-                    batch.map(async (sr) => {
-                        const tasks = await getReferralTasks(sr.id!);
-                        const patientRef = sr.subject?.reference?.replace('Patient/', '') || '';
-                        const taskStatus = tasks[0]?.status || 'no task';
-                        return {
-                            key: sr.id!,
-                            serviceRequestId: sr.id!,
-                            patientId: patientRef,
-                            patientName: sr.subject?.display || patientRef || 'Unknown',
-                            requisition: sr.requisition?.value || '-',
-                            authoredOn: sr.authoredOn || '',
-                            status: sr.status || '',
-                            category: sr.category?.[0]?.text || sr.category?.[0]?.coding?.[0]?.display || '-',
-                            reason: sr.reasonCode?.[0]?.text || sr.code?.text || '-',
-                            requester: sr.requester?.display || sr.requester?.reference || '',
-                            performer: sr.performer?.map((p: any) => p.display || p.reference).join(', ') || '',
-                            taskStatus,
-                            taskId: tasks[0]?.id || '',
-                        } as ReferralRow;
-                    })
-                );
-                rows.push(...batchResults);
-            }
+        fetchReferralsWithTasks().then(items => {
+            const rows: ReferralRow[] = items.map(({ sr, tasks }) => {
+                const patientRef = sr.subject?.reference?.replace('Patient/', '') || '';
+                const taskStatus = tasks[0]?.status || 'no task';
+                return {
+                    key: sr.id!,
+                    serviceRequestId: sr.id!,
+                    patientId: patientRef,
+                    patientName: sr.subject?.display || patientRef || 'Unknown',
+                    requisition: sr.requisition?.value || '-',
+                    authoredOn: sr.authoredOn || '',
+                    status: sr.status || '',
+                    category: sr.category?.[0]?.text || sr.category?.[0]?.coding?.[0]?.display || '-',
+                    reason: sr.reasonCode?.[0]?.text || sr.code?.text || '-',
+                    requester: sr.requester?.display || sr.requester?.reference || '',
+                    performer: sr.performer?.map((p: any) => p.display || p.reference).join(', ') || '',
+                    taskStatus,
+                    taskId: tasks[0]?.id || '',
+                };
+            });
             setReferrals(rows);
         }).finally(() => setLoading(false));
     }, []);

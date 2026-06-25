@@ -13,27 +13,297 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
-#: src/containers/PatientList/index.tsx:12
-#: src/containers/EncounterList/index.tsx:11
-#: src/containers/PractitionerList/index.tsx:11
-#: src/containers/OrganizationList/index.tsx:12
-msgid "Patients"
+#: src/containers/OrganizationList/index.tsx:55
+#: src/containers/OrganizationList/index.tsx:75
+#: src/containers/OrganizationsUberList/index.tsx:37
+msgid "Active"
 msgstr ""
 
-#: src/containers/PatientList/index.tsx:20
+#: src/containers/OrganizationsUberList/index.tsx:66
+msgid "Add organization"
+msgstr ""
+
+#: src/containers/PatientsUberList/index.tsx:106
+msgid "Add patient"
+msgstr ""
+
+#: src/containers/PractitionersUberList /index.tsx:64
+msgid "Add practitioner"
+msgstr ""
+
+#: src/containers/PractitionerRolesUberList/index.tsx:110
+msgid "Add practitioner role"
+msgstr ""
+
+#: src/containers/PatientList/index.tsx:30
+#: src/containers/PatientList/index.tsx:89
+#: src/containers/PatientsUberList/index.tsx:27
+#: src/containers/PatientsUberList/index.tsx:65
+#: src/containers/PractitionerList/index.tsx:34
+#: src/containers/PractitionersUberList /index.tsx:28
 msgid "Birth date"
 msgstr ""
 
-#: src/containers/PatientList/index.tsx:26
-msgid "Gender"
+#: src/containers/Analytics/index.tsx:79
+msgid "Birth Date"
 msgstr ""
 
-#: src/containers/PatientList/index.tsx:36
+#: src/containers/Analytics/index.tsx:73
+#: src/containers/PatientsUberList/index.tsx:72
+msgid "Choose gender"
+msgstr ""
+
+#: src/containers/EncountersUberList/index.tsx:91
+#: src/containers/ImmunizationsUberList /index.tsx:74
+#: src/containers/ProceduresUberList/index.tsx:57
+msgid "Choose status"
+msgstr ""
+
+#: src/containers/Analytics/index.tsx:29
+msgid "Close"
+msgstr ""
+
+#: src/containers/PatientList/index.tsx:58
+msgid "Contact"
+msgstr ""
+
+#: src/containers/EncountersUberList/index.tsx:125
+msgid "Create encounter"
+msgstr ""
+
+#: src/containers/ImmunizationsUberList /index.tsx:130
+msgid "Create immunization"
+msgstr ""
+
+#: src/containers/MedicationsUberList/index.tsx:32
+msgid "Create medication"
+msgstr ""
+
+#: src/containers/ObservationsUberList/index.tsx:63
+msgid "Create observation"
+msgstr ""
+
+#: src/containers/ProceduresUberList/index.tsx:107
+msgid "Create procedure"
+msgstr ""
+
+#: src/containers/EncounterList/index.tsx:16
+#: src/containers/PatientsUberList/dashboard.tsx:49
+msgid "Date"
+msgstr ""
+
+#: src/containers/Analytics/index.tsx:81
+msgid "Date from"
+msgstr ""
+
+#: src/containers/Analytics/index.tsx:81
+msgid "Date to"
+msgstr ""
+
+#: src/containers/OrganizationsUberList/index.tsx:30
+msgid "DOH NHFR Code"
+msgstr ""
+
+#: src/containers/EncounterList/index.tsx:11
+msgid "Encounters"
+msgstr ""
+
+#: src/containers/PractitionerRolesUberList/index.tsx:96
+msgid "Find by organization"
+msgstr ""
+
+#: src/containers/EncounterList/index.tsx:59
+msgid "Find by patient"
+msgstr ""
+
+#: src/containers/PractitionerRolesUberList/index.tsx:89
+msgid "Find by practitioner"
+msgstr ""
+
+#: src/containers/EncountersUberList/index.tsx:84
+msgid "Find encounter"
+msgstr ""
+
+#: src/containers/OrganizationList/index.tsx:68
+#: src/containers/OrganizationsUberList/index.tsx:50
+msgid "Find organization"
+msgstr ""
+
+#: src/containers/PatientList/index.tsx:71
+#: src/containers/PatientsUberList/index.tsx:58
 msgid "Find patient"
 msgstr ""
 
-#: src/containers/PatientList/index.tsx:19
-#: src/containers/PractitionerList/index.tsx:19
-#: src/containers/OrganizationList/index.tsx:22
+#: src/containers/PractitionerList/index.tsx:54
+#: src/containers/PractitionersUberList /index.tsx:48
+msgid "Find practitioner"
+msgstr ""
+
+#: src/containers/Analytics/index.tsx:66
+#: src/containers/PatientList/index.tsx:37
+#: src/containers/PatientList/index.tsx:78
+#: src/containers/PatientsUberList/index.tsx:33
+#: src/containers/PractitionerList/index.tsx:42
+msgid "Gender"
+msgstr ""
+
+#: src/containers/OrganizationList/index.tsx:40
+msgid "HCPN Code"
+msgstr ""
+
+#: src/containers/Analytics/index.tsx:96
+msgid "Immunization dashboard"
+msgstr ""
+
+#: src/containers/Analytics/index.tsx:105
+msgid "Immunizations by vaccine"
+msgstr ""
+
+#: src/containers/PatientsUberList/dashboard.tsx:64
+msgid "IPS Bundle is copied to clipboard"
+msgstr ""
+
+#: src/containers/PractitionersUberList /index.tsx:36
+msgid "Language"
+msgstr ""
+
+#: src/containers/OrganizationList/index.tsx:26
+#: src/containers/OrganizationsUberList/index.tsx:23
+#: src/containers/PatientList/index.tsx:23
+#: src/containers/PatientsUberList/index.tsx:20
+#: src/containers/PractitionerList/index.tsx:20
+#: src/containers/PractitionersUberList /index.tsx:21
 msgid "Name"
+msgstr ""
+
+#: src/containers/OrganizationList/index.tsx:33
+msgid "NHFR Code"
+msgstr ""
+
+#: src/containers/OrganizationList/index.tsx:59
+#: src/containers/OrganizationsUberList/index.tsx:41
+msgid "No"
+msgstr ""
+
+#: src/containers/Analytics/index.tsx:148
+#: src/containers/Analytics/index.tsx:159
+msgid "No data"
+msgstr ""
+
+#: src/containers/EncountersUberList/index.tsx:138
+msgid "Number of Encounters"
+msgstr ""
+
+#: src/containers/ImmunizationsUberList /index.tsx:143
+msgid "Number of Immunizations"
+msgstr ""
+
+#: src/containers/MedicationsUberList/index.tsx:38
+msgid "Number of Medication"
+msgstr ""
+
+#: src/containers/ObservationsUberList/index.tsx:76
+msgid "Number of Observation"
+msgstr ""
+
+#: src/containers/OrganizationsUberList/index.tsx:79
+msgid "Number of Organization"
+msgstr ""
+
+#: src/containers/PatientsUberList/index.tsx:118
+msgid "Number of Patients"
+msgstr ""
+
+#: src/containers/PractitionersUberList /index.tsx:77
+msgid "Number of Practitioner"
+msgstr ""
+
+#: src/containers/PractitionerRolesUberList/index.tsx:123
+msgid "Number of practitioner roles"
+msgstr ""
+
+#: src/containers/ProceduresUberList/index.tsx:120
+msgid "Number of Procedures"
+msgstr ""
+
+#: src/containers/PractitionerRolesUberList/index.tsx:61
+msgid "Organization"
+msgstr ""
+
+#: src/containers/OrganizationList/index.tsx:21
+#: src/containers/OrganizationsUberList/index.tsx:18
+msgid "Organizations"
+msgstr ""
+
+#: src/containers/EncounterList/index.tsx:24
+msgid "Patient"
+msgstr ""
+
+#: src/containers/PatientList/index.tsx:18
+#: src/containers/PatientsUberList/index.tsx:15
+msgid "Patients"
+msgstr ""
+
+#: src/containers/PatientList/index.tsx:44
+msgid "PhilHealth ID"
+msgstr ""
+
+#: src/containers/PatientList/index.tsx:51
+msgid "PhilSys ID"
+msgstr ""
+
+#: src/containers/OrganizationList/index.tsx:47
+msgid "Phone"
+msgstr ""
+
+#: src/containers/PractitionerRolesUberList/index.tsx:53
+msgid "Practitioner"
+msgstr ""
+
+#: src/containers/PractitionerRolesUberList/index.tsx:45
+msgid "Practitioner roles"
+msgstr ""
+
+#: src/containers/PractitionerList/index.tsx:15
+#: src/containers/PractitionersUberList /index.tsx:16
+msgid "Practitioners"
+msgstr ""
+
+#: src/containers/PractitionerList/index.tsx:61
+msgid "PRC license"
+msgstr ""
+
+#: src/containers/PractitionerList/index.tsx:27
+msgid "PRC License"
+msgstr ""
+
+#: src/containers/PractitionerRolesUberList/index.tsx:69
+msgid "Role"
+msgstr ""
+
+#: src/containers/EncounterList/index.tsx:46
+msgid "Service Provider"
+msgstr ""
+
+#: src/containers/PatientsUberList/dashboard.tsx:67
+msgid "Share"
+msgstr ""
+
+#: src/containers/PractitionerRolesUberList/index.tsx:77
+msgid "Specialty"
+msgstr ""
+
+#: src/containers/EncounterList/index.tsx:39
+#: src/containers/EncounterList/index.tsx:66
+msgid "Status"
+msgstr ""
+
+#: src/containers/EncounterList/index.tsx:32
+#: src/containers/EncounterList/index.tsx:79
+msgid "Type"
+msgstr ""
+
+#: src/containers/OrganizationList/index.tsx:59
+#: src/containers/OrganizationsUberList/index.tsx:41
+msgid "Yes"
 msgstr ""

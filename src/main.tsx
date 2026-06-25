@@ -40,8 +40,8 @@ import {
     EncountersIcon,
     PractitionersIcon,
     OrganizationsIcon,
+    QuestionnairesIcon,
 } from '@beda.software/emr/icons';
-import { InboxOutlined } from '@ant-design/icons';
 import { dynamicActivate, getCurrentLocale } from './services/i18n';
 
 const menuLayout = () => [
@@ -49,7 +49,7 @@ const menuLayout = () => [
     { label: 'Encounters', path: '/encounters', icon: <EncountersIcon /> as React.ReactElement },
     { label: 'Practitioners', path: '/practitioners', icon: <PractitionersIcon /> as React.ReactElement },
     { label: 'Organizations', path: '/organizations', icon: <OrganizationsIcon /> as React.ReactElement },
-    { label: 'Referrals', path: '/referrals', icon: <InboxOutlined /> as React.ReactElement },
+    { label: 'Referrals', path: '/referrals', icon: <QuestionnairesIcon /> as React.ReactElement },
 ];
 
 function AppLayout() {

@@ -74,12 +74,12 @@ export function buildReferralBundle(data: ReferralFormData, existingPatient?: Pa
             }],
         },
         request: {
-            method: 'PUT',
-            url: `Practitioner?identifier=https://prc.gov.ph/|${data.sendingPractitionerPRCId}`,
+            method: 'POST',
+            url: 'Practitioner',
         },
     });
 
-    // Entry 3: Receiving Practitioner (conditional PUT on PRC ID)
+    // Entry 3: Receiving Practitioner
     if (data.receivingPractitionerPRCId) {
         entries.push({
             fullUrl: `urn:uuid:${receivingPractUUID}`,
@@ -100,8 +100,8 @@ export function buildReferralBundle(data: ReferralFormData, existingPatient?: Pa
                 }],
             },
             request: {
-                method: 'PUT',
-                url: `Practitioner?identifier=https://prc.gov.ph/|${data.receivingPractitionerPRCId}`,
+                method: 'POST',
+                url: 'Practitioner',
             },
         });
     }
@@ -173,8 +173,8 @@ export function buildReferralBundle(data: ReferralFormData, existingPatient?: Pa
             }],
         },
         request: {
-            method: 'PUT',
-            url: `PractitionerRole?identifier=https://prc.gov.ph/|${data.sendingPractitionerPRCId}`,
+            method: 'POST',
+            url: 'PractitionerRole',
         },
     });
 
@@ -202,8 +202,8 @@ export function buildReferralBundle(data: ReferralFormData, existingPatient?: Pa
                 }],
             },
             request: {
-                method: 'PUT',
-                url: `PractitionerRole?identifier=https://prc.gov.ph/|${data.receivingPractitionerPRCId}`,
+                method: 'POST',
+                url: 'PractitionerRole',
             },
         });
     }
