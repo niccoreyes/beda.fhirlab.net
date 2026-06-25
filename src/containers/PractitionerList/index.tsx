@@ -3,7 +3,11 @@ import { Practitioner } from 'fhir/r4b';
 
 import { ResourceListPage, navigationAction } from '@beda.software/emr/components';
 import { SearchBarColumnType } from '@beda.software/emr/dist/components/SearchBar/types';
-import { formatHumanDate, renderHumanName } from '@beda.software/emr/utils';
+import { formatHumanDate, renderHumanName, compileAsFirst } from '@beda.software/emr/utils';
+
+const getPrcId = compileAsFirst<Practitioner, string>(
+    "Practitioner.identifier.where(system='https://prc.gov.ph/').value",
+);
 
 export function PractitionerList() {
     return (
@@ -16,7 +20,14 @@ export function PractitionerList() {
                     dataIndex: 'name',
                     key: 'name',
                     render: (_text, { resource }) => renderHumanName(resource.name?.[0]),
-                    width: '35%',
+                    width: 250,
+                },
+                {
+                    title: <Trans>PRC License</Trans>,
+                    dataIndex: 'identifier',
+                    key: 'prc',
+                    render: (_text, { resource }) => getPrcId(resource) ?? '',
+                    width: 130,
                 },
                 {
                     title: <Trans>Birth date</Trans>,
@@ -24,14 +35,14 @@ export function PractitionerList() {
                     key: 'birthDate',
                     render: (_text, { resource }) =>
                         resource.birthDate ? formatHumanDate(resource.birthDate) : null,
-                    width: '20%',
+                    width: 110,
                 },
                 {
                     title: <Trans>Gender</Trans>,
                     dataIndex: 'gender',
                     key: 'gender',
                     render: (_text, { resource }) => resource.gender ?? null,
-                    width: '15%',
+                    width: 90,
                 },
             ]}
             getFilters={() => [
@@ -41,6 +52,13 @@ export function PractitionerList() {
                     type: SearchBarColumnType.STRING,
                     placeholder: t`Find practitioner`,
                     placement: ['search-bar', 'table'],
+                },
+                {
+                    id: 'identifier',
+                    searchParam: 'identifier',
+                    type: SearchBarColumnType.STRING,
+                    placeholder: t`PRC license`,
+                    placement: ['table'],
                 },
             ]}
             getRecordActions={(record) => [

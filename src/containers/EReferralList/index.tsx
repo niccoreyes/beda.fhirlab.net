@@ -13,10 +13,13 @@ interface ReferralRow {
     serviceRequestId: string;
     patientId: string;
     patientName: string;
+    requisition: string;
     authoredOn: string;
     status: string;
     category: string;
     reason: string;
+    requester: string;
+    performer: string;
     taskStatus: string;
     taskId: string;
 }
@@ -31,7 +34,7 @@ export function EReferralList() {
         setLoading(true);
         searchPatients('').then(async patients => {
             const allReferrals: ReferralRow[] = [];
-            for (const p of patients.slice(0, 10)) {
+            for (const p of patients.slice(0, 30)) {
                 const srs = await getPatientReferrals(p.id!);
                 for (const sr of srs) {
                     const tasks = await getReferralTasks(sr.id!);
@@ -41,10 +44,13 @@ export function EReferralList() {
                         serviceRequestId: sr.id!,
                         patientId: p.id!,
                         patientName: name ? `${name.given?.join(' ') || ''} ${name.family || ''}`.trim() : 'Unknown',
+                        requisition: sr.requisition?.value || '-',
                         authoredOn: sr.authoredOn || '',
                         status: sr.status || '',
                         category: sr.category?.[0]?.text || sr.category?.[0]?.coding?.[0]?.display || '-',
                         reason: sr.reasonCode?.[0]?.text || sr.code?.text || '-',
+                        requester: sr.requester?.display || sr.requester?.reference || '',
+                        performer: sr.performer?.map((p: any) => p.display || p.reference).join(', ') || '',
                         taskStatus: tasks[0]?.status || 'no task',
                         taskId: tasks[0]?.id || '',
                     });
@@ -54,11 +60,24 @@ export function EReferralList() {
         }).finally(() => setLoading(false));
     }, []);
 
+    const taskColors: Record<string, string> = {
+        requested: 'orange', received: 'blue', accepted: 'green',
+        rejected: 'red', completed: 'green', cancelled: 'gray',
+    };
+
     const columns = [
+        {
+            title: 'Requisition',
+            dataIndex: 'requisition',
+            key: 'requisition',
+            width: 160,
+            render: (r: string) => r?.slice(-20) || '-',
+        },
         {
             title: 'Patient',
             dataIndex: 'patientName',
             key: 'patient',
+            width: 200,
             render: (name: string, record: ReferralRow) => (
                 <a onClick={() => navigate(`/patients/${record.patientId}`)}>{name}</a>
             ),
@@ -67,35 +86,46 @@ export function EReferralList() {
             title: 'Date',
             dataIndex: 'authoredOn',
             key: 'date',
+            width: 160,
             render: (d: string) => (d ? formatHumanDateTime(d) : '-'),
         },
-        { title: 'Category', dataIndex: 'category', key: 'category' },
-        { title: 'Reason', dataIndex: 'reason', key: 'reason', ellipsis: true },
+        {
+            title: 'Category',
+            dataIndex: 'category',
+            key: 'category',
+            width: 100,
+        },
+        {
+            title: 'Reason',
+            dataIndex: 'reason',
+            key: 'reason',
+            ellipsis: true,
+        },
+        {
+            title: 'Requester',
+            dataIndex: 'requester',
+            key: 'requester',
+            width: 200,
+            ellipsis: true,
+        },
         {
             title: 'Status',
             dataIndex: 'status',
             key: 'status',
+            width: 100,
             render: (s: string) => <Tag color={s === 'active' ? 'blue' : 'default'}>{s}</Tag>,
         },
         {
             title: 'Task',
             dataIndex: 'taskStatus',
             key: 'taskStatus',
-            render: (s: string) => {
-                const colors: Record<string, string> = {
-                    requested: 'orange',
-                    received: 'blue',
-                    accepted: 'green',
-                    rejected: 'red',
-                    completed: 'green',
-                    cancelled: 'gray',
-                };
-                return <Tag color={colors[s] || 'default'}>{s}</Tag>;
-            },
+            width: 110,
+            render: (s: string) => <Tag color={taskColors[s] || 'default'}>{s}</Tag>,
         },
         {
             title: 'Action',
             key: 'action',
+            width: 70,
             render: (_: any, record: ReferralRow) => (
                 <Button type="link" onClick={() => navigate(`/referrals/${record.serviceRequestId}`)}>
                     View

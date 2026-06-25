@@ -17,7 +17,7 @@ export function EncounterList() {
                     key: 'date',
                     render: (_text, { resource }) =>
                         resource.period?.start ? formatHumanDateTime(resource.period.start) : '-',
-                    width: 200,
+                    width: 180,
                 },
                 {
                     title: <Trans>Patient</Trans>,
@@ -39,7 +39,15 @@ export function EncounterList() {
                     dataIndex: 'status',
                     key: 'status',
                     render: (_text, { resource }) => resource.status,
-                    width: 120,
+                    width: 110,
+                },
+                {
+                    title: <Trans>Service Provider</Trans>,
+                    dataIndex: 'serviceProvider',
+                    key: 'provider',
+                    render: (_text, { resource }) =>
+                        resource.serviceProvider?.display || resource.serviceProvider?.reference || '-',
+                    width: 250,
                 },
             ]}
             getFilters={() => [
@@ -54,7 +62,7 @@ export function EncounterList() {
                     id: 'status',
                     searchParam: 'status',
                     type: SearchBarColumnType.CHOICE,
-                    placeholder: t`Choose status`,
+                    placeholder: t`Status`,
                     options: [
                         { value: { Coding: { code: 'finished', display: 'Finished' } } },
                         { value: { Coding: { code: 'in-progress', display: 'In progress' } } },
@@ -62,6 +70,20 @@ export function EncounterList() {
                         { value: { Coding: { code: 'planned', display: 'Planned' } } },
                     ],
                     placement: ['table', 'search-bar'],
+                },
+                {
+                    id: 'class',
+                    searchParam: 'class',
+                    type: SearchBarColumnType.CHOICE,
+                    placeholder: t`Type`,
+                    options: [
+                        { value: { Coding: { code: 'AMB', display: 'Ambulatory' } } },
+                        { value: { Coding: { code: 'EMER', display: 'Emergency' } } },
+                        { value: { Coding: { code: 'IMP', display: 'Inpatient' } } },
+                        { value: { Coding: { code: 'OBSENC', display: 'Outpatient' } } },
+                        { value: { Coding: { code: 'VRTL', display: 'Virtual' } } },
+                    ],
+                    placement: ['table'],
                 },
             ]}
             getHeaderActions={() => [
