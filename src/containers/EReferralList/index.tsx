@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Table, Tabs, Tag, Spin, Button } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { Table, Tag, Spin, Button, Input } from 'antd';
+import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
 
 import { PageContainer } from '@beda.software/emr/components';
 import { formatHumanDateTime } from '@beda.software/emr/utils';
@@ -59,13 +59,14 @@ export function EReferralList() {
     const navigate = useNavigate();
     const [referrals, setReferrals] = useState<ReferralRow[]>([]);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState('all');
+    const [requesterFilter, setRequesterFilter] = useState('');
+    const [performerFilter, setPerformerFilter] = useState('');
+    const [statusFilter, setStatusFilter] = useState('all');
 
     useEffect(() => {
         setLoading(true);
         fetchAllServiceRequests().then(async serviceRequests => {
             const rows: ReferralRow[] = [];
-            // Process in batches to avoid too many concurrent requests
             const batchSize = 20;
             for (let i = 0; i < serviceRequests.length; i += batchSize) {
                 const batch = serviceRequests.slice(i, i + batchSize);
@@ -97,6 +98,22 @@ export function EReferralList() {
         }).finally(() => setLoading(false));
     }, []);
 
+    const filtered = useMemo(() => {
+        let result = referrals;
+        if (statusFilter !== 'all') {
+            result = result.filter(r => r.taskStatus === statusFilter);
+        }
+        if (requesterFilter) {
+            const q = requesterFilter.toLowerCase();
+            result = result.filter(r => r.requester.toLowerCase().includes(q));
+        }
+        if (performerFilter) {
+            const q = performerFilter.toLowerCase();
+            result = result.filter(r => r.performer.toLowerCase().includes(q));
+        }
+        return result;
+    }, [referrals, statusFilter, requesterFilter, performerFilter]);
+
     const columns = [
         {
             title: 'Requisition', dataIndex: 'requisition', key: 'requisition', width: 170,
@@ -111,15 +128,32 @@ export function EReferralList() {
         { title: 'Date', dataIndex: 'authoredOn', key: 'date', width: 170, render: (d: string) => d ? formatHumanDateTime(d) : '-' },
         { title: 'Category', dataIndex: 'category', key: 'category', width: 110 },
         { title: 'Reason', dataIndex: 'reason', key: 'reason', ellipsis: true },
-        { title: 'Requester', dataIndex: 'requester', key: 'requester', width: 210, ellipsis: true },
-        { title: 'Status', dataIndex: 'status', key: 'status', width: 100, render: (s: string) => <Tag color={s === 'active' ? 'blue' : 'default'}>{s}</Tag> },
-        { title: 'Task', dataIndex: 'taskStatus', key: 'taskStatus', width: 110, render: (s: string) => <Tag color={taskColors[s] || 'default'}>{s}</Tag> },
-        { title: '', key: 'action', width: 70, render: (_: any, r: ReferralRow) => (
-            <Button type="link" onClick={() => navigate(`/referrals/${r.serviceRequestId}`)}>View</Button>
-        )},
+        {
+            title: 'Requester', dataIndex: 'requester', key: 'requester', width: 230,
+            ellipsis: true,
+            filterDropdown: () => null,
+        },
+        {
+            title: 'Performer', dataIndex: 'performer', key: 'performer', width: 230,
+            ellipsis: true,
+        },
+        {
+            title: 'Status', dataIndex: 'status', key: 'status', width: 100,
+            render: (s: string) => <Tag color={s === 'active' ? 'blue' : 'default'}>{s}</Tag>,
+        },
+        {
+            title: 'Task', dataIndex: 'taskStatus', key: 'taskStatus', width: 110,
+            render: (s: string) => <Tag color={taskColors[s] || 'default'}>{s}</Tag>,
+        },
+        {
+            title: '', key: 'action', width: 70,
+            render: (_: any, r: ReferralRow) => (
+                <Button type="link" onClick={() => navigate(`/referrals/${r.serviceRequestId}`)}>View</Button>
+            ),
+        },
     ];
 
-    const filtered = activeTab === 'all' ? referrals : referrals.filter(r => r.taskStatus === activeTab);
+    const countByStatus = (s: string) => s === 'all' ? referrals.length : referrals.filter(r => r.taskStatus === s).length;
 
     return (
         <PageContainer title="Referrals"
@@ -130,16 +164,54 @@ export function EReferralList() {
             {loading ? (
                 <div style={{ textAlign: 'center', padding: 48 }}><Spin size="large" /></div>
             ) : (
-                <Tabs activeKey={activeTab} onChange={setActiveTab} items={[
-                    { key: 'all', label: `All (${referrals.length})` },
-                    { key: 'requested', label: 'Requested' },
-                    { key: 'received', label: 'Received' },
-                    { key: 'accepted', label: 'Accepted' },
-                    { key: 'rejected', label: 'Rejected' },
-                    { key: 'completed', label: 'Completed' },
-                ]} />
+                <div style={{ marginBottom: 16, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                    <Input
+                        placeholder="Filter by requester..."
+                        prefix={<SearchOutlined />}
+                        value={requesterFilter}
+                        onChange={e => setRequesterFilter(e.target.value)}
+                        style={{ width: 250 }}
+                        allowClear
+                    />
+                    <Input
+                        placeholder="Filter by performer..."
+                        prefix={<SearchOutlined />}
+                        value={performerFilter}
+                        onChange={e => setPerformerFilter(e.target.value)}
+                        style={{ width: 250 }}
+                        allowClear
+                    />
+
+                    <div style={{ display: 'flex', gap: 4, alignItems: 'center', flexWrap: 'wrap' }}>
+                        {[
+                            { key: 'all', label: `All (${referrals.length})` },
+                            { key: 'requested', label: 'Requested' },
+                            { key: 'received', label: 'Received' },
+                            { key: 'accepted', label: 'Accepted' },
+                            { key: 'rejected', label: 'Rejected' },
+                            { key: 'completed', label: 'Completed' },
+                        ].map(tab => (
+                            <Tag
+                                key={tab.key}
+                                color={statusFilter === tab.key ? 'blue' : 'default'}
+                                style={{ cursor: 'pointer', padding: '2px 8px' }}
+                                onClick={() => setStatusFilter(tab.key)}
+                            >
+                                {tab.label}
+                                {tab.key !== 'all' && ` (${countByStatus(tab.key)})`}
+                            </Tag>
+                        ))}
+                    </div>
+                </div>
             )}
-            <Table dataSource={filtered} columns={columns} rowKey="key" loading={loading} pagination={{ pageSize: 50 }} size="middle" />
+            <Table
+                dataSource={filtered}
+                columns={columns}
+                rowKey="key"
+                loading={loading}
+                pagination={{ pageSize: 50, showTotal: (t: number) => `${t} referrals` }}
+                size="middle"
+            />
         </PageContainer>
     );
 }
