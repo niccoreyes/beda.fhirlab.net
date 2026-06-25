@@ -1,12 +1,12 @@
 import { v4 as uuid4 } from 'uuid';
-import { Bundle, BundleEntry } from 'fhir/r4b';
+import { Bundle, BundleEntry, Patient } from 'fhir/r4b';
 import { ReferralFormData } from '../types';
 
 function generateUUID(): string {
     return uuid4();
 }
 
-export function buildReferralBundle(data: ReferralFormData): Bundle {
+export function buildReferralBundle(data: ReferralFormData, existingPatient?: Patient | null): Bundle {
     const patientUUID = generateUUID();
     const sendingPractUUID = generateUUID();
     const receivingPractUUID = generateUUID();
@@ -34,19 +34,20 @@ export function buildReferralBundle(data: ReferralFormData): Bundle {
 
     const entries: BundleEntry[] = [];
 
-    // Entry 1: Patient (conditional PUT on PhilSys ID)
+    // Entry 1: Patient (conditional PUT on PhilSys ID using existing data)
+    const patientResource: any = existingPatient
+        ? { ...existingPatient, id: undefined }
+        : {
+            resourceType: 'Patient',
+            meta: { profile: ['https://fhir.doh.gov.ph/pheref/StructureDefinition/ereferral-patient'] },
+            identifier: [{ system: 'http://philhealth.gov.ph/fhir/Identifier/philhealth-id', value: data.patientId }],
+            name: [{ use: 'official', family: data.patientId, given: ['Patient'] }],
+            gender: 'unknown',
+            birthDate: '2000-01-01',
+        };
     entries.push({
         fullUrl: `urn:uuid:${patientUUID}`,
-        resource: {
-            resourceType: 'Patient',
-            id: `ERefPatient-${data.patientId}`,
-            meta: {
-                profile: ['https://fhir.doh.gov.ph/pheref/StructureDefinition/ereferral-patient'],
-            },
-            identifier: [
-                { system: 'http://philhealth.gov.ph/fhir/Identifier/philhealth-id', value: data.patientId },
-            ],
-        },
+        resource: patientResource,
         request: {
             method: 'PUT',
             url: `Patient?identifier=http://philsys.gov.ph/fhir/Identifier/philsys-id|${data.patientId}`,
@@ -67,8 +68,8 @@ export function buildReferralBundle(data: ReferralFormData): Bundle {
             ],
             name: [{
                 use: 'official',
-                family: data.sendingPractitionerName.split(' ').slice(1).join(' ') || data.sendingPractitionerName,
-                given: data.sendingPractitionerName.split(' ').slice(0, 1),
+                family: (data.sendingPractitionerName || '').split(' ').slice(1).join(' ') || data.sendingPractitionerName || '',
+                given: [(data.sendingPractitionerName || '').split(' ')[0] || ''],
                 prefix: ['Dr.'],
             }],
         },
@@ -93,8 +94,8 @@ export function buildReferralBundle(data: ReferralFormData): Bundle {
                 ],
                 name: [{
                     use: 'official',
-                    family: data.receivingPractitionerName.split(' ').slice(1).join(' ') || data.receivingPractitionerName,
-                    given: data.receivingPractitionerName.split(' ').slice(0, 1),
+                    family: (data.receivingPractitionerName || '').split(' ').slice(1).join(' ') || data.receivingPractitionerName || '',
+                    given: [(data.receivingPractitionerName || '').split(' ')[0] || ''],
                     prefix: ['Dr.'],
                 }],
             },

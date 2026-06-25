@@ -35,14 +35,21 @@ import { EReferralList } from './containers/EReferralList';
 import { EReferralDetail } from './containers/EReferralDetail';
 import { PractitionerList } from './containers/PractitionerList';
 import { OrganizationList } from './containers/OrganizationList';
+import {
+    PatientsIcon,
+    EncountersIcon,
+    PractitionersIcon,
+    OrganizationsIcon,
+} from '@beda.software/emr/icons';
+import { InboxOutlined } from '@ant-design/icons';
 import { dynamicActivate, getCurrentLocale } from './services/i18n';
 
 const menuLayout = () => [
-    { label: 'Patients', path: '/patients', icon: <span /> as React.ReactElement },
-    { label: 'Encounters', path: '/encounters', icon: <span /> as React.ReactElement },
-    { label: 'Practitioners', path: '/practitioners', icon: <span /> as React.ReactElement },
-    { label: 'Organizations', path: '/organizations', icon: <span /> as React.ReactElement },
-    { label: 'Referrals', path: '/referrals', icon: <span /> as React.ReactElement },
+    { label: 'Patients', path: '/patients', icon: <PatientsIcon /> as React.ReactElement },
+    { label: 'Encounters', path: '/encounters', icon: <EncountersIcon /> as React.ReactElement },
+    { label: 'Practitioners', path: '/practitioners', icon: <PractitionersIcon /> as React.ReactElement },
+    { label: 'Organizations', path: '/organizations', icon: <OrganizationsIcon /> as React.ReactElement },
+    { label: 'Referrals', path: '/referrals', icon: <InboxOutlined /> as React.ReactElement },
 ];
 
 function AppLayout() {
