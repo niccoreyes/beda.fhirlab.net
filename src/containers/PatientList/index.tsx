@@ -17,6 +17,7 @@ export function PatientList() {
         <ResourceListPage<Patient>
             headerTitle={t`Patients`}
             resourceType="Patient"
+            searchParams={{ _total: 'accurate', _count: 50 }}
             getTableColumns={() => [
                 {
                     title: <Trans>Name</Trans>,

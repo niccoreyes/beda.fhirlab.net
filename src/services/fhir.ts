@@ -27,7 +27,7 @@ function toSearchParams(params: SearchParams): Record<string, string | number | 
 }
 
 export async function searchPatients(query: string): Promise<Patient[]> {
-    const result = await getFHIRResources<Patient>('Patient', toSearchParams({ _count: 20, ...(query ? { name: query } : {}) }));
+    const result = await getFHIRResources<Patient>('Patient', toSearchParams({ _count: 500, _total: 'accurate', ...(query ? { name: query } : {}) }));
     if (isSuccess(result)) {
         return extractBundleResources(result.data).Patient ?? [];
     }
@@ -47,7 +47,7 @@ export async function getPatientEncounters(patientId: string): Promise<Encounter
     const result = await getFHIRResources<Encounter>('Encounter', toSearchParams({
         subject: `Patient/${patientId}`,
         _sort: '-date',
-        _count: 50,
+        _count: 100,
     }));
     if (isSuccess(result)) {
         return extractBundleResources(result.data).Encounter ?? [];
@@ -67,7 +67,7 @@ export async function getEncounterClinicalData(encounterId: string) {
 }
 
 export async function searchPractitioners(query: string): Promise<Practitioner[]> {
-    const result = await getFHIRResources<Practitioner>('Practitioner', toSearchParams({ name: query, _count: 20 }));
+    const result = await getFHIRResources<Practitioner>('Practitioner', toSearchParams({ name: query, _count: 100 }));
     if (isSuccess(result)) {
         return extractBundleResources(result.data).Practitioner ?? [];
     }
@@ -75,7 +75,7 @@ export async function searchPractitioners(query: string): Promise<Practitioner[]
 }
 
 export async function searchOrganizations(query: string): Promise<Organization[]> {
-    const result = await getFHIRResources<Organization>('Organization', toSearchParams({ name: query, _count: 20 }));
+    const result = await getFHIRResources<Organization>('Organization', toSearchParams({ name: query, _count: 100 }));
     if (isSuccess(result)) {
         return extractBundleResources(result.data).Organization ?? [];
     }
@@ -135,7 +135,7 @@ export async function getPatientReferrals(patientId: string): Promise<ServiceReq
     const result = await getFHIRResources<ServiceRequest>('ServiceRequest', toSearchParams({
         subject: `Patient/${patientId}`,
         _sort: '-authored',
-        _count: 50,
+        _count: 200,
     }));
     if (isSuccess(result)) {
         return extractBundleResources(result.data).ServiceRequest ?? [];

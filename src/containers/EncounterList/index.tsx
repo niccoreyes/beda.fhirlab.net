@@ -10,6 +10,7 @@ export function EncounterList() {
         <ResourceListPage<Encounter>
             headerTitle={t`Encounters`}
             resourceType="Encounter"
+            searchParams={{ _count: 50, _total: 'accurate' }}
             getTableColumns={() => [
                 {
                     title: <Trans>Date</Trans>,

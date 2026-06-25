@@ -20,6 +20,7 @@ export function OrganizationList() {
         <ResourceListPage<Organization>
             headerTitle={t`Organizations`}
             resourceType="Organization"
+            searchParams={{ _count: 50, _total: 'accurate' }}
             getTableColumns={() => [
                 {
                     title: <Trans>Name</Trans>,

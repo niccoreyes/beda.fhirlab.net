@@ -14,6 +14,7 @@ export function PractitionerList() {
         <ResourceListPage<Practitioner>
             headerTitle={t`Practitioners`}
             resourceType="Practitioner"
+            searchParams={{ _count: 50, _total: 'accurate' }}
             getTableColumns={() => [
                 {
                     title: <Trans>Name</Trans>,
