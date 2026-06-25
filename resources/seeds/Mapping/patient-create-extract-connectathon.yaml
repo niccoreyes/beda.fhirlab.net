@@ -15,7 +15,7 @@ body:
     - nationalityGroup: "{[ %QuestionnaireResponse.item.where(linkId='nationality-group') ]}"
     - religion: "{{ %QuestionnaireResponse.answers('religion') }}"
     - indigenous: "{{ %QuestionnaireResponse.answers('indigenous') }}"
-    - indigenousGroupItems: "{[ %QuestionnaireResponse.item.where(linkId='indigenous-group') ]}"
+    - indigenousGroups: "{[ %QuestionnaireResponse.item.where(linkId='indigenous-group').answer.valueCoding ]}"
     - race: "{{ %QuestionnaireResponse.answers('race') }}"
     - maritalStatus: "{{ %QuestionnaireResponse.answers('marital-status') }}"
     - educationalAttainment: "{{ %QuestionnaireResponse.answers('educational-attainment') }}"
@@ -180,9 +180,7 @@ body:
                 valueBoolean:
                   "{% if %indigenous.code = 'yes' %}": true
                   "{% else %}": false
-            - "{% for indigenousGroupItem in %indigenousGroupItems %}":
-                "{% assign %}":
-                  - indigenousGroup: "{{ %indigenousGroupItem.answer.valueCoding.first() }}"
+            - "{% for indigenousGroup in %indigenousGroups %}":
                 "{% if %indigenous.code = 'yes' and %indigenousGroup.exists() %}":
                   url: "https://fhir.doh.gov.ph/phcore/StructureDefinition/indigenous-group"
                   valueCodeableConcept:
