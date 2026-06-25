@@ -13,58 +13,63 @@ A **Philippine eReferral** web application built on `@beda.software/emr`. It ena
 It follows the [PH eReferral Implementation Guide v0.1](https://build.fhir.org/ig/ph-ereferral-organization/ph-ereferral/en/) and generates FHIR R4 transaction bundles matching the [ExampleERefSubmissionBundle](https://build.fhir.org/ig/ph-ereferral-organization/ph-ereferral/en/Bundle-ExampleERefSubmissionBundle.html) pattern.
 
 The application provides:
-- **Patient search** — browse patients from the FHIR server
-- **Patient detail** — view patient info, encounters, referral history
+- **Patient search** — browse/search patients from the FHIR CDR with PhilHealth ID, PhilSys ID columns
+- **Patient detail** — view patient info, encounters, referral history with "New Referral" button
+- **Encounter management** — list, create, and view encounters with linked clinical data (Conditions, Observations)
+- **Practitioner & Organization browsing** — searchable lists with PRC IDs, NHFR codes, HCPN codes
 - **eReferral submission** — a 5-step form capturing all 41 TDG data elements, building a 21-entry FHIR transaction bundle
-- **Referral inbox/outbox** — view sent and received referrals with Task status tracking
-- **Referral detail** — full referral view with Task status timeline, linked clinical data
+- **Referral inbox/outbox** — view all referrals with requester/performer filtering and Task status tracking
+- **Referral detail** — full referral view with Task status timeline, linked patient, encounter, conditions, audit trail
 
 ### 1.2 Who is it for?
 
 - **End users**: Healthcare workers in the Philippines (DOH, hospitals, clinics)
 - **Technical audience**: Developers customizing Beda EMR for Philippines-specific needs
-- **Data model**: FHIR R4B with Philippines Department of Health (DOH) PH Core profiles
+- **Data model**: FHIR R4B with Philippines Department of Health (DOH) PH Core + PH eReferral profiles
 
 ### 1.3 Live URLs
 
 | Environment | URL | Description |
 |---|---|---|
 | **FHIR Server (CDR)** | `https://cdr.pheref.fhirlab.net/fhir/` | Standard FHIR R4 backend (open, no auth) |
-| **Terminology Server** | `https://tx.fhirlab.net/fhir` | External FHIR terminology expansion |
 | **Local Dev EMR** | `http://localhost:3000` | Vite dev server |
 
 ### 1.4 Repository Anatomy
 
 ```
 beda.fhirlab.net/
-├── src/                    # Custom application code (thin layer)
-│   ├── main.tsx            # Entry point: routes, layout, providers
+├── src/
+│   ├── main.tsx              # Entry point: BaseLayout, routes, sidebar, mock auth
 │   ├── containers/
-│   │   ├── types.ts        # Shared TypeScript types
-│   │   ├── PatientList/    # Patient search page (ResourceListPage)
-│   │   ├── PatientDetail/  # Patient info + encounters + referral history
-│   │   ├── EReferralNew/   # 5-step eReferral submission form + bundle builder
-│   │   ├── EReferralList/  # Referral inbox/outbox with Task status filtering
-│   │   └── EReferralDetail/# Referral detail with Task timeline & clinical data
+│   │   ├── types.ts          # ReferralFormData + shared TS types
+│   │   ├── PatientList/      # ResourceListPage<Patient> with 6 columns + 3 filters
+│   │   ├── PatientDetail/    # Patient info + encounters + referral history
+│   │   ├── EncounterList/    # ResourceListPage<Encounter> with 5 columns + 3 filters
+│   │   ├── EncounterNew/     # Ant Design form to create encounters
+│   │   ├── EncounterDetail/  # Encounter info + linked Conditions/Observations
+│   │   ├── PractitionerList/ # ResourceListPage<Practitioner> with PRC license column
+│   │   ├── OrganizationList/ # ResourceListPage<Organization> with NHFR/HCPN codes
+│   │   ├── EReferralNew/     # 5-step form + buildReferralBundle() bundle builder
+│   │   ├── EReferralList/    # Custom referrals table with requester/performer filters
+│   │   └── EReferralDetail/  # Full referral + Task timeline + raw FHIR tab
 │   ├── services/
-│   │   ├── fhir.ts         # FHIR API client (wraps @beda.software/emr/services)
-│   │   └── i18n.ts         # Internationalization
-│   └── locale/             # UI strings
+│   │   ├── fhir.ts           # FHIR API helpers (search, get, post bundle)
+│   │   └── i18n.ts           # Lingui i18n (English only)
+│   └── locale/en/messages.po # UI strings
 ├── contrib/
-│   ├── fhir-emr/           # Git submodule: core EMR library
-│   └── emr-config/         # Environment-specific configuration
-├── infra/                  # Infrastructure (Docker, nginx, Helm)
-├── public/                 # Static assets
-├── .github/workflows/      # CI/CD pipelines
-└── .opencode/              # OpenSpec AI tooling config
+│   ├── fhir-emr/             # Git submodule: @beda.software/emr framework
+│   └── emr-config/           # Config: baseURL + fhirBaseURL
+├── infra/                    # Docker, nginx, Helm chart
+├── public/                   # Static assets (favicons, manifest)
+├── .github/workflows/        # CI/CD
+└── .opencode/                # OpenSpec AI tooling config
 ```
 
 ### 1.5 Key Design Philosophy
 
-The `src/` directory is intentionally **thin**. Most functionality comes from the `@beda.software/emr` framework. This repository focuses on:
-
-- **eReferral workflow** — patient search, form submission, referral tracking
-- **FHIR integration** — standard FHIR R4 via `https://cdr.pheref.fhirlab.net/fhir/`
+- **Thin customization layer** over `@beda.software/emr` framework
+- **Standard FHIR R4** — no Aidbox-specific features (no `/$sql`, no SDC Extract)
+- **Open endpoint** — no authentication, mock token bypasses EMR auth guard
 - **PH eReferral IG compliance** — transaction bundles matching ExampleERefSubmissionBundle
 
 ---
@@ -77,10 +82,14 @@ The `src/` directory is intentionally **thin**. Most functionality comes from th
 ┌──────────────────────────────────────────────────────────┐
 │             PH eREFERRAL FRONTEND (React SPA)            │
 │                                                          │
-│  ┌───────────┐  ┌───────────┐  ┌──────────┐  ┌───────┐ │
-│  │ Patient   │  │ Patient   │  │ eReferral│  │ Refer-│ │
-│  │ Search    │  │ Detail    │  │ Form     │  │ rals  │ │
-│  └───────────┘  └───────────┘  └──────────┘  └───────┘ │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌───────────┐  │
+│  │ Patient  │ │Encounter │ │eReferral │ │ Referrals │  │
+│  │ List/Det │ │List/Create│ │  Form    │ │ List/Det  │  │
+│  └──────────┘ └──────────┘ └──────────┘ └───────────┘  │
+│  ┌──────────┐ ┌──────────────┐                          │
+│  │Practitio │ │ Organization │                          │
+│  │  List    │ │    List      │                          │
+│  └──────────┘ └──────────────┘                          │
 │       │              │              │            │       │
 │       └──────────────┼──────────────┼────────────┘       │
 │                      ▼              ▼                    │
@@ -95,43 +104,40 @@ The `src/` directory is intentionally **thin**. Most functionality comes from th
                            │ FHIR REST API (no auth)
                            ▼
 ┌──────────────────────────────────────────────────────────┐
-│           FHIR CDR SERVER (cdr.pheref.fhirlab.net)       │
-│  - Standard FHIR R4                                      │
-│  - 146 resource types                                     │
-│  - Supports _revinclude, _include:iterate chains          │
+│        FHIR CDR SERVER (cdr.pheref.fhirlab.net)          │
+│  - Standard FHIR R4, 146 resource types                   │
+│  - Open endpoint (no authentication)                      │
+│  - Supports _total=accurate, Bundle next link pagination  │
 └──────────────────────────────────────────────────────────┘
 ```
 
 ### 2.2 Data Flow
 
-1. **User opens browser** → loads React SPA → BaseLayout with sidebar renders
-2. **Patient search** → `GET Patient?name={query}` → results in table
-3. **Patient detail** → `GET Patient/{id}` + `GET Encounter?subject=Patient/{id}` + `GET ServiceRequest?patient=Patient/{id}`
-4. **New eReferral** → 5-step Ant Design form → `buildReferralBundle()` generates 21-entry transaction Bundle → `POST /` (transaction endpoint)
-5. **Referral list** → queries via `_revinclude` chains to get all referrals for an organization
-6. **Referral detail** → resolves linked Patient, Encounter, Conditions via FHIR API
+1. **Page loads** → `BaseLayout` renders with sidebar (5 menu items with icons)
+2. **List pages** (Patients, Encounters, Practitioners, Organizations) — `ResourceListPage` uses `getFHIRResources` with `_total=accurate`; pagination follows Bundle `next` links automatically
+3. **Patient detail** → fetches patient + encounters + referrals in parallel
+4. **New encounter** → `createFHIRResource(encounter)` → `POST /Encounter`
+5. **New eReferral** → 5-step Ant Design form → `buildReferralBundle()` generates 21-entry transaction Bundle → `POST /` (transaction endpoint). All entries use `POST` (not conditional `PUT`) to avoid "multiple matches" errors.
+6. **Referral list** → `fetchAllServiceRequests()` follows Bundle `next` links to retrieve ALL pages of ServiceRequest, then fetches Tasks per referral. Filtered client-side by requester/performer text and Task status.
+7. **Referral detail** → resolves linked Patient, Encounter, Conditions, Provenance via FHIR API calls.
 
 ### 2.3 External Services
 
 | Service | URL | Purpose |
 |---|---|---|
 | FHIR CDR | `cdr.pheref.fhirlab.net/fhir` | Standard FHIR R4 data storage |
-| Terminology Server | `tx.fhirlab.net/fhir` | SNOMED CT, LOINC value set expansion |
 | Docker Registry | `ghcr.io/beda-software/beda.fhirlab.net` | Container image storage |
 
-### 2.4 Git Submodule Dependency
-
-The core EMR library (`@beda.software/emr`) is a **git submodule** at `contrib/fhir-emr/`.
+### 2.4 Git Submodule
 
 ```
 contrib/fhir-emr/  ← git@github.com:beda-software/fhir-emr.git
 ```
 
-When modifying the core framework, changes go inside `contrib/fhir-emr/`, then:
 ```bash
-yarn prepare      # Rebuilds the workspace package
+git submodule update --init
+yarn prepare  # Rebuild workspace package after submodule changes
 ```
-Changes to the submodule must be committed separately and pushed to the upstream repository.
 
 ---
 
@@ -147,46 +153,37 @@ Changes to the submodule must be committed separately and pushed to the upstream
 | Yarn | (classic) | Package manager with workspaces |
 | Ant Design (antd) | 5.x | UI component library |
 | styled-components | 5.x | CSS-in-JS styling |
-| Recharts | 2.x | Charts (PieChart for analytics) |
 
 ### 3.2 Beda/Aidbox Ecosystem
 
 | Package | Source | Purpose |
 |---|---|---|
-| `@beda.software/emr` | `contrib/fhir-emr/` (git submodule) | Core EMR framework |
-| `@beda.software/emr-config` | `contrib/emr-config/` | Environment config |
-| `@beda.software/aidbox-types` | `contrib/aidbox-types/` | TypeScript types for Aidbox |
-| `@beda.software/fhir-react` | (via fhir-emr) | FHIR React hooks and utilities |
-| `@beda.software/remote-data` | (via fhir-emr) | Remote data state management |
+| `@beda.software/emr` | `contrib/fhir-emr/` (git submodule) | Core EMR framework (BaseLayout, ResourceListPage, services) |
+| `@beda.software/emr-config` | `contrib/emr-config/` | Config (baseURL, fhirBaseURL) |
+| `@beda.software/aidbox-types` | `contrib/aidbox-types/` | TypeScript types for FHIR R4B |
+| `@beda.software/fhir-react` | (via fhir-emr) | FHIR React hooks, extractBundleResources |
+| `@beda.software/remote-data` | (via fhir-emr) | RemoteDataResult, isSuccess |
+| `aidbox-react` | (via fhir-emr) | HTTP client (axios-based) |
 
 ### 3.3 Internationalization
 
-| Tool | Purpose |
-|---|---|
-| Lingui v4 | i18n framework |
-| `.po` files | Message catalog format |
-| `make-plural` | Plural rule support |
-| Single locale: `en` | English only (currently) |
+Lingui 4, single English locale (`.po` files).
 
 ### 3.4 Testing & Quality
 
 | Tool | Purpose |
 |---|---|
-| Storybook 8.x | Component development and visual testing |
-| Chromatic | Visual regression testing |
-| Vitest | Unit testing |
-| Testing Library | React component testing |
-| ESLint | Static analysis (strict rules) |
+| ESLint | Static analysis |
 | Prettier | Code formatting |
-| Husky + lint-staged | Pre-commit hooks (typecheck + lint-staged) |
+| TypeScript strict | Type checking |
 
 ### 3.5 Infrastructure
 
 | Tool | Purpose |
 |---|---|
-| Docker + Docker Compose | Local development environment |
+| Docker + Docker Compose | Local dev environment |
 | Helm | Kubernetes deployment |
-| nginx + certbot | Production reverse proxy with Let's Encrypt |
+| nginx + certbot | Production reverse proxy |
 | GitHub Actions | CI/CD |
 | GitHub Container Registry | Docker image storage |
 
@@ -196,351 +193,132 @@ Changes to the submodule must be committed separately and pushed to the upstream
 
 ### 4.1 Entry Point: `src/main.tsx`
 
-Wires together the application with minimal providers:
+Wires the application with minimal providers:
 
 ```
-I18nProvider
-  → ThemeProvider
-    → BrowserRouter
-      → MenuLayout.Provider
-        → FooterLayout.Provider
-          → BaseLayout
-            → Routes (5 routes)
+I18nProvider → ThemeProvider → BrowserRouter → MenuLayout.Provider → FooterLayout.Provider → BaseLayout → Routes
 ```
 
-**Key differences from the original Beda EMR template:**
+**Key design decisions:**
+- **No Aidbox auth** — sets `localStorage.setItem('token', 'anonymous')` before imports, plus `sharedAuthorizedUser.setSharedState(mockUser)` to prevent Sidebar's `SharedStateInitializationError`
+- **No EMR wrapper** — uses `BaseLayout` directly instead of the `EMR` component (which enforces Aidbox OAuth)
+- **5 sidebar menu items**: Patients (`PatientsIcon`), Encounters (`EncountersIcon`), Practitioners (`PractitionersIcon`), Organizations (`OrganizationsIcon`), Referrals (`QuestionnairesIcon`)
 
-- **No Aidbox auth** — removed `getAuthorizeUrl`, `getUserInfo`, `populateUserInfoSharedState`, `SignIn` component
-- **No SDC/Questionnaire** — removed `AidboxFormsBuilder`, SDC Extract flow, `ValueSetExpandProvider`
-- **No role-based menu** — static 2-item menu: Patients, Referrals
-- **No Analytics** — removed `/analytics-ph` route and `/$sql` usage
-- **Uses `BaseLayout` directly** — bypasses the `EMR` component's built-in Aidbox auth check
+### 4.2 Containers
 
-The `@beda.software/emr/dist/services/initialize` is still imported to ensure the framework services are initialized.
+#### PatientList (`src/containers/PatientList/`)
 
-### 4.2 Container Components (`src/containers/`)
+`ResourceListPage<Patient>` with `_total=accurate`.
+- **Columns**: Name, Birth date, Gender, PhilHealth ID, PhilSys ID, Contact
+- **Filters**: name (string), gender (choice: Male/Female), birth date (single date)
+- **Record actions**: View → `/patients/:id`, Refer → `/referrals/new/:id`
 
-The application has 5 container components, organized around the eReferral workflow:
+#### PatientDetail (`src/containers/PatientDetail/`)
 
-#### 4.2.1 `PatientList` (`src/containers/PatientList/`)
+Fetches patient + encounters + referrals in parallel on mount.
+- **Cards**: Patient Information (Descriptions), Available Encounters (table with "Refer from this visit"), Referral History
+- **Header**: Back button, New Referral button
 
-Uses the `ResourceListPage<Patient>` generic component from `@beda.software/emr`:
-- **Table columns**: Name, Birth date, Gender
-- **Filters**: name string search
-- **Actions**: "New Referral" button per row → navigates to `/referrals/new/:patientId`
-- No edit/create actions (patient data is read-only from the FHIR server)
+#### EncounterList (`src/containers/EncounterList/`)
 
-#### 4.2.2 `PatientDetail` (`src/containers/PatientDetail/`)
+`ResourceListPage<Encounter>` with `_total=accurate`.
+- **Columns**: Date, Patient, Type (class), Status, Service Provider
+- **Filters**: patient (string), status (choice: finished/in-progress/triaged/planned), type/class (choice: AMB/EMER/IMP/OBSENC/VRTL)
+- **Header action**: New Encounter → `/encounters/new`
+- **Record actions**: View → `/encounters/:id`, Refer from this → `/referrals/new/{patientId}?encounter={id}`
 
-Shows patient information, available encounters, and referral history:
-- **Patient info card**: name, gender, birth date, contact, address
-- **Encounters table**: date, type (class), status, with "Refer from this visit" action
-- **Referral history table**: date, status, reason, with "View" action
-- Data fetched in parallel via `getPatient()`, `getPatientEncounters()`, `getPatientReferrals()`
+#### EncounterNew (`src/containers/EncounterNew/`)
 
-#### 4.2.3 `EReferralNew` (`src/containers/EReferralNew/`)
+Ant Design form with:
+- Patient autocomplete (searches via `GET Patient?name=`)
+- Status select (planned/triaged/in-progress/finished/cancelled)
+- Class select (AMB/EMER/IMP/OBSENC/VRTL)
+- Date picker (initialized to `dayjs()`)
+- Service Provider (Organization autocomplete, optional)
+- On submit: `createFHIRResource(encounter)` → navigates to encounter detail
 
-The core component — a 5-step Ant Design form:
+#### EncounterDetail (`src/containers/EncounterDetail/`)
 
-**Step 1 — Patient & Encounter**: Shows patient name (pre-filled), encounter selector (dropdown from `GET Encounter?subject=Patient/{id}`), auto-loads clinical data (Conditions, Observations) from selected encounter, encounter/referral date pickers
+Fetches encounter + linked Conditions + Observations on mount.
+- **Cards**: Encounter Details (Descriptions), Diagnoses (Conditions), Vital Signs (Observations table)
+- **Header**: Back button, "Refer from this visit" button
 
-**Step 2 — Sending Facility**: Practitioner name + PRC license, facility autocomplete (searches `Organization`), NHFR code, HCPN name
+#### PractitionerList (`src/containers/PractitionerList/`)
 
-**Step 3 — Receiving Facility**: Receiving practitioner + PRC, facility autocomplete, NHFR code, HCPN name, referral category (Emergency/Outpatient), reason for referral
+`ResourceListPage<Practitioner>` with `_total=accurate`.
+- **Columns**: Name, PRC License (via `identifier.where(system='prc.gov.ph')`), Birth date, Gender
+- **Filters**: name (string), PRC license (string)
 
-**Step 4 — Clinical Details**: Chief complaint, working impression, clinical history, clinical note, vital signs (BP, HR, RR, SpO2, Temp, Weight), treatment given, lab results
+#### OrganizationList (`src/containers/OrganizationList/`)
 
-**Step 5 — Review & Submit**: Summary table of all entered data, "Submit Referral" button
+`ResourceListPage<Organization>` with `_total=accurate`.
+- **Columns**: Name, NHFR Code, HCPN Code, Phone, Active
+- **Filters**: name (string), active (choice: Yes/No)
 
-**On submit**: `buildReferralBundle()` generates a 21-entry transaction Bundle → `POST /` to FHIR server
+#### EReferralNew (`src/containers/EReferralNew/`)
 
-#### 4.2.4 `EReferralList` (`src/containers/EReferralList/`)
+5-step Ant Design Form:
 
-Referral inbox/outbox:
-- **Tabs**: All, Requested, Received, Accepted, Rejected, Completed
-- **Table**: Patient, Date, Category, Reason, Status, Task Status
-- **Action**: View → navigates to referral detail
-- **Header**: "New Referral" button → navigates to patient selection
-- Queries via `getPatientReferrals()` for each patient + `getReferralTasks()` for Task status
-
-#### 4.2.5 `EReferralDetail` (`src/containers/EReferralDetail/`)
-
-Full referral view with two tabs:
-- **Overview tab**: Referral details (Descriptions table), Task status timeline, Patient info, Encounter info, Diagnoses, Audit trail
-- **Raw FHIR tab**: Raw `ServiceRequest` JSON for debugging
-- Resolves linked Patient, Encounter, Conditions, Provenance via FHIR API
-
-### 4.3 Services (`src/services/i18n.ts`)
-
-Internationalization setup:
-- Loads English locale with plural rules
-- Merges messages from `@beda.software/emr` core with local messages
-- Locale preference stored in `localStorage`
-- Only English is configured (single locale)
-
-### 4.4 Locale (`src/locale/en/messages.po`)
-
-Contains all UI strings used across the application:
-- Navigation labels (Patients, Encounters, etc.)
-- Button labels (Add patient, Create encounter, etc.)
-- Filter placeholders (Find patient, Choose gender, etc.)
-- Column headers (Name, Birth date, Status, etc.)
-- Analytics labels (Gender, Birth Date, Immunization dashboard, etc.)
-- Report titles (Number of Patients, Number of Encounters, etc.)
-- Dashboard labels (IPS Bundle copied, Share, etc.)
-
-### 4.5 Components (`src/components/`)
-
-Currently an empty placeholder — no custom components have been created yet.
-
-### 4.6 Stories (`src/stories/`)
-
-Default Storybook stories (Button, Header, Page) from the Vite template setup, plus MDX documentation files (Configure.mdx, GetStarted.mdx).
-
----
-
-## 5. The "UberList" Pattern
-
-This is the central architectural pattern used by every resource list page. Understanding it is key to modifying or adding new resource types.
-
-### 5.1 What is `ResourceListPage<T>`?
-
-A generic component from `@beda.software/emr` that provides:
-
-```
-ResourceListPage<T extends FHIRResource>
-  ├── Header (title, action buttons)
-  ├── Search Bar (filters)
-  ├── Table (columns with sorting)
-  └── Footer (report, summary)
-```
-
-### 5.2 Props Breakdown
-
-| Prop | Type | Description |
+| Step | Title | Fields |
 |---|---|---|
-| `headerTitle` | string | Page title displayed in header |
-| `resourceType` | string | FHIR resource type (e.g., "Patient", "Encounter") |
-| `searchParams` | object | Default FHIR search parameters (e.g., `{ profile: '...' }`) |
-| `getTableColumns` | `() => Column[]` | Defines table columns with custom render functions |
-| `getFilters` | `() => Filter[]` | Defines search bar and table filters |
-| `getRecordActions` | `(record) => Action[]` | Row-level actions (Edit, Open, Delete) |
-| `getHeaderActions` | `() => Action[]` | Page-level actions (Add, Create) |
-| `getReportColumns` | `(bundle) => ReportColumn[]` | Summary report shown at bottom of table |
+| 0 | Patient & Encounter | Patient name (disabled), encounter selector (dropdown from `GET Encounter?subject=Patient/{id}`), auto-loaded clinical data, encounter/referral date |
+| 1 | Sending Facility | Practitioner name, PRC license, role, facility (Organization autocomplete), NHFR code, HCPN |
+| 2 | Receiving Facility | Practitioner name, PRC license, facility, NHFR code, HCPN, category (Emergency/Outpatient), reason for referral |
+| 3 | Clinical Details | Chief complaint, working impression (required), clinical history, clinical note, vital signs (BP/HR/RR/SpO2/Temp/Weight), treatment, lab results |
+| 4 | Review & Submit | Summary Descriptions table, Submit button |
 
-### 5.3 Filter Types
+**Bundle Builder** (`bundleBuilder.ts`):
+- Takes `ReferralFormData` + existing `Patient` resource
+- Generates 21-entry transaction Bundle (all entries use `POST`, not conditional `PUT`)
+- References within the bundle use `urn:uuid:` identifiers
+- Patient entry includes existing data (fetched before building) to satisfy profile validation
 
-| Type | Description |
-|---|---|
-| `SearchBarColumnType.STRING` | Text input — maps to `name`, `_ilike`, or chained params like `patient:Patient.name` |
-| `SearchBarColumnType.CHOICE` | Dropdown — maps to status or choice params with Coding values |
-| `SearchBarColumnType.SINGLEDATE` | Single date picker — maps to date params like `birthdate` |
-| `SearchBarColumnType.REFERENCE` | Reference search — used for related resources with expression path |
+**Submit flow**: `form.validateFields()` → `getFHIRResourceById('Patient', patientId)` → `buildReferralBundle(formData, existingPatient)` → `postTransactionBundle(bundle)` → navigate to `/referrals`
 
-Each filter has a `placement` array: `['search-bar', 'table']` controls where it appears.
+**Fill Test Data**: Temporary button in header populates all fields with Ana Reyes → DRSTMH test data (practitioners, facilities, vitals, clinical notes). Marked with `{/* TEMPORARY */}` comment.
 
-### 5.4 Action Types
+#### EReferralList (`src/containers/EReferralList/`)
 
-| Type | Creator | Description |
-|---|---|---|
-| Navigation | `navigationAction(label, path)` | Navigates to a URL |
-| Questionnaire | `questionnaireAction(label, id, options)` | Opens a FHIR Questionnaire for CRUD |
-| Custom | Manual | Define your own action |
+Custom page (not `ResourceListPage`) with:
+- **Data loading**: `fetchAllServiceRequests()` follows Bundle `next` links to retrieve ALL pages of `ServiceRequest?_sort=-authored&_total=accurate&_count=100`, then fetches Tasks per referral in batches of 20
+- **Filters**: 
+  - Requester text input (client-side, filters `requester` column by display name or reference)
+  - Performer text input (client-side)
+  - Status tags: All (count), Requested, Received, Accepted, Rejected, Completed (count per status)
+- **Columns**: Requisition, Patient, Date, Category, Reason, Requester, Status, Task Status (color-coded), Action
 
-Questionnaire actions include:
-- `launchContextParameters` — passes context resources (e.g., the current Patient record) to the dynamic form
-- Editing pre-fills the questionnaire with existing resource data
-- Creating uses an empty resource template
+#### EReferralDetail (`src/containers/EReferralDetail/`)
 
-### 5.5 FHIRPath Extraction
+Two tabs:
+- **Overview**: Referral Details (Descriptions), Task Status Timeline (Ant Design Timeline with color-coded statuses), Patient Info, Encounter Info, Diagnoses, Audit Trail (Provenance)
+- **Raw FHIR**: Raw ServiceRequest JSON
 
-The project uses `compileAsFirst` and `compileAsArray` from `@beda.software/emr/utils` to extract values from FHIR resources using FHIRPath expressions.
-
-**How it works:**
-
-```typescript
-// compileAsFirst extracts first matching value
-const getPhilHealthId = compileAsFirst<Patient, string>(
-    "Patient.identifier.where(system='http://philhealth.gov.ph/fhir/Identifier/philhealth-id').value"
-);
-
-// Used in table columns:
-render: (_text, { resource }) => getPhilHealthId(resource) ?? ''
-```
-
-These FHIRPath expressions are used for:
-- Extracting identifiers (PhilHealth ID, PhilSys ID, NHFR code)
-- Extracting display labels from references (practitioner name, organization name)
-- Computing display values (vaccine code text, observation value descriptions)
-- Chained fallbacks using `|` operator
+Resolves linked Patient, Encounter, Conditions, Provenance via `getFHIRResourceById`.
 
 ---
 
-## 6. FHIR Profiles (PH Core Philippines)
+## 5. Route Map
 
-Every resource list page filters by a Philippines-specific FHIR profile. These profiles are defined in the **PH Core Implementation Guide** (`https://fhir.doh.gov.ph/phcore/`).
+| Path | Component | Sidebar Icon | Description |
+|---|---|---|---|
+| `/patients` | `PatientList` | PatientsIcon | Patient search/list |
+| `/patients/:id` | `PatientDetail` | — | Patient details + encounters + referral history |
+| `/encounters` | `EncounterList` | EncountersIcon | Encounter list with filters |
+| `/encounters/new` | `EncounterNew` | — | Create encounter form |
+| `/encounters/:id` | `EncounterDetail` | — | Encounter detail + linked clinical data |
+| `/practitioners` | `PractitionerList` | PractitionersIcon | Practitioner search/list |
+| `/organizations` | `OrganizationList` | OrganizationsIcon | Organization search/list |
+| `/referrals/new/:patientId` | `EReferralNew` | — | 5-step eReferral form |
+| `/referrals` | `EReferralList` | QuestionnairesIcon | Referral inbox/outbox with filters |
+| `/referrals/:id` | `EReferralDetail` | — | Referral detail + Task timeline |
 
-| Resource | Profile URL |
-|---|---|
-| Patient | `https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-patient` |
-| Encounter | `https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-encounter` |
-| Immunization | `https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-immunization` |
-| Observation | `https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-observation` |
-| Medication | `https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-medication` |
-| Procedure | `https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-procedure` |
-| Organization | `https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-organization` |
-| Practitioner | `https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-practitioner` |
-| PractitionerRole | `https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-practitionerrole` |
-
-The profile is passed as a search parameter:
-```typescript
-searchParams={{ profile: "https://fhir.doh.gov.ph/phcore/StructureDefinition/ph-core-patient" }}
-```
-
-This tells Aidbox to return only resources that conform to the specified profile.
+All routes are accessible without authentication.
 
 ---
 
-## 7. Seed Data & Questionnaires (resources/)
+## 6. Configuration
 
-### 7.1 Structure
-
-```
-resources/
-├── seeds/                    # FHIR test data (loaded on startup)
-│   ├── Patient/
-│   ├── Practitioner/
-│   ├── Organization/
-│   ├── Encounter/
-│   ├── Immunization/
-│   ├── Observation/
-│   ├── Medication/
-│   ├── MedicationStatement/
-│   ├── Procedure/
-│   ├── Condition/
-│   ├── AllergyIntolerance/
-│   ├── Location/
-│   ├── HealthcareService/
-│   ├── Questionnaire/        # 10 dynamic forms
-│   ├── Mapping/              # 10 SDC FHIRPath transforms
-│   ├── Client/               # OAuth client definitions
-│   ├── Role/                 # User role definitions
-│   ├── AccessPolicy/         # Access control policies
-│   ├── AidboxQuery/          # Predefined SQL queries
-│   └── SDCConfig/            # SDC configuration
-├── ig0/
-│   └── CodeSystem/           # PH Core code systems
-├── ig1/
-│   └── ValueSet/             # PH Core value sets
-└── init-bundles/             # Generated init bundles (git-ignored)
-```
-
-### 7.2 Seed Data Purpose
-
-Seed data is loaded into Aidbox when the backend starts up (via `build-seeds` service). It serves as:
-- **Example data** for development and testing
-- **Configuration resources** (Clients, Roles, AccessPolicies) that define how the system works
-- **Questionnaires** that provide dynamic forms for CRUD operations on each resource type
-
-### 7.3 OAuth Client: `resources/seeds/Client/web.yaml`
-
-```yaml
-auth:
-  implicit:
-    redirect_uri: "${FHIR_EMR_AUTH_URL}"
-first_party: true
-grant_types:
-  - implicit
-id: web
-resourceType: Client
-```
-
-The redirect URI is injected at build time via environment variable. This enables the OAuth implicit grant flow used by the SignIn page.
-
-### 7.4 Role & Access Policy
-
-**Role** (`resources/seeds/Role/admin.yaml`):
-```yaml
-name: admin
-user:
-  reference: User/admin
-links:
-  organization:
-    reference: Organization/beda-emr
-```
-
-**AccessPolicy** (`resources/seeds/AccessPolicy/admin-policy.yaml`):
-```yaml
-engine: allow
-roleName: admin
-```
-
-This means any user with the "admin" role has full access to all resources. The policy is named `admin-policy`.
-
-### 7.5 Questionnaires (10 total)
-
-Each questionnaire corresponds to a resource type and is used for both **create** and **edit** operations:
-
-| Questionnaire ID | Target Resource | File |
-|---|---|---|
-| `patient-create-connectathon` | Patient | `resources/seeds/Questionnaire/patient-create-connectathon.yaml` |
-| `encounter-create-connectathon` | Encounter | `resources/seeds/Questionnaire/encounter-create-connectathon.yaml` |
-| `immunization-create-connectathon` | Immunization | `resources/seeds/Questionnaire/immunization-create-connectathon.yaml` |
-| `observation-create-connectathon` | Observation | `resources/seeds/Questionnaire/observation-create-connectathon.yaml` |
-| `medication-create-connectathon` | Medication | `resources/seeds/Questionnaire/medication-create-connectathon.yaml` |
-| `procedure-create-connectathon` | Procedure | `resources/seeds/Questionnaire/procedure-create-connectathon.yaml` |
-| `organization-create-connectathon` | Organization | `resources/seeds/Questionnaire/organization-create-connectathon.yaml` |
-| `practitioner-create-connectathon` | Practitioner | `resources/seeds/Questionnaire/practitioner-create-connectathon.yaml` |
-| `practitionerrole-create-connectathon` | PractitionerRole | `resources/seeds/Questionnaire/practitionerrole-create-connectathon.yaml` |
-| `curated-ips` | IPS (International Patient Summary) | `resources/seeds/Questionnaire/curated-ips.yaml` |
-
-**Patient questionnaire** (`patient-create-connectathon.yaml`) is the most complex (501 lines), with fields for:
-- Basic demographics (name, gender, birth date)
-- Nationality, religion
-- Indigenous group, race
-- Identifier: PhilHealth ID, PhilSys ID
-- Education level, occupation
-- Address with PSGC geographic codes (region, province, city/municipality)
-- Emergency contacts
-
-### 7.6 SDC Mappings (10 total)
-
-Each questionnaire has a corresponding **SDC Mapping** that transforms `QuestionnaireResponse` answers into FHIR resources via FHIRPath expressions:
-
-| Mapping ID | Target Resource |
-|---|---|
-| `patient-create-connectathon` | Patient |
-| `encounter-create-connectathon` | Encounter |
-| `immunization-create-connectathon` | Immunization |
-| (and so on for each resource type) | |
-
-Mappings use a Liquid-like template syntax:
-- `{% assign %}` — set variables
-- `{% if %}` — conditional logic
-- `{% for %}` — iterate arrays
-- `{% merge %}` — merge into existing or create new
-
----
-
-## 8. Route Map
-
-| Path | Component | Description |
-|---|---|---|
-| `/patients` | `PatientList` | Patient search/list (ResourceListPage) |
-| `/patients/:id` | `PatientDetail` | Patient details + encounters + referral history |
-| `/referrals/new/:patientId` | `EReferralNew` | 5-step eReferral submission form |
-| `/referrals` | `EReferralList` | Referral inbox/outbox with Task status tabs |
-| `/referrals/:id` | `EReferralDetail` | Full referral detail + Task timeline + raw FHIR |
-
-All routes are accessible without authentication. The app uses `BaseLayout` directly (bypassing the EMR component's built-in Aidbox auth flow).
-
----
-
-## 9. Configuration
-
-### 9.1 Environment-Specific Config (`contrib/emr-config/`)
-
-Minimal config pointing to the FHIR CDR:
+### 6.1 Config (`contrib/emr-config/config.local.js`)
 
 ```javascript
 const config = {
@@ -550,581 +328,127 @@ const config = {
 };
 ```
 
-| File | `baseURL` | `fhirBaseURL` |
-|---|---|---|
-| `config.local.js` | `https://cdr.pheref.fhirlab.net/fhir` | Same |
-| `config.js` (active) | `https://cdr.pheref.fhirlab.net/fhir` | Same |
+The `fhirBaseURL` tells the `@beda.software/emr/services/fhir.js` module where to send FHIR requests. The active config file is `config.js` (copied from the environment variant).
 
-The `fhirBaseURL` property tells the `@beda.software/emr/services/fhir.js` module where to send FHIR requests. All old Aidbox-specific config (clientId, sdcIdeUrl, jitsiMeetServer, etc.) has been removed.
+### 6.2 Key Settings
 
-### 9.2 Environment Variables (`env/` directory)
-
-| File | Service | Key Variables |
-|---|---|---|
-| `env/aidbox` | Aidbox FHIR server | `BOX_INIT_BUNDLE`, `BOX_FHIR_SCHEMA_VALIDATION=true`, `BOX_FHIR_COMPLIANT_MODE=true`, `BOX_DB_HOST`, `BOX_DB_USER`, `BOX_DB_PASSWORD`, `BOX_ROOT_CLIENT_ID=root`, `BOX_ROOT_CLIENT_SECRET=secret`, `BOX_SECURITY_DEV_MODE=true`, `BOX_FHIR_TERMINOLOGY_ENGINE=hybrid`, `BOX_FHIR_TERMINOLOGY_ENGINE_HYBRID_EXTERNAL_TX_SERVER` |
-| `env/db` | PostgreSQL | `POSTGRES_USER=postgres`, `POSTGRES_PASSWORD=postgres`, `POSTGRES_DB=aidbox` |
-| `env/sdc` | SDC service | `APP_INIT_CLIENT_ID=root`, `APP_INIT_CLIENT_SECRET=secret` |
-| `env/build-seeds` | Seed builder | `FHIR_EMR_AUTH_URL`, `SDC_IDE_AUTH_URL` |
-| `env/ingestion` | Wearable data ingestion | TimescaleDB config, `EMR_WEB_URL` |
-| `env/testscript` | Test script runner | `FHIR_SERVER_BASE_URL`, Basic auth |
-
-### 9.3 `.env.tpl` (Root)
-
-Template for local development:
-```
-AIDBOX_LICENSE=                   # Required for Aidbox
-TSC_COMPILE_ON_ERROR=true
-ESLINT_NO_DEV_ERRORS=true
-```
-
-### 9.4 Key Aidbox Config (`env/aidbox`)
-
-- `BOX_FHIR_SCHEMA_VALIDATION=true` — validates FHIR resources against schema
-- `BOX_FHIR_COMPLIANT_MODE=true` — FHIR-compliant behavior
-- `BOX_FHIR_TERMINOLOGY_ENGINE=hybrid` — uses both internal and external terminology
-- `BOX_FHIR_TERMINOLOGY_ENGINE_HYBRID_EXTERNAL_TX_SERVER` — points to `https://tx.fhirlab.net/fhir`
-- `BOX_INIT_BUNDLE="file:///resources/init-bundles/initBundle.json"` — loads seed data on startup
-- `BOX_SECURITY_DEV_MODE=true` — disables security for development
+- `_total=accurate` used on all list page queries for correct pagination totals
+- ServiceRequest queries use `_count=100` with Bundle `next` link pagination
+- Conditional `PUT` is NOT used for master data entries in bundles (changed to `POST` to avoid "Multiple resources match this search" errors caused by duplicate identifiers on the server)
 
 ---
 
-## 10. Authentication
+## 7. Authentication
 
-The FHIR CDR endpoint (`https://cdr.pheref.fhirlab.net/fhir/`) is **open — no authentication required**. All routes are publicly accessible.
+The FHIR CDR endpoint is **open — no authentication required**.
 
-The EMR framework's built-in Aidbox OAuth flow (implicit grant, `getAuthorizeUrl`, `getUserInfo`, role-based menu) has been bypassed. The app uses `BaseLayout` directly instead of the `EMR` wrapper component.
+The EMR framework's built-in Aidbox auth guard is bypassed by:
+1. Setting `localStorage.setItem('token', 'anonymous')` before framework initialization
+2. Initializing `sharedAuthorizedUser.setSharedState({ resourceType: 'User', id: 'anonymous' })` to prevent sidebar's `SharedStateInitializationError`
 
-The menu is a static list:
-- Patients (`/patients`)
-- Referrals (`/referrals`)
-
----
-
-## 11. Infrastructure
-
-### 11.1 Docker Compose for Local Development (`compose.yaml`)
-
-7 services orchestrated for local development:
-
-```
-compose.yaml
-├── devbox-db                  # PostgreSQL 18 (Aidbox database)
-├── build-seeds                # Generates init bundle from seeds
-├── devbox                     # Aidbox FHIR server (port 8080)
-├── sdc                        # SDC engine (port 8081)
-├── watch-seeds                # Watches seeds, syncs to Aidbox
-└── questionnaire-fce-fhir-converter  # Questionnaire format converter
-```
-
-**Startup order:**
-1. `devbox-db` — PostgreSQL (healthcheck: pg_isready)
-2. `build-seeds` — generates `initBundle.json` from seed files (exits when done)
-3. `devbox` — Aidbox server (healthcheck: curl /health)
-4. `sdc` — SDC engine (depends on devbox healthy)
-
-**Seed building (`build-seeds`):**
-```bash
-fhirsnake export
-  --input /app/resources/ig0
-  --input /app/resources/ig1
-  --input /app/resources/seeds
-  --output /app/init-bundles/initBundle.json
-```
-
-This combines Implementation Guide profiles (ig0, ig1) with seed data into a single init bundle that Aidbox loads on startup.
-
-**Seed watching (`watch-seeds`):**
-Continuously monitors seed files and syncs changes to Aidbox — useful for development without restarting.
-
-### 11.2 Makefile
-
-| Command | Description |
-|---|---|
-| `make up` | Pull images, build, start services with `dev` profile |
-| `make stop` | Stop services |
-| `make down` | Tear down all services |
-| `make aidbox` | Start only the Aidbox service |
-
-### 11.3 Production Infrastructure (`infra/infra/`)
-
-**Docker Compose** (`infra/infra/compose.yaml`):
-- nginx reverse proxy + certbot (Let's Encrypt)
-- Ports 80 (HTTP → certbot) and 443 (HTTPS with SSL)
-- EMR build files mounted at `/www/emr`
-
-**Nginx Configs:**
-
-`emr.conf` — serves the EMR SPA:
-```nginx
-location / {
-    root /www/emr;
-    try_files $uri /index.html;  # SPA fallback
-}
-```
-
-`aidbox.conf` — proxies Aidbox API requests:
-- Redirects `aidbox.ph.beda.software` → `aidbox.emr.beda.software` (301)
-- Proxies `aidbox.emr.beda.software` → local Aidbox instance at port 8080
-- SSL with Let's Encrypt certificates
-- TLS 1.3 only, strong ciphers
-
-### 11.4 Helm Chart (`infra/helm/ph-core-emr/`)
-
-Kubernetes deployment for production:
-
-```
-ph-core-emr/
-├── Chart.yaml
-├── values.yaml
-└── templates/
-    ├── emr.yaml          # EMR frontend deployment
-    ├── sdc.yaml          # SDC service deployment
-    └── converter.yaml    # Questionnaire converter deployment
-```
-
-Images are pulled from:
-- EMR: `ghcr.io/beda-software/beda.fhirlab.net`
-- SDC: `bedasoftware/fhir-sdc:2.1.0a6`
-- Converter: `bedasoftware/questionnaire-fce-fhir-converter:latest`
-
-### 11.5 Dockerfile (Production)
-
-Minimal production image:
-```dockerfile
-FROM node:lts
-RUN yarn global add serve
-COPY /build /app
-WORKDIR /app
-EXPOSE 5000
-CMD serve -s -n -l tcp://0.0.0.0:5000
-```
-
-Build output from `vite build` is served statically via `serve`.
-
-### 11.6 CI/CD Pipeline (`.github/workflows/main.yml`)
-
-**Trigger**: Push tags matching `v*.*.*`
-
-**Pipeline steps:**
-1. Checkout with submodules (recursive)
-2. Setup Node 20
-3. Copy production config (`config.production.js` → `config.js`)
-4. Copy production HTML template (`index.prod.html` → `index.html`)
-5. Install dependencies with `yarn install --network-concurrency 1`
-6. Extract and compile i18n messages
-7. Build with TypeScript + Vite
-8. Setup QEMU + Docker Buildx for multi-arch builds
-9. Login to GitHub Container Registry
-10. Build and push Docker image (linux/amd64 + linux/arm64)
-11. Tag: `v0.3.4` → Docker image tagged `0.3.4`
+The menu is a static 5-item list (no role matching).
 
 ---
 
-## 12. Patient Dashboard
+## 8. Infrastructure
 
-The patient dashboard (`src/containers/PatientsUberList/dashboard.tsx`) provides a clinical overview of a single patient with 5 card sections. Each card is rendered by `StandardCardContainerFabric` and queries data scoped to the patient.
+### 8.1 Docker Compose
 
-### 12.1 Card: Composition
+Production compose in `infra/infra/compose.yaml` serves the EMR build via nginx with Let's Encrypt SSL.
 
-- Shows documents/clinical notes for the patient
-- Columns: Title, Date, Share
-- **Share button**: Prepares an IPS (International Patient Summary) Bundle and copies it to clipboard as JSON
-- Queries with `_include` to bring in related resources (Patient, entry resources)
+### 8.2 CI/CD
 
-### 12.2 Card: Encounters
+GitHub Actions (`.github/workflows/main.yml`) builds on `v*.*.*` tags: checkout → install → build → Docker multi-arch build → push to `ghcr.io`.
 
-- Shows recent encounters (max 7)
-- Columns: Status, Date (period format), Practitioner, Organization
-- Reuses `getPractitioner` and `getOrganization` from EncountersUberList
+### 8.3 Dockerfile
 
-### 12.3 Card: Immunizations
-
-- Shows recent immunizations (max 7)
-- Columns: Status, Date (occurrenceDateTime), Vaccine (text), Performer
-- Reuses `getPerformers` from ImmunizationsUberList
-
-### 12.4 Card: Observations
-
-- Shows recent observations (max 7)
-- Columns: Status, Date (effectiveDateTime), Code, Value
-- Reuses `getObservationCode` and `getObservationValue` from ObservationsUberList
-
-### 12.5 Card: Procedures
-
-- Shows recent procedures (max 7)
-- Columns: Status, Code
-- Includes fallback display for code (text → coding display)
-
-### 12.6 IPS Bundle Prep (utils.ts)
-
-The `prepareIPSBundle()` function:
-1. Takes a Composition and its related resources bundle
-2. Extracts Patient, Condition, AllergyIntolerance, MedicationStatement, Immunization, Procedure
-3. Builds a FHIR Bundle of type `document`
-4. Sets profile to `http://hl7.org/fhir/uv/ips/StructureDefinition/Bundle-uv-ips`
-5. Generates UUID identifier
-6. Returns the complete Bundle ready for clipboard copy
+Minimal: `FROM node:lts` → `serve -s -n` on port 5000 serving the `build/` directory.
 
 ---
 
-## 13. Analytics System
-
-### 13.1 Overview
-
-The analytics page (`src/containers/Analytics/index.tsx`) provides an interactive immunization dashboard with:
-- Pie chart of immunizations grouped by vaccine code
-- Gender and birth date range filters
-- Drill-down detail on click
-
-### 13.2 Data Query (hooks.ts)
-
-Uses **raw SQL queries** via the Aidbox `/$ql` endpoint:
-
-**Main query** (groups immunizations by vaccine):
-```sql
-SELECT
-  i.resource#>>'{vaccineCode,coding,0,display}' AS title,
-  i.resource#>>'{vaccineCode,coding,0,code}' AS code,
-  COUNT(i.id)
-FROM immunization i
-JOIN patient p ON i.resource#>>'{patient,id}' = p.id
-[WHERE filters]
-GROUP BY title, code
-```
-
-**Detail query** (drills into specific vaccine):
-```sql
-WITH filtered_patients AS (
-  SELECT id FROM patient [WHERE filters]
-)
-SELECT
-  (SELECT COUNT(*) FROM filtered_patients) AS total_patients,
-  (SELECT COUNT(DISTINCT i.resource#>>'{patient,id}')
-   FROM immunization i
-   JOIN filtered_patients fp ON i.resource#>>'{patient,id}' = fp.id
-   WHERE i.resource#>>'{vaccineCode,coding,0,code}' = ?)
-  AS vaccinated_patients
-```
-
-Both queries use **parameterized SQL** (the `?` placeholders) to prevent injection. Parameters are dynamically constructed based on filter state.
-
-### 13.3 Filters
-
-| Filter | Type | Values |
-|---|---|---|
-| Gender | Select (single, clearable) | Male, Female, Other, Unknown |
-| Birth Date | Range picker | Start date → End date |
-
-### 13.4 Visualization
-
-- Uses **Recharts PieChart** with `ResponsiveContainer`
-- Colors: 6-color palette (`#0088FE`, `#00C49F`, `#FFBB28`, `#FF8042`, `#8884D8`, `#82CA9D`)
-- Hover tooltip shows count
-- Click on slice → shows detail table (Total patients vs Vaccinated patients)
-- Legend below chart shows label + terminology code + color indicator
-
----
-
-## 14. SDC (Structured Data Capture)
-
-### 14.1 What is SDC?
-
-FHIR's **Structured Data Capture** (SDC) framework allows dynamic form generation from Questionnaires. Beda EMR uses SDC for all CRUD operations.
-
-### 14.2 The Extract Flow
-
-```
-User fills questionnaire → QuestionnaireResponse
-                              ↓
-                    POST /QuestionnaireResponse/$extract
-                              ↓
-                        Parameters (questionnaire + qr)
-                              ↓
-                    SDC Engine processes FHIRPath Mapping
-                              ↓
-                    Returns extracted Bundle of FHIR resources
-                              ↓
-                    POST / (batch/transaction)
-                              ↓
-                    Resources saved to Aidbox
-```
-
-This flow is implemented in `detail.tsx` in the `sdcExtract` function:
-1. Fetch the questionnaire definition by URL
-2. Call `QuestionnaireResponse/$extract` with the questionnaire and response
-3. Extract the return Bundle from the Parameters response
-4. Post the Bundle to the root endpoint (which handles batch/transaction)
-
-### 14.3 Auto-Save
-
-In the Documents tab, the `PatientDocument` component has `autoSave={true}`, which automatically saves the QuestionnaireResponse as the user fills it in.
-
-### 14.4 Aidbox Forms Builder
-
-Questionnaire creation and editing use the **Aidbox Forms Builder** web component:
-
-```html
-<script src="https://aidbox.fhirlab.net/static/aidbox-forms-builder-webcomponent.js"></script>
-```
-
-Routes:
-- `/questionnaires-ph/aidbox-forms-builder/new` — create new questionnaire
-- `/questionnaires-ph/aidbox-forms-builder/:id/edit` — edit existing questionnaire
-
-### 14.5 SDC Service in Docker
-
-The `sdc` Docker service (`bedasoftware/fhir-sdc:2.1.0a6`) runs alongside Aidbox and handles the `$extract` operation. It depends on Aidbox being healthy.
-
----
-
-## 15. Development Workflow
-
-### 15.1 Initial Setup
+## 9. Development Workflow
 
 ```bash
-# 1. Clone with submodules
-git clone --recurse-submodules git@github.com:beda-software/beda.fhirlab.net.git
-
-# Or if already cloned:
-git submodule update --init
-
-# 2. Copy local config
+git clone --recurse-submodules ...
 cp contrib/emr-config/config.local.js contrib/emr-config/config.js
-
-# 3. Copy environment template
-cp .env.tpl .env
-# Edit .env and add your AIDBOX_LICENSE
-
-# 4. Install dependencies
 yarn install
-
-# 5. Build locales
-yarn compile
-
-# 6. Start backend
-make up        # Docker Compose (Aidbox + PostgreSQL + SDC)
-# Wait for Aidbox to be healthy (check http://localhost:8080)
-
-# 7. Start frontend
-yarn start     # Vite dev server at http://localhost:3000
+yarn start   # Vite dev at http://localhost:3000
 ```
-
-### 15.2 Development Cycle
-
-1. Edit code in `src/` (the customization layer)
-2. Changes are hot-reloaded via Vite (HMR)
-3. For changes to `@beda.software/emr` (in `contrib/fhir-emr/`):
-   ```bash
-   yarn prepare   # Rebuild workspace package
-   ```
-4. For seed data changes: `watch-seeds` auto-syncs to Aidbox
-
-### 15.3 Adding a New Resource Page
-
-To add a new FHIR resource type:
-
-1. **Create container directory** at `src/containers/<Resource>UberList/index.tsx`
-2. **Implement using `ResourceListPage<T>`** pattern:
-   - Set `headerTitle`, `resourceType`, `searchParams` with profile
-   - Define table columns with FHIRPath extractors
-   - Define filters (string, choice, date, reference)
-   - Define actions (questionnaireAction for CRUD)
-3. **Create a Questionnaire** at `resources/seeds/Questionnaire/<resource>-create-connectathon.yaml`
-4. **Create an SDC Mapping** at `resources/seeds/Mapping/<resource>-create-connectathon.yaml`
-5. **Add seed data example** at `resources/seeds/<Resource>/`
-6. **Register route** in `src/main.tsx` (both import and authenticatedRoutes)
-7. **Add menu item** in `menuLayout()` function
-8. **Add i18n strings** to `src/locale/en/messages.po`
-
-### 15.4 Database Changes
-
-There is **no traditional database schema** — all data is FHIR-based. Changes to the data model mean:
-- Creating new FHIR profiles (in the IG)
-- Creating new Questionnaire + Mapping pairs
-- Adding seed data
-
-### 15.5 Building for Production
-
-```bash
-cp contrib/emr-config/config.production.js contrib/emr-config/config.js
-cp index.prod.html index.html
-yarn extract
-yarn compile
-yarn build   # Outputs to build/
-docker build -t beda.fhirlab.net .
-```
-
-### 15.6 Linting & Code Quality
-
-Pre-commit hooks (Husky + lint-staged) run:
-1. `typecheck` — TypeScript compiler check
-2. `lint-staged` — ESLint --fix + Prettier --write on staged files
-
-Manual checks:
-```bash
-yarn lint           # ESLint (max-warnings 0)
-yarn typecheck      # TypeScript
-```
-
-### 15.7 i18n Workflow
-
-```bash
-yarn extract   # Scans source for translatable strings → updates .po files
-# Edit .po files with translations
-yarn compile   # Compiles .po → TypeScript
-```
-
-### 15.8 Storybook
-
-```bash
-yarn storybook   # Dev server at http://localhost:6006
-```
-
-### 15.9 Common Pitfalls
-
-**TS/ESLint import errors**:
-- Use `@beda.software/emr` not relative paths to `contrib/fhir-emr/`
-- Add `type` keyword for type-only imports from `@beda.software/emr/dist/`
-- The ESLint `no-restricted-imports` rule blocks direct imports from `contrib/` directories
 
 ---
 
-## 16. Appendix: Complete File Tree
+## 10. Appendix: Complete File Tree
 
 ```
 beda.fhirlab.net/
-│
-├── .env.tpl                          # Aidbox license template
-├── .eslintignore                     # ESLint ignore rules
-├── .eslintrc.cjs                     # ESLint config (strict, React + TS + import ordering)
-├── .git-blame-ignore-revs            # Revisions to skip in blame
-├── .gitignore
-├── .gitmodules                       # contrib/fhir-emr submodule
-├── .husky/pre-commit                 # typecheck + lint-staged
-├── .lintstagedrc                     # ESLint fix + Prettier on staged
-├── .prettierignore
-├── .prettierrc.json                  # Single quotes, trailing commas, tab width 4
-├── .storybook/
-│   ├── main.ts                       # Storybook config (React Vite, stories location)
-│   └── preview.ts                    # Storybook preview config
-├── OPENSEPC.md                       # THIS FILE
-├── Dockerfile                        # Production: node:lts + serve + build/
-├── Makefile                          # Docker Compose shortcuts (up/down/stop/aidbox)
-├── README.md                         # Project documentation (outdated)
-├── compose.yaml                      # Dev: 7 Docker services
-├── contrib-env.d.ts                  # TypeScript ambient declarations
+├── .env.tpl
+├── .eslintrc.cjs
+├── .gitmodules                     # contrib/fhir-emr submodule
+├── .husky/pre-commit               # typecheck + lint-staged
+├── .opencode/                      # OpenSpec AI tooling
+│   ├── commands/opsx-*.md          # propose, apply, archive, explore
+│   └── skills/openspec-*/SKILL.md
+├── OPENSEPC.md                     # THIS FILE
+├── Dockerfile                      # node:lts + serve
+├── Makefile
+├── README.md
+├── compose.yaml
 ├── contrib/
-│   ├── aidbox-types/                 # @beda.software/aidbox-types (workspace)
-│   │   ├── index.d.ts               # Large FHIR + Aidbox type definitions
-│   │   └── package.json
-│   ├── emr-config/                   # @beda.software/emr-config (workspace)
+│   ├── aidbox-types/               # @beda.software/aidbox-types
+│   ├── emr-config/                 # @beda.software/emr-config
 │   │   ├── config.d.ts
-│   │   ├── config.js                # Active config (copied from env variant)
-│   │   ├── config.local.js          # Local dev: localhost:8080
-│   │   ├── config.dev.js            # Dev: aidbox.fhirlab.net, web-local client
-│   │   ├── config.production.js     # Production: aidbox.fhirlab.net, web client
+│   │   ├── config.js               # Active config
+│   │   ├── config.local.js         # Local: cdr.pheref.fhirlab.net
 │   │   └── package.json
-│   └── fhir-emr/                    # Git submodule (bedasoftware/fhir-emr)
-│                                    # @beda.software/emr workspace package
-│
-├── env/
-│   ├── aidbox                       # Aidbox config (schema validation, terminology, DB)
-│   ├── build-seeds                  # Seed builder env vars
-│   ├── db                           # PostgreSQL creds
-│   ├── ingestion                    # Wearable data ingestion
-│   ├── sdc                          # SDC service config
-│   └── testscript                   # Test runner config
-│
-├── index.html                       # Development HTML entry
-├── index.prod.html                  # Production HTML entry (Sentry CSP, meta tags)
-├── lingui.config.ts                 # Lingui: English only, PO format
-├── package.json                     # Workspace root, scripts
-├── public/                          # Favicons, PWA icons, robots.txt, manifest
-│
-├── resources/
-│   ├── seeds/
-│   │   ├── Patient/                 # patient-single-ex.yaml
-│   │   ├── Practitioner/            # practitioner-single-ex.yaml
-│   │   ├── Organization/            # beda-emr.yaml, organization-single-ex.yaml
-│   │   ├── Encounter/               # encounter-single-ex.yaml
-│   │   ├── Immunization/            # immunization-single-ex.yaml
-│   │   ├── Observation/             # observation-single-ex.yaml
-│   │   ├── Medication/              # medication-single-ex.yaml
-│   │   ├── MedicationStatement/     # medication-statement-single-ex.yaml
-│   │   ├── Procedure/               # procedure-single-ex.yaml
-│   │   ├── Condition/               # condition-single-ex.yaml, ex-1.yaml
-│   │   ├── AllergyIntolerance/      # allergy-single-ex.yaml
-│   │   ├── Location/                # location-single-ex.yaml
-│   │   ├── HealthcareService/       # consultation.yaml, follow-up.yaml
-│   │   ├── Questionnaire/           # 10 questionnaire YAML files
-│   │   ├── Mapping/                 # 10 SDC mapping YAML files
-│   │   ├── Client/                  # web.yaml, sdc-ide.yaml
-│   │   ├── Role/                    # admin.yaml
-│   │   ├── AccessPolicy/            # admin-policy.yaml
-│   │   ├── AidboxQuery/             # Provenance queries
-│   │   └── SDCConfig/               # beda-forms.yaml
-│   ├── ig0/CodeSystem/              # PH Core code systems
-│   ├── ig1/ValueSet/                # PH Core value sets
-│   └── init-bundles/                # Generated (gitignored)
-│
+│   └── fhir-emr/                   # Git submodule (beda-software/fhir-emr)
+├── index.html                      # Dev HTML entry (no aidbox-forms script)
+├── index.prod.html                 # Prod HTML entry
+├── lingu.config.ts
+├── package.json
+├── public/                         # favicons, manifest, robots.txt
 ├── src/
-│   ├── main.tsx                     # Entry point: providers, routes, menu, auth
-│   ├── vite-env.d.ts                # Vite client types
-│   ├── components/
-│   │   └── index.ts                 # Empty (placeholder for custom components)
+│   ├── main.tsx                    # Entry: routes, BaseLayout, mock auth
 │   ├── containers/
-│   │   ├── index.ts                 # Re-exports (empty)
-│   │   ├── Analytics/
-│   │   │   ├── index.tsx            # Pie chart dashboard
-│   │   │   ├── hooks.ts             # SQL queries (useAnalytics, useActiveDataDetails)
-│   │   │   ├── constants.ts         # Gender options, color palette
-│   │   │   └── Analytics.styles.ts  # Styled components
-│   │   ├── EncountersUberList/
-│   │   │   └── index.tsx            # ResourceListPage<Encounter>
-│   │   ├── ImmunizationsUberList /
-│   │   │   └── index.tsx            # ResourceListPage<Immunization>
-│   │   ├── MedicationsUberList/
-│   │   │   └── index.tsx            # ResourceListPage<Medication>
-│   │   ├── ObservationsUberList/
-│   │   │   └── index.tsx            # ResourceListPage<Observation>
-│   │   ├── OrganizationsUberList/
-│   │   │   └── index.tsx            # ResourceListPage<Organization>
-│   │   ├── PatientsUberList/
-│   │   │   ├── index.tsx            # ResourceListPage<Patient>
-│   │   │   ├── detail.tsx           # Patient detail (Overview, Documents, Apps)
-│   │   │   ├── dashboard.tsx        # 5-card dashboard
-│   │   │   └── utils.ts             # IPS Bundle prep, search params
-│   │   ├── PractitionerRolesUberList/
-│   │   │   └── index.tsx            # ResourceListPage<PractitionerRole>
-│   │   ├── PractitionersUberList /
-│   │   │   └── index.tsx            # ResourceListPage<Practitioner>
-│   │   ├── ProceduresUberList/
-│   │   │   └── index.tsx            # ResourceListPage<Procedure>
-│   │   ├── Questionnaire/
-│   │   │   └── list.tsx             # ResourceListPage<Questionnaire>
-│   │   └── SignIn/
-│   │       ├── index.tsx            # OAuth login page
-│   │       └── SignIn.styles.ts     # Custom header styles
-│   ├── locale/
-│   │   └── en/messages.po           # English UI strings
+│   │   ├── index.ts                # Exports
+│   │   ├── types.ts                # ReferralFormData interface
+│   │   ├── PatientList/index.tsx   # ResourceListPage<Patient>
+│   │   ├── PatientDetail/index.tsx # Patient info + encounters + referrals
+│   │   ├── EncounterList/index.tsx # ResourceListPage<Encounter>
+│   │   ├── EncounterNew/index.tsx  # Create encounter form
+│   │   ├── EncounterDetail/index.tsx # Encounter + Conditions + Observations
+│   │   ├── PractitionerList/index.tsx # ResourceListPage<Practitioner>
+│   │   ├── OrganizationList/index.tsx # ResourceListPage<Organization>
+│   │   ├── EReferralNew/
+│   │   │   ├── index.tsx            # 5-step form
+│   │   │   └── bundleBuilder.ts     # 21-entry transaction bundle generator
+│   │   ├── EReferralList/index.tsx  # Referral table + filters
+│   │   └── EReferralDetail/index.tsx # Referral + Task timeline
 │   ├── services/
-│   │   └── i18n.ts                  # Lingui setup
-│   └── stories/                     # Default Storybook stories
-│
-├── tsconfig.json                    # TS strict, ES2020, ESNext modules
-├── tsconfig.node.json               # TS for Vite/Node
-├── vite.config.ts                   # Vite: React + styled-components Babel plugin
+│   │   ├── fhir.ts                 # FHIR API helpers
+│   │   └── i18n.ts                 # Lingui setup
+│   └── locale/en/messages.po
+├── tsconfig.json
+├── vite.config.ts
 └── yarn.lock
 ```
 
 ---
 
-## 17. Appendix: Change Log
+## 11. Change Log
 
 | Date | Change | Description |
 |---|---|---|
 | 2026-06-25 | Initial OpenSpec | Created this document |
+| 2026-06-25 | Aidbox → FHIR CDR | Replaced Aidbox endpoint with standard FHIR, stripped OAuth/SDC/Analytics |
+| 2026-06-25 | eReferral form | 5-step form + 21-entry bundle builder matching ExampleERefSubmissionBundle |
+| 2026-06-25 | Encounter CRUD | List, create, detail pages for encounters with linked clinical data |
+| 2026-06-25 | Practitioner/Org pages | ResourceListPage for both with enriched columns and filters |
+| 2026-06-25 | Sidebar icons | PatientsIcon, EncountersIcon, PractitionersIcon, OrganizationsIcon, QuestionnairesIcon |
+| 2026-06-25 | Bundle POST | Changed from conditional PUT to POST to avoid "multiple matches" errors |
+| 2026-06-25 | Pagination | `_total=accurate` on all list pages, Bundle `next` link following for referrals |
+| 2026-06-25 | Requester/performer filter | Two search input fields on referrals page for client-side filtering |
+| 2026-06-25 | Fill Test Data | Temporary button for pre-filling form with Ana Reyes test data |
 
 ---
 
-*This document is an OpenSpec specification. It describes the project in natural language for both human readers and AI assistants. When implementing changes, reference the relevant sections to understand the architecture and patterns.*
+*This document is an OpenSpec specification. It describes the project in natural language for both human readers and AI assistants.*
