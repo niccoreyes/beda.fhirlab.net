@@ -10,7 +10,8 @@ export function EncounterList() {
         <ResourceListPage<Encounter>
             headerTitle={t`Encounters`}
             resourceType="Encounter"
-            searchParams={{ _count: 50, _total: 'accurate' }}
+            searchParams={{ _total: 'accurate', _count: 50 }}
+            tableProps={{ scroll: { x: 'max-content' } }}
             getTableColumns={() => [
                 {
                     title: <Trans>Date</Trans>,

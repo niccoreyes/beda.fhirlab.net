@@ -14,7 +14,8 @@ export function PractitionerList() {
         <ResourceListPage<Practitioner>
             headerTitle={t`Practitioners`}
             resourceType="Practitioner"
-            searchParams={{ _count: 50, _total: 'accurate' }}
+            searchParams={{ _total: 'accurate', _count: 50 }}
+            tableProps={{ scroll: { x: 'max-content' } }}
             getTableColumns={() => [
                 {
                     title: <Trans>Name</Trans>,

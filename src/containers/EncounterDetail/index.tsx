@@ -85,8 +85,9 @@ export function EncounterDetail() {
 
             {observations.length > 0 && (
                 <Card title="Vital Signs & Observations (from this encounter)">
-                    <Table
-                        dataSource={observations}
+                    <div style={{ overflowX: 'auto' }}>
+                        <Table
+                            dataSource={observations}
                         columns={[
                             { title: 'Code', key: 'code', render: (_: any, r: Observation) => r.code?.coding?.[0]?.display || r.code?.text || '-' },
                             { title: 'Value', key: 'value', render: (_: any, r: Observation) => {
@@ -99,6 +100,7 @@ export function EncounterDetail() {
                         pagination={false}
                         size="small"
                     />
+                    </div>
                 </Card>
             )}
         </PageContainer>

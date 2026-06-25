@@ -18,6 +18,7 @@ export function PatientList() {
             headerTitle={t`Patients`}
             resourceType="Patient"
             searchParams={{ _total: 'accurate', _count: 50 }}
+            tableProps={{ scroll: { x: 'max-content' } }}
             getTableColumns={() => [
                 {
                     title: <Trans>Name</Trans>,

@@ -105,23 +105,27 @@ export function PatientDetail() {
             </Card>
 
             <Card title="Available Encounters" style={{ marginBottom: 16 }}>
-                <Table
-                    dataSource={encounters}
-                    columns={encounterColumns}
-                    rowKey="id"
-                    pagination={false}
-                    size="small"
-                />
+                <div style={{ overflowX: 'auto' }}>
+                    <Table
+                        dataSource={encounters}
+                        columns={encounterColumns}
+                        rowKey="id"
+                        pagination={false}
+                        size="small"
+                    />
+                </div>
             </Card>
 
             <Card title="Referral History">
-                <Table
-                    dataSource={referrals}
-                    columns={referralColumns}
-                    rowKey="id"
-                    pagination={false}
-                    size="small"
-                />
+                <div style={{ overflowX: 'auto' }}>
+                    <Table
+                        dataSource={referrals}
+                        columns={referralColumns}
+                        rowKey="id"
+                        pagination={false}
+                        size="small"
+                    />
+                </div>
             </Card>
         </PageContainer>
     );

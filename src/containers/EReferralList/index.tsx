@@ -230,6 +230,7 @@ export function EReferralList() {
                 rowKey="key"
                 loading={loading}
                 pagination={{ pageSize: 50, showTotal: (t: number) => `${t} referrals` }}
+                scroll={{ x: 'max-content' }}
                 size="middle"
             />
         </PageContainer>
