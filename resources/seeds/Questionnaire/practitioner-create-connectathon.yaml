@@ -90,7 +90,6 @@ item:
         - code: phoneWidget
     initialExpression:
       language: text/fhirpath
-      language: text/fhirpath
       expression: >-
         iif(
           %Practitioner.telecom.where(system='phone').value.exists(),
@@ -121,8 +120,7 @@ item:
           display: Filipino
     initialExpression:
       language: text/fhirpath
-      expression: |-
-        %Questionnaire.repeat(item).where(linkId='communication-language').answerOption.valueCoding.where(code in %Practitioner.communication.coding.code)
+      expression: "%Practitioner.communication.coding"
 
   - linkId: address-group
     text: Address

@@ -65,7 +65,27 @@ item:
   - linkId: status-reason
     text: Status reason
     type: choice
-    answerValueSet: http://hl7.org/fhir/ValueSet/immunization-status-reason
+    enableWhen:
+      - answerCoding:
+          code: not-done
+          system: http://hl7.org/fhir/event-status
+        operator: "="
+        question: status
+    # TODO: uncomment answerValueSet when tx.fhirlab.net expands immunization-status-reason reliably
+    # answerValueSet: http://hl7.org/fhir/ValueSet/immunization-status-reason
+    answerOption:
+      - valueCoding:
+          system: http://terminology.hl7.org/CodeSystem/v3-ActReason
+          code: MEDPREC
+          display: Medical precaution
+      - valueCoding:
+          system: http://terminology.hl7.org/CodeSystem/v3-ActReason
+          code: PATOBJ
+          display: Patient objection
+      - valueCoding:
+          system: http://terminology.hl7.org/CodeSystem/v3-ActReason
+          code: OSTOCK
+          display: Product out of stock
     initialExpression:
       language: text/fhirpath
       expression: "%Immunization.statusReason.coding.first()"
@@ -225,7 +245,17 @@ item:
     text: Reason
     type: choice
     repeats: true
-    answerValueSet: http://hl7.org/fhir/ValueSet/immunization-reason
+    # TODO: uncomment answerValueSet when tx.fhirlab.net expands immunization-reason reliably
+    # answerValueSet: http://hl7.org/fhir/ValueSet/immunization-reason
+    answerOption:
+      - valueCoding:
+          system: http://snomed.info/sct
+          code: "429060002"
+          display: Procedure to meet occupational requirement
+      - valueCoding:
+          system: http://snomed.info/sct
+          code: "14740000"
+          display: Fear of needle
     initialExpression:
       language: text/fhirpath
       expression: "%Immunization.reasonCode.coding"

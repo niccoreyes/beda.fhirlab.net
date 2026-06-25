@@ -69,6 +69,11 @@ reasonCode:
         code: '429060002'
         display: Procedure to meet occupational requirement
     text: Procedure to meet occupational requirement
+  - coding:
+      - system: http://snomed.info/sct
+        code: '14740000'
+        display: Fear of needle
+    text: Fear of needle
 subpotentReason:
   - coding:
       - system: http://hl7.org/fhir/immunization-subpotent-reason
